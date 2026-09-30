@@ -10,10 +10,10 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
   - Incorporación de la Sección 5: "Patrón CRUD Asíncrono Oficial de CasaPRO".
   - Definición de la tríada arquitectónica: `LISTADO + DATATABLE + MODAL ALINA + PRISTINEJS + FETCH/JSON + SINCRONIZACIÓN ASÍNCRONA`.
   - Erradicación explícita del flujo sincrónico arcaico (`crear.php -> guardar -> redirect -> listado`).
-  - Protocolo para Creación (limpieza, reseteo PristineJS, foco), Edición (población asíncrona, spinner) y Baja Lógica/Anulación (cero `DELETE` físico).
+  - Protocolo para Creación (limpieza, reseteo PristineJS, foco), Edición (población asíncrona, spinner) y Baja Lógica/Anulación (inmutabilidad por criterio de dominio; DELETE físico restringido a datos temporales descartables).
   - Confirmación interactiva obligatoria con SweetAlert2 temático de Alina.
   - Sincronización DataTables con `tabla.ajax.reload(null, false)` preservando página, búsqueda con debounce (350-400 ms), orden y longitud de visualización. Manejo de retroceso de página si se vacía la página actual tras baja lógica.
-  - Política de Modal por defecto para CRUDs administrativos estándar vs justificación formal obligatoria en ADR para procesos multietapa o de alto riesgo financiero.
+  - Política de Modal por defecto para CRUDs administrativos estándar vs justificación proporcional en especificación de microfase para procesos multietapa (reservando ADRs para decisiones arquitectónicas relevantes).
   - Prevención de doble envío mediante bloqueo de botón (`disabled`), spinner Alina (`spinner-border spinner-border-sm`) y neutralización de Enter durante peticiones en curso.
   - Manejo seguro de errores: ante error HTTP 422 de backend, el modal permanece abierto con los valores ingresados intactos y mapeo de errores en inputs; ante HTTP 500, mensaje genérico seguro sin trazas.
 - **Estándares Frontend Actualizados (`docs/03-CONVENCIONES.md`):**

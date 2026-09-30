@@ -126,7 +126,7 @@ flowchart TD
    - Al recibir HTTP 200: se cierra el modal y se actualiza la DataTable asíncronamente manteniendo la página y el estado de visualización actual.
 
 ### 4. Flujo Oficial: ELIMINAR / DESACTIVAR / ANULAR
-1. **La acción "Eliminar" no es DELETE físico:** En CasaPRO rige el principio de inmutabilidad operativa y financiera. La opción visual "Eliminar" representa según el contexto del dominio: **Desactivar**, **Anular**, **Archivar** o **Baja Lógica**.
+1. **La acción "Eliminar" y el Criterio de Dominio:** En CasaPRO rige el principio de inmutabilidad en entidades de identidad (Personas), contractuales, comerciales y financieras, donde la opción visual "Eliminar" representa según el contexto del dominio: **Desactivar**, **Anular**, **Archivar** o **Baja Lógica** (con auditoría forense). El uso de sentencias `DELETE` físico queda estrictamente restringido a datos temporales, cachés o borradores descartables cuando el modelo de dominio lo justifique explícitamente.
 2. **Confirmación Visual Obligatoria:** Toda acción destructiva o cambio de estado sensible requiere confirmación previa interactiva utilizando **SweetAlert2** oficial de Alina (`assets/vendor/sweetalert/sweetalert.js`).
 3. Al confirmar el usuario:
    - Se envía la petición asíncrona (`PATCH /api/{entidad}/{id}/estado` o `POST /api/{entidad}/{id}/anular`) con motivo auditable y token CSRF.
