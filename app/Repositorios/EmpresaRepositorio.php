@@ -220,4 +220,154 @@ class EmpresaRepositorio
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function contarTotal(?PDO $conexion = null): int
+    {
+        $conn = $this->obtenerConexion($conexion);
+        $sql = "SELECT COUNT(*) FROM `empresas`";
+        return (int) $conn->query($sql)->fetchColumn();
+    }
+
+    public function contarFiltrados(array $criterios, ?PDO $conexion = null): int
+    {
+        $conn = $this->obtenerConexion($conexion);
+        $condiciones = [];
+        $params = [];
+
+        $this->construirClausulaWhereDataTables($criterios, $condiciones, $params);
+
+        $sql = "SELECT COUNT(DISTINCT e.`id`)
+                FROM `empresas` e
+                INNER JOIN `personas` p ON p.`id` = e.`persona_id`
+                LEFT JOIN `persona_juridica` pj ON pj.`persona_id` = p.`id`
+                LEFT JOIN `persona_documentos` pd ON pd.`persona_id` = p.`id` AND pd.`es_principal` = 1 AND pd.`estado` = 'ACTIVO'";
+
+        if (!empty($condiciones)) {
+            $sql .= " WHERE " . implode(' AND ', $condiciones);
+        }
+
+        $stmt = $conn->prepare($sql);
+        foreach ($params as $clave => $valor) {
+            $stmt->bindValue($clave, $valor, is_int($valor) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function obtenerListadoDataTables(array $criterios, ?PDO $conexion = null): array
+    {
+        $conn = $this->obtenerConexion($conexion);
+        $condiciones = [];
+        $params = [];
+
+        $this->construirClausulaWhereDataTables($criterios, $condiciones, $params);
+
+        $columnasPermitidas = [
+            'codigo'       => 'e.`codigo`',
+            'nombre_corto' => 'e.`nombre_corto`',
+            'razon_social' => 'pj.`razon_social`',
+            'ruc'          => 'pd.`numero_documento`',
+            'estado'       => 'e.`estado`',
+            'creado_en'    => 'e.`creado_en`'
+        ];
+
+        $columnaOrden = $columnasPermitidas[$criterios['order_by'] ?? ''] ?? 'e.`id`';
+        $direccionOrden = strtoupper($criterios['order_dir'] ?? 'DESC') === 'ASC' ? 'ASC' : 'DESC';
+        $limite = max(1, (int) ($criterios['length'] ?? 10));
+        $inicio = max(0, (int) ($criterios['start'] ?? 0));
+
+        $sql = "SELECT e.`id`,
+                       e.`persona_id`,
+                       e.`codigo`,
+                       e.`nombre_corto`,
+                       e.`estado`,
+                       e.`creado_en`,
+                       e.`actualizado_en`,
+                       pj.`razon_social`,
+                       pj.`nombre_comercial`,
+                       pd.`numero_documento` AS `ruc`
+                FROM `empresas` e
+                INNER JOIN `personas` p ON p.`id` = e.`persona_id`
+                LEFT JOIN `persona_juridica` pj ON pj.`persona_id` = p.`id`
+                LEFT JOIN `persona_documentos` pd ON pd.`persona_id` = p.`id` AND pd.`es_principal` = 1 AND pd.`estado` = 'ACTIVO'";
+
+        if (!empty($condiciones)) {
+            $sql .= " WHERE " . implode(' AND ', $condiciones);
+        }
+
+        $sql .= " ORDER BY {$columnaOrden} {$direccionOrden} LIMIT :limite OFFSET :inicio";
+
+        $stmt = $conn->prepare($sql);
+        foreach ($params as $clave => $valor) {
+            $stmt->bindValue($clave, $valor, is_int($valor) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':inicio', $inicio, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function construirClausulaWhereDataTables(array $criterios, array &$condiciones, array &$params): void
+    {
+        $estado = strtoupper(trim((string) ($criterios['estado'] ?? '')));
+        if (in_array($estado, ['ACTIVO', 'INACTIVO'], true)) {
+            $condiciones[] = "e.`estado` = :filtro_estado";
+            $params[':filtro_estado'] = $estado;
+        }
+
+        $busqueda = trim((string) ($criterios['search'] ?? ''));
+        if ($busqueda !== '') {
+            $condiciones[] = "(
+                e.`codigo` LIKE :b1 OR
+                e.`nombre_corto` LIKE :b2 OR
+                pj.`razon_social` LIKE :b3 OR
+                pj.`nombre_comercial` LIKE :b4 OR
+                pd.`numero_documento` LIKE :b5
+            )";
+            $like = '%' . $busqueda . '%';
+            $params[':b1'] = $like;
+            $params[':b2'] = $like;
+            $params[':b3'] = $like;
+            $params[':b4'] = $like;
+            $params[':b5'] = $like;
+        }
+    }
+
+    public function obtenerPersonasJuridicasDisponibles(string $busqueda = '', int $limite = 20, ?PDO $conexion = null): array
+    {
+        $conn = $this->obtenerConexion($conexion);
+        $termino = trim($busqueda);
+
+        $sql = "SELECT p.`id`,
+                       pj.`razon_social`,
+                       pj.`nombre_comercial`,
+                       pd.`numero_documento` AS `ruc`
+                FROM `personas` p
+                INNER JOIN `persona_juridica` pj ON pj.`persona_id` = p.`id`
+                LEFT JOIN `persona_documentos` pd ON pd.`persona_id` = p.`id` AND pd.`es_principal` = 1 AND pd.`estado` = 'ACTIVO'
+                WHERE p.`tipo_persona` = 'JURIDICA'
+                  AND p.`estado` = 'ACTIVO'
+                  AND p.`id` NOT IN (SELECT `persona_id` FROM `empresas`)";
+
+        $params = [];
+        if ($termino !== '') {
+            $sql .= " AND (pj.`razon_social` LIKE :b1 OR pj.`nombre_comercial` LIKE :b2 OR pd.`numero_documento` LIKE :b3)";
+            $like = '%' . $termino . '%';
+            $params[':b1'] = $like;
+            $params[':b2'] = $like;
+            $params[':b3'] = $like;
+        }
+
+        $sql .= " ORDER BY pj.`razon_social` ASC LIMIT :limite";
+
+        $stmt = $conn->prepare($sql);
+        foreach ($params as $clave => $valor) {
+            $stmt->bindValue($clave, $valor, PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':limite', max(1, min(100, $limite)), PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

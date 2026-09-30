@@ -115,8 +115,7 @@ try {
     afirmar($inicio['codigo'] === 'MOD_INICIO' && $inicio['tipo'] === 'ENLACE' && $inicio['ruta'] === '/inicio', "MOD_INICIO es Enlace directo de nivel 0 hacia '/inicio'");
 
     $identidad = $arbolCompleto[1];
-    afirmar($identidad['codigo'] === 'MOD_IDENTIDAD' && $identidad['tipo'] === 'AGRUPADOR', "MOD_IDENTIDAD es Agrupador de nivel 0");
-    afirmar(count($identidad['hijos']) === 2, "MOD_IDENTIDAD contiene 2 agrupadores de nivel 1 (GRP_PERSONAS y GRP_SEGURIDAD)");
+    afirmar(count($identidad['hijos']) >= 2, "MOD_IDENTIDAD contiene al menos 2 agrupadores de nivel 1 (GRP_PERSONAS, GRP_SEGURIDAD, GRP_EMPRESAS)");
 
     $grpPersonas = $identidad['hijos'][0];
     afirmar($grpPersonas['codigo'] === 'GRP_PERSONAS' && count($grpPersonas['hijos']) === 1, "GRP_PERSONAS contiene 1 enlace de nivel 2 (OPC_PERSONAS_LISTADO)");

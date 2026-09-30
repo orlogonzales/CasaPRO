@@ -451,6 +451,10 @@ echo "--- BLOQUE 9: Sincronización de Roles, Jerarquía y Anti-Orfandad ---\n";
 // Crear un rol secundario para pruebas si no existe
 $stmtRolSec = $conexion->query("SELECT id FROM `roles` WHERE `codigo` != 'SUPERADMIN' AND `estado` = 'ACTIVO' LIMIT 1");
 $rolSecId = (int) $stmtRolSec->fetchColumn();
+if ($rolSecId === 0) {
+    $conexion->exec("INSERT INTO `roles` (`codigo`, `nombre`, `descripcion`, `es_sistema`, `estado`) VALUES ('OPERADOR_TEST', 'Operador de Pruebas', 'Rol secundario para pruebas', 0, 'ACTIVO')");
+    $rolSecId = (int) $conexion->lastInsertId();
+}
 
 // Sincronizar roles agregando rol secundario
 $dtoSyncRoles = new SincronizarRolesDTO(['roles' => [$rolAdminId, $rolSecId]]);

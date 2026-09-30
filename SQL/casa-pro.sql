@@ -2816,6 +2816,8 @@ INSERT INTO `menu_opciones` (`id`, `padre_id`, `tipo`, `codigo`, `etiqueta`, `ru
 (4, 2, 'AGRUPADOR', 'GRP_SEGURIDAD', 'Seguridad y Accesos', NULL, NULL, 2, NULL, 'ACTIVO', 1),
 (5, 3, 'ENLACE', 'OPC_PERSONAS_LISTADO', 'Directorio de Personas', 'personas', NULL, 1, 1, 'ACTIVO', 1),
 (6, 4, 'ENLACE', 'OPC_USUARIOS_LISTADO', 'Usuarios y Accesos', 'usuarios', NULL, 1, 6, 'ACTIVO', 1),
-(7, 4, 'ENLACE', 'OPC_MENU_LISTADO', 'Gestión de Menú', 'menu', NULL, 2, 13, 'ACTIVO', 1);
+(7, 4, 'ENLACE', 'OPC_MENU_LISTADO', 'Gestión de Menú', 'menu', NULL, 2, 13, 'ACTIVO', 1),
+(8, 2, 'AGRUPADOR', 'GRP_EMPRESAS', 'Estructura Corporativa', NULL, NULL, 3, 19, 'ACTIVO', 1),
+(9, 8, 'ENLACE', 'OPC_EMPRESAS_LISTADO', 'Empresas', 'empresas', 'fa-solid fa-building', 1, 19, 'ACTIVO', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

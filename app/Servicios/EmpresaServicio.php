@@ -324,4 +324,40 @@ class EmpresaServicio
     {
         return $this->empresaRepositorio->listarTodas($filtroEstado);
     }
+
+    public function obtenerListadoDataTables(array $criterios): array
+    {
+        $draw = (int) ($criterios['draw'] ?? 1);
+        $total = $this->empresaRepositorio->contarTotal();
+        $filtrados = $this->empresaRepositorio->contarFiltrados($criterios);
+        $datos = $this->empresaRepositorio->obtenerListadoDataTables($criterios);
+
+        return [
+            'draw'            => $draw,
+            'recordsTotal'    => $total,
+            'recordsFiltered' => $filtrados,
+            'data'            => $datos
+        ];
+    }
+
+    public function obtenerPersonasJuridicasDisponibles(string $busqueda = '', int $limite = 20): array
+    {
+        return $this->empresaRepositorio->obtenerPersonasJuridicasDisponibles($busqueda, $limite);
+    }
+
+    public function obtenerDetalleCompleto(int $id): ?array
+    {
+        $empresa = $this->empresaRepositorio->buscarPorId($id);
+        if ($empresa === null) {
+            return null;
+        }
+
+        $personaId = (int) ($empresa['persona_id'] ?? 0);
+        $detallePersona = $personaId > 0 ? $this->personaRepositorio->obtenerDetalleCompleto360($personaId) : null;
+
+        return [
+            'empresa'         => $empresa,
+            'detalle_persona' => $detallePersona
+        ];
+    }
 }

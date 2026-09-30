@@ -76,7 +76,18 @@ flowchart TD
   - Inmutabilidad y cero DELETE físico en BD: bajas lógicas mediante conmutación de estado (`ACTIVO`/`INACTIVO`), `revocado_por`, `revocado_en`, trazabilidad de actores vinculada a `actores(id)` con `ON DELETE RESTRICT`.
   - Incremento selectivo de `version_autorizacion` a nivel de usuario individual ante asignación, revocación o reactivación; invalidación en memoria de caché de autorización.
   - 4 Privilegios de catálogo (`asignaciones.ver`, `asignaciones.crear`, `asignaciones.editar`, `asignaciones.revocar`) vinculados a `SUPERADMIN` (`mb-fase2b-asignaciones-scopes`).
-- **Microfase 2C (Pendiente):** Administración de Empresas: Módulo web `/empresas`, DataTables server-side, modales Alina, carga documental de logo y auditoría forense.
+- **Microfase 2C (Cerrada):** Administración Web de Empresas:
+  - Módulo web `/empresas` basado en Alina Bootstrap 5 (`blank.html` + `data_table.html` + `modals.html`).
+  - DataTables server-side con adaptador `window.fetch()` nativo, ordenamiento seguro por whitelist y búsqueda multi-campo.
+  - Migración `000012` (`2026_09_30_000012_sembrar_menu_empresas.sql`): siembra de nodos `GRP_EMPRESAS` (ID 8) y `OPC_EMPRESAS_LISTADO` (ID 9) en `menu_opciones` vinculados a `empresas.ver` sin IDs mágicos. Siguiente ranura libre: `000013`.
+  - Modal de alta dual con pestañas: Modalidad vinculada (Select2 asistido sobre `/api/empresas/personas-juridicas-disponibles`) y Modalidad orquestada (contrato integral `CrearPersonaDTO` con RUC, SUNAT asistido, Domicilio Fiscal con cascada UBIGEO de 3 niveles, contactos institucionales y rollback transaccional total ante fallos).
+  - Modal de edición inmutable: `persona_id` y `codigo` bloqueados/inmutables por gobernanza; mutación exclusiva de `nombre_corto`.
+  - Conmutación asíncrona de estado mediante PATCH `/api/empresas/{id}/estado` con diálogo de confirmación SweetAlert2.
+  - Ficha 360° veraz sustentada en el padrón central (datos de empresa, identidad jurídica, domicilios, contactos y representantes legales; cero campos inventados).
+  - Cero `location.reload()` / `window.location.reload()`, recarga de DataTables vía `tabla.ajax.reload(null, false)`.
+  - Cero llamadas a `$.ajax()` en código propio de CasaPRO (jQuery exclusivo para plugins DataTables/Select2 de Alina).
+  - Cero métodos ni rutas DELETE físicas (inmutabilidad empresarial y ciclo de vida por estado).
+  - Trazabilidad y auditoría forense append-only con Actor USER real (`mb-fase2c-administracion-empresas`).
 - **Microfase 2D (Pendiente):** Selector Corporativo: Selector interactivo en topbar Alina, empresa activa en sesión, cambio en caliente sin relogin y recálculo dinámico de contexto.
 
 ### Fase 3 — Catastro, Lotes y Módulo GIS

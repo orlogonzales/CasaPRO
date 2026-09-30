@@ -8,6 +8,7 @@ use App\Controladores\PersonaControlador;
 use App\Controladores\AutenticacionControlador;
 use App\Controladores\UsuarioControlador;
 use App\Controladores\MenuControlador;
+use App\Controladores\EmpresaControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
 
@@ -257,6 +258,54 @@ return function (Enrutador $enrutador): void {
         '/api/menu/{id}',
         [MenuControlador::class, 'eliminar'],
         [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.eliminar')]
+    );
+
+    // -------------------------------------------------------------------------
+    // Vistas y Pantallas del Módulo de Empresas (Microfase 2C)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/empresas',
+        [EmpresaControlador::class, 'index'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.ver')]
+    );
+
+    // -------------------------------------------------------------------------
+    // API REST de Administración de Empresas (Microfase 2C)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/api/empresas',
+        [EmpresaControlador::class, 'listar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.ver')]
+    );
+
+    $enrutador->get(
+        '/api/empresas/personas-juridicas-disponibles',
+        [EmpresaControlador::class, 'personasJuridicasDisponibles'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.crear')]
+    );
+
+    $enrutador->get(
+        '/api/empresas/{id}',
+        [EmpresaControlador::class, 'detalle'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.ver')]
+    );
+
+    $enrutador->post(
+        '/api/empresas',
+        [EmpresaControlador::class, 'crear'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.crear')]
+    );
+
+    $enrutador->put(
+        '/api/empresas/{id}',
+        [EmpresaControlador::class, 'actualizar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.editar')]
+    );
+
+    $enrutador->patch(
+        '/api/empresas/{id}/estado',
+        [EmpresaControlador::class, 'cambiarEstado'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.cambiar_estado')]
     );
 };
 

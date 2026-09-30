@@ -2,6 +2,58 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 2C: Administración Web de Empresas] — 2026-09-30
+
+### Añadido
+- **Migración DML 000012 y Menú Corporativo (`2026_09_30_000012_sembrar_menu_empresas.sql`):**
+  - Siembra determinista sin IDs mágicos en `menu_opciones` para el módulo de empresas bajo `MOD_IDENTIDAD`.
+  - Agrupador `GRP_EMPRESAS` (ID 8) y enlace `OPC_EMPRESAS_LISTADO` (ID 9, ruta `empresas`, icono `fa-solid fa-building`).
+  - Vinculación canónica con `privilegio_id = (SELECT id FROM privilegios WHERE codigo = 'empresas.ver')`.
+  - Ranura `000012` consumida formalmente. Siguiente ranura libre soberana: `000013`.
+  - Sincronización estricta en `SQL/casa-pro.sql` (Gate SQL Camino A == Camino B: 28 tablas, 239 columnas, 122 índices, 34 FKs, 12 migraciones idempotentes).
+- **Controlador y Rutas Web y API (`EmpresaControlador`, `config/rutas.php`):**
+  - Ruta web `GET /empresas` protegida con `AutenticacionMiddleware` y `AutorizacionMiddleware::exigir('empresas.ver')`.
+  - Endpoints REST protegidos:
+    - `GET /api/empresas` (DataTables server-side con búsqueda, paginación y filtros).
+    - `GET /api/empresas/personas-juridicas-disponibles` (Select2 para personas jurídicas activas no vinculadas).
+    - `GET /api/empresas/{id}` (Ficha 360° integral).
+    - `POST /api/empresas` (Alta vinculada u orquestada de empresas con DTO `CrearEmpresaDTO`).
+    - `PUT /api/empresas/{id}` (Edición inmutable de `nombre_corto` con DTO `ActualizarEmpresaDTO`).
+    - `PATCH /api/empresas/{id}/estado` (Conmutación de estado con DTO `CambiarEstadoEmpresaDTO`).
+- **Repositorio y Servicio de Dominio (`EmpresaRepositorio`, `EmpresaServicio`):**
+  - `contarTotal()`, `contarFiltrados()`, `obtenerListadoDataTables()` con whitelist estricta de ordenamiento y búsqueda multi-campo (código, RUC, razón social, nombre comercial, nombre corto).
+  - `obtenerPersonasJuridicasDisponibles()` con filtro dinámico y límite seguro.
+  - `obtenerDetalleCompleto()` integrando los datos de empresa y la ficha 360° del padrón central (`PersonaRepositorio::obtenerDetalleCompleto360`).
+- **Vista Web Alineada con Alina Bootstrap 5 (`app/Vistas/modulos/empresas/index.php`):**
+  - Basada en `blank.html`, `data_table.html` y `modals.html` de Alina.
+  - Tabla principal `#tablaEmpresas` con atributos `data-api-*` y token CSRF.
+  - Barra de filtros rápidos por estado (`ACTIVO` / `INACTIVO`).
+  - Modal de alta `#modalCrearEmpresa` (`modal-lg` scrollable) con pestañas duales:
+    - Pestaña 1: Vinculación de Persona Jurídica existente con Select2 asistido y preview de datos civiles.
+    - Pestaña 2: Alta orquestada con contrato integral de `CrearPersonaDTO` (RUC, botón SUNAT asistido, razón social, nombre comercial, fecha constitución, objeto social, domicilio fiscal con cascada UBIGEO de 3 niveles y contactos institucionales).
+  - Modal de edición inmutable `#modalEditarEmpresa`: `persona_id`, `codigo` y RUC bloqueados/readonly; solo `nombre_corto` editable.
+  - Modal de Ficha 360° `#modalFichaEmpresa`: navegación por pestañas (Empresa, Identidad Jurídica, Domicilios, Contactos y Representantes Legales).
+- **Módulo JavaScript Vanilla ES6+ (`public/assets/js/modulos/empresas/gestion-empresas.js`):**
+  - Encapsulado bajo el namespace global `window.CasaProEmpresas`.
+  - Adaptador asíncrono para DataTables server-side mediante `window.fetch()` nativo.
+  - Cero llamadas a `location.reload()` / `window.location.reload()`. Todas las mutaciones son 100% asíncronas con refresco vía `tabla.ajax.reload(null, false)` conservando página y orden.
+  - Cero llamadas a `$.ajax()`, `$.get()`, `$.post()`, `$.getJSON()` en código propio (jQuery exclusivo para vendor DataTables y Select2).
+  - Select2 configurado con `dropdownParent: $('#modalCrearEmpresa')` garantizando foco correcto dentro de modales.
+  - Cascada dinámica UBIGEO conectada a endpoints `/api/ubigeo/provincias` y `/api/ubigeo/distritos`.
+  - Integración con consulta asistida SUNAT (`/api/personas/consultar-documento`).
+  - Notificaciones y alertas estandarizadas con SweetAlert2 (`Swal.fire`).
+  - Formateo de código corporativo a mayúsculas y máscara numérica en RUC.
+- **Inmutabilidad y Cero DELETE Físico:**
+  - `persona_id` y `codigo` inmutables tras su creación (rechazo con HTTP 422 ante cualquier intento de alteración).
+  - Cero métodos de eliminación física (`eliminar`, `destroy`, `delete`) en controlador y servicio.
+  - Cero rutas HTTP DELETE asociadas a empresas en el enrutador.
+- **Auditoría Forense Append-Only:**
+  - Registro de eventos `CREAR`, `ACTUALIZAR` y `CAMBIAR_ESTADO` en la tabla `auditorias` con Actor USER real del operador en sesión.
+- **Suite de Pruebas Automatizadas 2C (`tests/verificar_administracion_empresas_2c.php`):**
+  - 87 pruebas automatizadas cubriendo los 11 bloques normativos de la microfase (100% PASS).
+
+---
+
 ## [Microfase 2B: Asignaciones Usuario ↔ Empresa y Scopes Territoriales] — 2026-09-30
 
 ### Añadido
