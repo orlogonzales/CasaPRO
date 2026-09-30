@@ -10,6 +10,13 @@ namespace App\Core;
 class Enrutador
 {
     private array $rutas = [];
+    private array $middlewaresGlobales = [];
+
+    public function agregarMiddlewareGlobal(object|string $middleware): self
+    {
+        $this->middlewaresGlobales[] = $middleware;
+        return $this;
+    }
 
     public function agregar(string $metodo, string $ruta, array|callable $manejador, array $middlewares = []): void
     {
@@ -50,7 +57,7 @@ class Enrutador
     /**
      * Despacha la petición actual buscando coincidencia en la tabla de rutas.
      */
-    public function despachar(Peticion $peticion, Respuesta $respuesta): void
+    public function despachar(Peticion $peticion, Respuesta $respuesta, ?ContextoPeticion $contexto = null): void
     {
         $metodoPeticion = $peticion->obtenerMetodo();
         $metodoEfectivo = ($metodoPeticion === 'HEAD') ? 'GET' : $metodoPeticion;
@@ -66,6 +73,18 @@ class Enrutador
             if (preg_match($patronRegex, $rutaPeticion, $coincidencias)) {
                 // Extraer parámetros nombrados
                 $parametros = array_filter($coincidencias, '\is_string', ARRAY_FILTER_USE_KEY);
+
+                // Ejecutar middlewares globales
+                if (!$this->ejecutarMiddlewares($this->middlewaresGlobales, $peticion, $respuesta, $contexto)) {
+                    return;
+                }
+
+                // Ejecutar middlewares específicos de la ruta
+                if (!empty($entrada['middlewares'])) {
+                    if (!$this->ejecutarMiddlewares($entrada['middlewares'], $peticion, $respuesta, $contexto)) {
+                        return;
+                    }
+                }
 
                 // Ejecutar manejador
                 $manejador = $entrada['manejador'];
@@ -106,6 +125,25 @@ class Enrutador
             $respuesta,
             "El recurso o página solicitado no existe: {$rutaPeticion}"
         );
+    }
+
+    private function ejecutarMiddlewares(array $middlewares, Peticion $peticion, Respuesta $respuesta, ?ContextoPeticion $contexto): bool
+    {
+        foreach ($middlewares as $mw) {
+            $instancia = is_string($mw) ? new $mw() : $mw;
+            if (is_object($instancia) && method_exists($instancia, 'procesar')) {
+                $resultado = $instancia->procesar($peticion, $respuesta, $contexto);
+                if ($resultado === false) {
+                    return false;
+                }
+            } elseif (is_callable($instancia)) {
+                $resultado = $instancia($peticion, $respuesta, $contexto);
+                if ($resultado === false) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private function convertirRutaEnRegex(string $ruta): string

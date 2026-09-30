@@ -42,7 +42,9 @@ class Respuesta
         if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'HEAD') {
             echo json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         }
-        exit;
+        if (!defined('CASAPRO_TESTING')) {
+            exit;
+        }
     }
 
     /**
@@ -52,7 +54,9 @@ class Respuesta
     {
         http_response_code($codigo);
         header('Location: ' . $url);
-        exit;
+        if (!defined('CASAPRO_TESTING')) {
+            exit;
+        }
     }
 
     /**

@@ -157,3 +157,17 @@
   4. Modelar la representación legal mediante el historial explícito `persona_representantes` (vinculando Persona Jurídica con Persona Natural).
   5. Incorporar el catálogo oficial completo del INEI para UBIGEO (11 países, 25 departamentos/regiones, 196 provincias y 1,874 distritos) con códigos oficiales y claves foráneas en cascada controlada (`ON DELETE RESTRICT ON UPDATE CASCADE`).
 - **Consecuencias:** Modelo de dominio normalizado de alta fidelidad legal y tributaria, imposibilidad de documentos duplicados, trazabilidad histórica de representantes y soporte de georreferenciación oficial en todo el territorio peruano.
+
+### ADR-021: Arquitectura Transversal de Actores, Bitácora Inmutable de Auditoría Forense y Protección Estricta Anti-CSRF
+- **Estado:** Aceptado
+- **Contexto:** Las mutaciones de estado en el sistema (creación, edición, cambio de estado) requieren trazabilidad forense inmutable y atómica con la operación del dominio. Asimismo, se requiere proteger las mutaciones HTTP contra ataques CSRF sin introducir vulnerabilidades como el bypass genérico por cabeceras Bearer, y registrar al actor responsable (humano o automatizado) desacoplado de la existencia de una tabla de usuarios aún no implementada.
+- **Decisión:**
+  1. Crear el catálogo `actores` con semilla inicial `SISTEMA_CASAPRO` (ID 1) sin columna `usuario_id` prematura, permitiendo la evolución limpia hacia cuentas de usuario en fases posteriores.
+  2. Implementar `auditorias` en base de datos con columnas JSON nativas para snapshots previos y nuevos, vinculada a `actores` mediante clave foránea restrictiva (`ON DELETE RESTRICT ON UPDATE CASCADE`).
+  3. Desarrollar `AuditoriaServicio` con obligación de operar dentro de la misma transacción PDO del servicio de dominio, forzando un rollback si el registro de auditoría falla.
+  4. Aplicar minimización estricta de snapshots en actualizaciones (almacenando únicamente los campos mutados) y sanitización recursiva de claves sensibles (`password`, `token`, `clave`, etc. a `[PROTEGIDO]`).
+  5. Garantizar inmutabilidad a nivel de aplicación (append-only estricto: sin métodos de modificación o eliminación en `AuditoriaServicio`).
+  6. Implementar `GestorSesion` con directivas estrictas (`HttpOnly`, `Secure=true`, `SameSite=Lax`, `use_strict_mode=1`).
+  7. Implementar `CsrfServicio` y `CsrfMiddleware` exigiendo tokens aleatorios de 32 bytes (`random_bytes(32)`) y comparación segura en tiempo constante (`hash_equals`). Queda terminantemente prohibido omitir la validación CSRF ante la presencia de cabeceras genéricas `Authorization: Bearer`.
+  8. Propagar un identificador único de correlación (`ContextoPeticion`, cabecera `X-Correlation-ID`) para trazabilidad transversal entre logs del servidor y registros de auditoría.
+- **Consecuencias:** Trazabilidad forense atómica e inmutable, cero riesgo de desincronización entre mutación de datos y su bitácora, blindaje contra ataques CSRF y cumplimiento estricto del principio de denegación por defecto (*deny by default*).

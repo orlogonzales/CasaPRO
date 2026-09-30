@@ -59,6 +59,24 @@ class Vista
     }
 
     /**
+     * Retorna el token CSRF activo para incrustar en JavaScript o metadatos.
+     */
+    public static function csrfToken(): string
+    {
+        return CsrfServicio::obtenerToken();
+    }
+
+    /**
+     * Renderiza un campo input hidden con el token CSRF para formularios HTML.
+     */
+    public static function csrfCampo(): string
+    {
+        $token = self::csrfToken();
+        $nombreCampo = CsrfServicio::obtenerNombreCampo();
+        return sprintf('<input type="hidden" name="%s" value="%s">', $nombreCampo, self::e($token));
+    }
+
+    /**
      * Escapa caracteres especiales para prevenir ataques XSS.
      */
     public static function e(mixed $valor): string

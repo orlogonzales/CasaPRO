@@ -25,7 +25,23 @@ class Peticion
         $this->parametrosCuerpo = $_POST;
         $this->archivos = $_FILES;
         $this->ipCliente = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-        $this->cabeceras = function_exists('getallheaders') ? (getallheaders() ?: []) : [];
+
+        // Extraer cabeceras HTTP combinando getallheaders() con $_SERVER para máxima compatibilidad
+        $cabeceras = function_exists('getallheaders') ? (getallheaders() ?: []) : [];
+        foreach ($_SERVER as $clave => $valor) {
+            if (str_starts_with($clave, 'HTTP_')) {
+                $nombre = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($clave, 5)))));
+                if (!isset($cabeceras[$nombre])) {
+                    $cabeceras[$nombre] = (string) $valor;
+                }
+            } elseif (in_array($clave, ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'], true)) {
+                $nombre = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', $clave))));
+                if (!isset($cabeceras[$nombre])) {
+                    $cabeceras[$nombre] = (string) $valor;
+                }
+            }
+        }
+        $this->cabeceras = $cabeceras;
 
         $this->ruta = $this->extraerRutaNormalizada();
     }

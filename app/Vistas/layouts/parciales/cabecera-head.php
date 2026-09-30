@@ -9,6 +9,7 @@ use App\Core\Vista;
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <meta content="CasaPRO — Plataforma de Gestión Inmobiliaria Integral" name="description">
 <meta content="CasaPRO" name="author">
+<meta name="csrf-token" content="<?= Vista::csrfToken() ?>">
 <link href="<?= Vista::asset('images/logo/favicon.png') ?>" rel="icon" type="image/x-icon">
 <link href="<?= Vista::asset('images/logo/favicon.png') ?>" rel="shortcut icon" type="image/x-icon">
 <title><?= Vista::e($tituloPagina ?? 'CasaPRO — Gestión Inmobiliaria') ?></title>

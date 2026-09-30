@@ -42,14 +42,31 @@ use App\Core\CargadorEntorno;
 use App\Core\Peticion;
 use App\Core\Respuesta;
 use App\Core\Enrutador;
+use App\Core\GestorSesion;
+use App\Core\ContextoPeticion;
+use App\Middlewares\CsrfMiddleware;
 
 // Cargar variables de entorno del sistema
 CargadorEntorno::cargar(CASAPRO_RAIZ);
 
-// Inicializar ciclo de vida de la petición
+// Iniciar sesión segura HTTP
+GestorSesion::iniciar();
+
+// Inicializar ciclo de vida de la petición y contexto de seguridad
 $peticion = new Peticion();
+$contexto = ContextoPeticion::crearDesdeEntorno($peticion);
 $respuesta = new Respuesta();
+
+// Inyectar cabeceras transversales de seguridad HTTP y trazabilidad
+$respuesta->agregarCabecera('X-Content-Type-Options', 'nosniff');
+$respuesta->agregarCabecera('X-Frame-Options', 'SAMEORIGIN');
+$respuesta->agregarCabecera('X-XSS-Protection', '1; mode=block');
+$respuesta->agregarCabecera('Referrer-Policy', 'strict-origin-when-cross-origin');
+$respuesta->agregarCabecera('X-Correlation-ID', $contexto->obtenerIdCorrelacion());
+
+// Inicializar enrutador y middlewares globales
 $enrutador = new Enrutador();
+$enrutador->agregarMiddlewareGlobal(CsrfMiddleware::class);
 
 // Cargar definición de rutas
 $configuradorRutas = require CASAPRO_RAIZ . '/config/rutas.php';
@@ -57,17 +74,17 @@ $configuradorRutas($enrutador);
 
 // Despachar la petición de forma controlada y segura
 try {
-    $enrutador->despachar($peticion, $respuesta);
+    $enrutador->despachar($peticion, $respuesta, $contexto);
 } catch (\App\Core\ExcepcionHttp $excepcionHttp) {
     \App\Controladores\ErrorControlador::responder(
         $excepcionHttp->obtenerCodigoEstado(),
         $peticion,
         $respuesta,
-        $excepcionHttp->getMessage()
+        $excepcionHttp->getMessage(),
+        $contexto->obtenerIdCorrelacion()
     );
 } catch (\Throwable $excepcion) {
-    // Generar identificador de correlación técnico (seguro, no predecible)
-    $idCorrelacion = 'ERR-' . strtoupper(bin2hex(random_bytes(4)));
+    $idCorrelacion = $contexto->obtenerIdCorrelacion();
 
     // Registrar contexto completo en log interno del servidor
     error_log(sprintf(

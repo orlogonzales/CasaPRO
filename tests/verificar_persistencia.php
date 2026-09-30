@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Script de Verificación para Gate SQL e Infraestructura de Persistencia (Microfase 1B).
+ * Script de Verificación para Gate SQL e Infraestructura de Persistencia (Microfase 1C).
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -15,7 +15,7 @@ use App\Core\MigradorSQL;
 CargadorEntorno::cargar(dirname(__DIR__));
 
 echo "===============================================================\n";
-echo " PRUEBA DE GATE SQL Y RECONSTRUCCIÓN LIMPIA (MICROFASE 1B)\n";
+echo " PRUEBA DE GATE SQL Y RECONSTRUCCIÓN LIMPIA (MICROFASE 1C)\n";
 echo "===============================================================\n";
 
 $proveedorBase = new ProveedorConexion();

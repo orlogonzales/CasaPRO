@@ -3,6 +3,46 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Fase 1C: Actores, Auditoría Transversal, CSRF y Seguridad de Mutaciones] — 2026-09-29
+
+### Añadido
+- **Directiva Transversal Vinculante de Seguridad:**
+  - Actualización oficial en `docs/04-SEGURIDAD.md`: 10 principios rectores (Deny by default, soberanía de backend, defensa IDOR/BOLA multiempresa, sentencias preparadas nativas PDO con lista blanca interna, prevención de asignación masiva, protección CSRF sin bypass Bearer, escape contextual XSS, sesiones seguras, correlación transversal y pruebas negativas obligatorias).
+- **Catálogo de Actores del Sistema:**
+  - Migración `SQL/migraciones/2026_09_29_000006_crear_tablas_actores_y_auditoria.sql`:
+    - Creación de tabla `actores` (id, tipo_actor, codigo UNIQUE, nombre, estado, metadatos JSON). Sin columna prematura `usuario_id`.
+    - Siembra inicial del actor raíz del sistema: `SISTEMA_CASAPRO` (ID 1).
+  - Entidad de dominio `App\Modelos\Actor`.
+- **Bitácora Inmutable de Auditoría Forense:**
+  - Tabla `auditorias` en base de datos con columnas JSON nativas (`datos_anteriores`, `datos_nuevos`, `metadatos`), vinculada por clave foránea `RESTRICT` hacia `actores`.
+  - Entidad de dominio `App\Modelos\AuditoriaRegistro`.
+  - Servicio transversal `App\Servicios\AuditoriaServicio`:
+    - Obligatoriedad de operar dentro de la misma transacción PDO del servicio de dominio.
+    - Falla atómica forzando rollback en caso de error de persistencia de auditoría.
+    - Minimización de snapshots en actualizaciones (almacenando únicamente los campos mutados).
+    - Sanitización recursiva de claves sensibles (`password`, `token`, `clave`, etc. a `[PROTEGIDO]`).
+    - Inmutabilidad estricta a nivel de aplicación (append-only: sin métodos de modificación o eliminación).
+- **Administración Segura de Sesiones y Protección Anti-CSRF:**
+  - `App\Core\GestorSesion`: Sesiones estrictas (`HttpOnly`, `Secure=true`, `SameSite=Lax`, `use_strict_mode=1`).
+  - `App\Core\ContextoPeticion`: Generación de ID de correlación criptográfico (`REQ-...`) y extracción segura de IP y User-Agent.
+  - `App\Core\CsrfServicio`: Generación de tokens aleatorios de 32 bytes (`random_bytes(32)`) y validación segura con `hash_equals`.
+  - `App\Middlewares\CsrfMiddleware`: Intercepción obligatoria de mutaciones (`POST`, `PUT`, `PATCH`, `DELETE`) con prohibición absoluta de bypass por cabecera Bearer genérica.
+  - Helpers de asistencia CSRF: `Vista::csrfToken()`, `Vista::csrfCampo()`, y meta tag `<meta name="csrf-token">` en `cabecera-head.php`.
+  - Cabeceras de seguridad globales en Front Controller (`public/index.php`): `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Correlation-ID`.
+- **Esquema Consolidado Oficial Sincronizado:**
+  - `SQL/casa-pro.sql`: Actualizado al micro-baseline 1C (19 tablas, 164 columnas, 75 índices, 19 FKs).
+- **Pruebas Automatizadas de Seguridad y Auditoría:**
+  - `tests/verificar_seguridad_auditoria.php`: 43 pruebas exhaustivas (sesiones, correlación, ciclo de vida CSRF, intercepción de mutaciones, prohibición de bypass Bearer, modelo de actores, sanitización recursiva, inmutabilidad append-only y atomicidad transaccional compartida con rollback).
+  - `tests/verificar_persistencia.php`: Gate SQL 100% PASS (19 tablas, 164 columnas, 75 índices, 19 FKs idénticas entre Camino A y Camino B).
+  - `tests/lint_php.php`: 49/49 archivos PHP PASS con sintaxis estricta PHP 8.3.
+- **Decisiones Arquitectónicas (ADRs):**
+  - Incorporación de `ADR-021: Arquitectura Transversal de Actores, Bitácora Inmutable de Auditoría Forense y Protección Estricta Anti-CSRF`.
+
+### Estado
+- Micro-baseline 1C cerrado satisfactoriamente (`mb-fase1c-seguridad-auditoria`).
+
+---
+
 ## [Fase 1B: Catálogos Estructurales y Modelo Normalizado de Persona] — 2026-09-29
 
 ### Añadido
