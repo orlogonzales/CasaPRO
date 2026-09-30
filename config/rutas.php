@@ -6,12 +6,13 @@ use App\Core\Enrutador;
 use App\Controladores\InicioControlador;
 use App\Controladores\PersonaControlador;
 use App\Controladores\AutenticacionControlador;
+use App\Controladores\UsuarioControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
 
 /**
  * Tabla de enrutamiento oficial de CasaPRO.
- * Microfase: 1G-1 (Núcleo de Autenticación, RBAC y Autorización Multidimensional)
+ * Microfase: 1G-2 (Administración de Usuarios, Accesos y Contraseñas)
  */
 return function (Enrutador $enrutador): void {
 
@@ -21,6 +22,21 @@ return function (Enrutador $enrutador): void {
     $enrutador->get('/login', [AutenticacionControlador::class, 'mostrarLogin']);
     $enrutador->post('/login', [AutenticacionControlador::class, 'iniciarSesion']);
     $enrutador->post('/logout', [AutenticacionControlador::class, 'cerrarSesion'], [AutenticacionMiddleware::class]);
+
+    // -------------------------------------------------------------------------
+    // Cambio de Contraseña (Obligatorio y Personal)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/cambiar-password-obligatorio',
+        [UsuarioControlador::class, 'mostrarCambiarPasswordObligatorio'],
+        [AutenticacionMiddleware::class]
+    );
+
+    $enrutador->post(
+        '/api/mi-cuenta/cambiar-password',
+        [UsuarioControlador::class, 'cambiarPasswordPersonal'],
+        [AutenticacionMiddleware::class]
+    );
 
     // -------------------------------------------------------------------------
     // Panel de Control Principal (Requiere Sesión Activa)
@@ -109,4 +125,83 @@ return function (Enrutador $enrutador): void {
         [PersonaControlador::class, 'obtenerDistritos'],
         [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('personas.ver')]
     );
+
+    // -------------------------------------------------------------------------
+    // Vistas y Pantallas del Módulo de Usuarios y Accesos (Microfase 1G-2)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/usuarios',
+        [UsuarioControlador::class, 'index'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.ver')]
+    );
+
+    $enrutador->get(
+        '/usuarios/{id}',
+        [UsuarioControlador::class, 'ficha'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.ver')]
+    );
+
+    // -------------------------------------------------------------------------
+    // API REST de Administración de Usuarios y Seguridad (Microfase 1G-2)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/api/usuarios',
+        [UsuarioControlador::class, 'listar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.ver')]
+    );
+
+    $enrutador->get(
+        '/api/usuarios/personas-disponibles',
+        [UsuarioControlador::class, 'personasDisponibles'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.crear')]
+    );
+
+    $enrutador->get(
+        '/api/usuarios/roles',
+        [UsuarioControlador::class, 'rolesDisponibles'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.ver')]
+    );
+
+    $enrutador->get(
+        '/api/usuarios/{id}',
+        [UsuarioControlador::class, 'detalle'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.ver')]
+    );
+
+    $enrutador->post(
+        '/api/usuarios',
+        [UsuarioControlador::class, 'crear'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.crear')]
+    );
+
+    $enrutador->put(
+        '/api/usuarios/{id}',
+        [UsuarioControlador::class, 'actualizar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.editar')]
+    );
+
+    $enrutador->patch(
+        '/api/usuarios/{id}/estado',
+        [UsuarioControlador::class, 'cambiarEstado'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.cambiar_estado')]
+    );
+
+    $enrutador->post(
+        '/api/usuarios/{id}/desbloquear',
+        [UsuarioControlador::class, 'desbloquear'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.desbloquear')]
+    );
+
+    $enrutador->put(
+        '/api/usuarios/{id}/roles',
+        [UsuarioControlador::class, 'sincronizarRoles'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.asignar_roles')]
+    );
+
+    $enrutador->post(
+        '/api/usuarios/{id}/reset-password',
+        [UsuarioControlador::class, 'resetearPassword'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.resetear_password')]
+    );
 };
+

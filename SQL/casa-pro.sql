@@ -2565,6 +2565,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
     `ultimo_intento_fallido` DATETIME NULL,
     `bloqueado_hasta` DATETIME NULL COMMENT 'Bloqueo defensivo temporal por fuerza bruta',
     `version_autorizacion` INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Incremento para invalidación inmediata de sesiones',
+    `debe_cambiar_password` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1 si el usuario está obligado a cambiar su contraseña antes de operar',
     `ultimo_login_en` DATETIME NULL,
     `ultimo_login_ip` VARCHAR(45) NULL,
     `creado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2661,7 +2662,14 @@ INSERT INTO `privilegios` (`id`, `codigo`, `modulo`, `accion`, `nombre`, `descri
 (2, 'personas.crear', 'personas', 'crear', 'Crear personas', 'Permite registrar nuevas personas naturales o jurídicas'),
 (3, 'personas.editar', 'personas', 'editar', 'Editar personas', 'Permite modificar información de personas existentes'),
 (4, 'personas.cambiar_estado', 'personas', 'cambiar_estado', 'Cambiar estado de personas', 'Permite activar o desactivar personas'),
-(5, 'personas.consultar_documento', 'personas', 'consultar_documento', 'Consultar padrón documental', 'Permite invocar servicios de consulta DNI/RUC');
+(5, 'personas.consultar_documento', 'personas', 'consultar_documento', 'Consultar padrón documental', 'Permite invocar servicios de consulta DNI/RUC'),
+(6, 'usuarios.ver', 'usuarios', 'ver', 'Ver Listado y Ficha de Usuarios', 'Permite consultar el padrón de usuarios y sus perfiles de seguridad'),
+(7, 'usuarios.crear', 'usuarios', 'crear', 'Crear Cuentas de Usuario', 'Permite aprovisionar nuevas credenciales de acceso para personas naturales'),
+(8, 'usuarios.editar', 'usuarios', 'editar', 'Editar Datos de Usuario', 'Permite modificar nombres de usuario y correos electrónicos'),
+(9, 'usuarios.cambiar_estado', 'usuarios', 'cambiar_estado', 'Activar y Desactivar Usuarios', 'Permite realizar la baja lógica o reactivación administrativa de cuentas'),
+(10, 'usuarios.desbloquear', 'usuarios', 'desbloquear', 'Desbloquear Cuentas por Fuerza Bruta', 'Permite levantar anticipadamente bloqueos temporales de seguridad defensiva'),
+(11, 'usuarios.asignar_roles', 'usuarios', 'asignar_roles', 'Asignar Roles a Usuarios', 'Permite asociar y desasociar roles funcionales a las cuentas de usuario'),
+(12, 'usuarios.resetear_password', 'usuarios', 'resetear_password', 'Resetear Contraseñas Administrativamente', 'Permite forzar contraseñas temporales y cambio obligatorio para terceros');
 
 -- 3. Asignación inicial de privilegios al rol SUPERADMIN
 INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
@@ -2669,6 +2677,13 @@ INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
 (1, 2),
 (1, 3),
 (1, 4),
-(1, 5);
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8),
+(1, 9),
+(1, 10),
+(1, 11),
+(1, 12);
 
 SET FOREIGN_KEY_CHECKS = 1;

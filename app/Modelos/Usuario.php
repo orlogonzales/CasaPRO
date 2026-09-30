@@ -25,6 +25,7 @@ class Usuario
     private ?string $ultimoIntentoFallido;
     private ?string $bloqueadoHasta;
     private int $versionAutorizacion;
+    private bool $debeCambiarPassword;
     private ?string $ultimoLoginEn;
     private ?string $ultimoLoginIp;
     private ?string $creadoEn;
@@ -41,6 +42,7 @@ class Usuario
         ?string $ultimoIntentoFallido = null,
         ?string $bloqueadoHasta = null,
         int $versionAutorizacion = 1,
+        bool $debeCambiarPassword = false,
         ?string $ultimoLoginEn = null,
         ?string $ultimoLoginIp = null,
         ?int $id = null,
@@ -57,6 +59,7 @@ class Usuario
         $this->ultimoIntentoFallido = $ultimoIntentoFallido;
         $this->bloqueadoHasta = $bloqueadoHasta;
         $this->versionAutorizacion = max(1, $versionAutorizacion);
+        $this->debeCambiarPassword = $debeCambiarPassword;
         $this->ultimoLoginEn = $ultimoLoginEn;
         $this->ultimoLoginIp = $ultimoLoginIp;
         $this->id = $id;
@@ -77,6 +80,7 @@ class Usuario
             $datos['ultimo_intento_fallido'] ?? null,
             $datos['bloqueado_hasta'] ?? null,
             (int) ($datos['version_autorizacion'] ?? 1),
+            filter_var($datos['debe_cambiar_password'] ?? false, FILTER_VALIDATE_BOOLEAN),
             $datos['ultimo_login_en'] ?? null,
             $datos['ultimo_login_ip'] ?? null,
             isset($datos['id']) ? (int) $datos['id'] : null,
@@ -99,6 +103,7 @@ class Usuario
             'ultimo_intento_fallido' => $this->ultimoIntentoFallido,
             'bloqueado_hasta' => $this->bloqueadoHasta,
             'version_autorizacion' => $this->versionAutorizacion,
+            'debe_cambiar_password' => $this->debeCambiarPassword,
             'ultimo_login_en' => $this->ultimoLoginEn,
             'ultimo_login_ip' => $this->ultimoLoginIp,
             'creado_en' => $this->creadoEn,
@@ -250,5 +255,15 @@ class Usuario
         $this->reiniciarIntentosFallidos();
         $this->ultimoLoginEn = date('Y-m-d H:i:s');
         $this->ultimoLoginIp = $ip;
+    }
+
+    public function debeCambiarPassword(): bool
+    {
+        return $this->debeCambiarPassword;
+    }
+
+    public function establecerDebeCambiarPassword(bool $debe): void
+    {
+        $this->debeCambiarPassword = $debe;
     }
 }

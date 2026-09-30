@@ -29,6 +29,7 @@ use App\Repositorios\SeguridadRepositorio;
 use App\Repositorios\PersonaRepositorio;
 use App\Servicios\PersonaServicio;
 use App\Servicios\AuditoriaServicio;
+use App\Servicios\PoliticaContrasenaServicio;
 use App\DTOs\CrearPersonaDTO;
 use App\Excepciones\ValidacionExcepcion;
 
@@ -187,9 +188,15 @@ if ($usuarioRepo->existeEmail($email, null, $conexion)) {
 
 // Solicitar contraseña interactiva
 while (true) {
-    $password = leerPasswordSeguro("4. Ingrese la contraseña de acceso (mínimo 10 caracteres): ");
-    if (strlen($password) < 10) {
-        echo "  [!] La contraseña debe tener al menos 10 caracteres.\n";
+    $password = leerPasswordSeguro("4. Ingrese la contraseña de acceso: ");
+    try {
+        PoliticaContrasenaServicio::validar($password);
+    } catch (ValidacionExcepcion $ve) {
+        $errores = $ve->obtenerErrores()['password'] ?? [$ve->getMessage()];
+        foreach ($errores as $err) {
+            echo "  [!] {$err}\n";
+        }
+        echo "\n";
         continue;
     }
 
@@ -262,7 +269,8 @@ try {
         0,
         null,
         null,
-        1
+        1,
+        false
     );
 
     $usuarioId = $usuarioRepo->insertar($usuario, $conexion);

@@ -3,6 +3,52 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Microfase 1G-2: Administración de Usuarios, Accesos y Contraseñas] — 2026-09-30
+
+### Añadido
+- **Esquema Relacional y Catálogo de Privilegios 1G-2 (Migración `2026_09_30_000008_crear_privilegios_y_cambio_password_usuarios.sql`):**
+  - Incorporación de columna soberana `usuarios.debe_cambiar_password` (`TINYINT(1) NOT NULL DEFAULT 0`).
+  - Sembrado de 7 privilegios granulares en el catálogo de seguridad: `usuarios.ver`, `usuarios.crear`, `usuarios.editar`, `usuarios.cambiar_estado`, `usuarios.desbloquear`, `usuarios.asignar_roles` y `usuarios.resetear_password`.
+  - Asignación automática de los 7 privilegios al rol `SUPERADMIN` mediante subquery dinámica (`WHERE codigo = 'SUPERADMIN'`), con cero IDs mágicos.
+  - Sincronización idéntica y verificación formal en `SQL/casa-pro.sql` (Gate SQL Camino A == Camino B: 25 tablas, 209 columnas, 100 índices, 26 FKs, 8 migraciones).
+- **Servicio Soberano de Política de Contraseñas (`app/Servicios/PoliticaContrasenaServicio.php`):**
+  - Autoridad soberana y unificada para validación y generación de contraseñas.
+  - Reglas robustas: 8 a 128 caracteres, mayúscula, minúscula, número, carácter especial, sin espacios al inicio o final.
+  - Generador criptográfico de contraseñas temporales (`generarTemporal()`) garantizando el 100% de cumplimiento de requisitos.
+  - Consumo transversal en First Bootstrap CLI, creación de usuario, reseteo administrativo y cambio de contraseña obligatorio y voluntario.
+- **Capa de Dominio y Gestión Integral de Usuarios (`app/Servicios/UsuarioServicio.php`):**
+  - Vinculación estricta 1:1 entre Persona Natural y cuenta de usuario, con bloqueo explícito a Personas Jurídicas.
+  - Generación desacoplada del Actor `USER` con código canónico inmutable `ACT_USR_<HEX16>` antes de persistir la cuenta.
+  - Desacoplamiento estricto entre estado administrativo (`ACTIVO`/`INACTIVO`) y bloqueo defensivo (`bloqueado_hasta`, `intentos_fallidos`).
+  - Desbloqueo administrativo independiente (`usuarios.desbloquear`): restablece intentos a 0 y `bloqueado_hasta` a NULL con motivo obligatorio, generando evento `DESBLOQUEO_ADMINISTRATIVO`.
+  - Reseteo administrativo de contraseña: genera clave temporal, activa `debe_cambiar_password = 1`, incrementa `version_autorizacion++` para revocar sesiones remotas y prohíbe el auto-reseteo.
+  - Cambio de contraseña obligatorio y voluntario: exige y valida criptográficamente `password_actual`, actualiza `debe_cambiar_password = 0`, incrementa `version_autorizacion++` e implementa renovación en caliente de la sesión activa en el mismo ciclo de petición sin auto-expulsar al usuario actual.
+  - Sincronización de roles con validación de existencia, protección de jerarquía y anti-orfandad del último `SUPERADMIN` activo.
+  - Prohibición estricta de auto-desactivación de cuentas `SUPERADMIN`.
+  - Ficha de Seguridad 360 con roles asignados, auditoría de cambios y timeline de telemetría forense en `eventos_seguridad`.
+- **Aislamiento Soberano por Base de Datos en `AutenticacionMiddleware`:**
+  - Consulta en tiempo constante `$control['debe_cambiar_password']` directo en BD.
+  - Si el valor es `1`, confina el acceso del usuario exclusivamente a `/cambiar-password-obligatorio`, `/api/mi-cuenta/cambiar-password` y `/logout`.
+  - Cualquier otro intento de navegación o llamada AJAX es interceptado con redirección 302 o código 403 Forbidden.
+- **DTOs con Validación Estricta y Constructor Flexible:**
+  - `CrearUsuarioDTO`, `ActualizarUsuarioDTO`, `CambiarEstadoUsuarioDTO`, `DesbloquearUsuarioDTO`, `SincronizarRolesDTO`, `ResetearPasswordDTO` y `CambiarPasswordPersonalDTO`.
+  - Soporte de constructor bidireccional (`new DTO($array)` y método factoría `desdeArray($array)`).
+- **Capa HTTP y Rutas Protegidas:**
+  - Controlador `app/Controladores/UsuarioControlador.php` con endpoints para listado DataTables, alta, edición, cambio de estado, desbloqueo, reseteo, sincronización de roles, ficha y cambio personal.
+  - Matriz en `config/rutas.php` protegida mediante `AutorizacionMiddleware::exigir('usuarios.{accion}')`.
+- **Interfaz Visual Adaptada de Alina (100% Font Awesome Free y Vanilla JS):**
+  - Módulo independiente `/usuarios`: `app/Vistas/modulos/usuarios/index.php` con grilla interactiva DataTables server-side (la IP de último acceso se omite de la grilla principal y se reserva para la Ficha).
+  - Modales adaptados de Alina: creación de usuario con selector de personas sin cuenta, edición de credenciales, sincronización de roles, reseteo de clave con visualización segura SweetAlert2, desbloqueo con motivo y confirmación SweetAlert2.
+  - Ficha de Seguridad `/usuarios/{id}` (`app/Vistas/modulos/usuarios/ficha.php`) con resumen de perfil, roles, detalle de bloqueo y timeline visual de eventos de seguridad.
+  - Pantalla de cambio obligatorio `/cambiar-password-obligatorio` (`app/Vistas/modulos/autenticacion/cambiar-password-obligatorio.php`) con verificador interactivo en tiempo real de los requisitos de política.
+  - Enlace al módulo Usuarios en la navegación lateral (`app/Vistas/layouts/parciales/navegacion-lateral.php`).
+  - Vínculo contextual hacia la Ficha de Seguridad en la ficha de personas (`public/assets/js/modulos/personas/listado-personas.js`) cuando la persona posee cuenta de usuario y el operador dispone del privilegio `usuarios.ver`.
+  - Cero jQuery propio en nuevos módulos; Fetch nativo, PristineJS y SweetAlert2.
+- **Suite de Pruebas Automatizadas 1G-2 (`tests/verificar_usuarios_1g2.php`):**
+  - 88 pruebas exhaustivas en 12 bloques cubriendo DDL, política de claves, alta y Actor USER, edición, desbloqueo, reseteo, cambio personal con renovación de sesión, aislamiento en middleware, roles y anti-orfandad, ciclo de vida, DataTables y contratos de UI.
+
+---
+
 ## [Microfase 1G-1: Núcleo de Autenticación, RBAC y Autorización Multidimensional] — 2026-09-30
 
 ### Añadido

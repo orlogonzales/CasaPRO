@@ -614,8 +614,29 @@
                     this.agregarCampoDetalle(grid, 'Notas u Observaciones', persona.notas, 12);
                 }
 
+                if (datos.usuario) {
+                    const divUsuario = document.createElement('div');
+                    divUsuario.className = 'col-12 mt-2';
+                    divUsuario.innerHTML = `
+                        <div class="p-3 border rounded bg-light-primary d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary text-white mb-1"><i class="fa-solid fa-user-shield me-1"></i> Cuenta de Usuario Vinculada</span>
+                                <div class="f-w-600 text-dark">${escaparHtml(datos.usuario.nombre_usuario)} (${escaparHtml(datos.usuario.email)})</div>
+                                <small class="text-secondary">Estado: <strong>${escaparHtml(datos.usuario.estado)}</strong></small>
+                            </div>
+                            <div>
+                                <a href="/usuarios/${datos.usuario.id}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Ver Ficha de Seguridad
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(divUsuario);
+                }
+
                 contenedorGenerales.appendChild(grid);
             }
+
 
             // 3. Pestaña: Documentos y Contactos
             const contDocs = document.getElementById('fichaContenedorDocumentos');

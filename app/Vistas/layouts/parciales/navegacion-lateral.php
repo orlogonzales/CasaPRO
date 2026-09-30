@@ -113,8 +113,9 @@ use App\Core\Vista;
                             Seguridad y RBAC
                         </a>
                         <ul class="collapse" id="submenuSeguridad">
-                            <li><a href="#">Usuarios</a></li>
+                            <li><a href="<?= Vista::url('usuarios') ?>">Usuarios</a></li>
                             <li><a href="#">Roles y Privilegios</a></li>
+
                             <li><a href="#">Ámbitos (Scopes)</a></li>
                         </ul>
                     </li>

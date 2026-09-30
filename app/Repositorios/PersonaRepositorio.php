@@ -448,6 +448,13 @@ class PersonaRepositorio
             $representantes = $stmtRep->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        // 7. Cuenta de Usuario del Sistema (si existe)
+        $stmtUser = $pdo->prepare("SELECT `id`, `nombre_usuario`, `email`, `estado`, `bloqueado_hasta`, `ultimo_login_en` FROM `usuarios` WHERE `persona_id` = :id LIMIT 1");
+        $stmtUser->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmtUser->execute();
+        $usuario = $stmtUser->fetch(PDO::FETCH_ASSOC) ?: null;
+
+
         return [
             'persona'        => $persona,
             'natural'        => $natural,
@@ -455,9 +462,11 @@ class PersonaRepositorio
             'documentos'     => $documentos,
             'contactos'      => $contactos,
             'direcciones'    => $direcciones,
-            'representantes' => $representantes
+            'representantes' => $representantes,
+            'usuario'        => $usuario
         ];
     }
+
 
     public function consultarDataTables(ConsultaDataTablesDTO $dto, ?PDO $conexion = null): array
     {

@@ -83,6 +83,38 @@ class AutenticacionMiddleware
             $contexto->establecerActorId($actorId);
         }
 
+        // 6. Autoridad Soberana de BD para Cambio Obligatorio de Contraseña
+        $debeCambiarPasswordBD = (bool) ($control['debe_cambiar_password'] ?? false);
+        if ($debeCambiarPasswordBD) {
+            $rutaActual = $peticion->obtenerRuta();
+            $rutasPermitidas = [
+                '/cambiar-password-obligatorio',
+                '/api/mi-cuenta/cambiar-password',
+                '/logout'
+            ];
+
+            $esPermitida = in_array($rutaActual, $rutasPermitidas, true)
+                || str_starts_with($rutaActual, '/assets/')
+                || str_starts_with($rutaActual, '/favicon');
+
+            if (!$esPermitida) {
+                $idCorrelacion = $contexto ? $contexto->obtenerIdCorrelacion() : ('REQ-' . strtoupper(bin2hex(random_bytes(6))));
+                if ($peticion->esAjax() || str_starts_with($rutaActual, '/api/')) {
+                    $respuesta->json([
+                        'estado'         => 'error',
+                        'codigo'         => 403,
+                        'codigo_error'   => 'PASSWORD_CHANGE_REQUIRED',
+                        'mensaje'        => 'Debe cambiar su contraseña antes de poder acceder al sistema.',
+                        'id_correlacion' => $idCorrelacion
+                    ], 403);
+                    return false;
+                }
+
+                $respuesta->redireccionar('/cambiar-password-obligatorio');
+                return false;
+            }
+        }
+
         return true;
     }
 

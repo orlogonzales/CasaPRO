@@ -19,6 +19,12 @@ class EventoSeguridad
     public const TIPO_CSRF_FALLIDO = 'CSRF_FALLIDO';
     public const TIPO_ACCESO_DENEGADO = 'ACCESO_DENEGADO';
     public const TIPO_BOOTSTRAP_ADMIN = 'BOOTSTRAP_ADMIN';
+    public const TIPO_CREACION_USUARIO = 'CREACION_USUARIO';
+    public const TIPO_ESTADO_USUARIO_CAMBIADO = 'ESTADO_USUARIO_CAMBIADO';
+    public const TIPO_DESBLOQUEO_ADMINISTRATIVO = 'DESBLOQUEO_ADMINISTRATIVO';
+    public const TIPO_PASSWORD_RESET_ADMIN = 'PASSWORD_RESET_ADMIN';
+    public const TIPO_PASSWORD_CAMBIO_EXITOSO = 'PASSWORD_CAMBIO_EXITOSO';
+
 
     private ?int $id;
     private string $tipoEvento;
@@ -113,7 +119,13 @@ class EventoSeguridad
             self::TIPO_CSRF_FALLIDO,
             self::TIPO_ACCESO_DENEGADO,
             self::TIPO_BOOTSTRAP_ADMIN,
+            self::TIPO_CREACION_USUARIO,
+            self::TIPO_ESTADO_USUARIO_CAMBIADO,
+            self::TIPO_DESBLOQUEO_ADMINISTRATIVO,
+            self::TIPO_PASSWORD_RESET_ADMIN,
+            self::TIPO_PASSWORD_CAMBIO_EXITOSO,
         ];
+
 
         $normalizado = strtoupper(trim($tipoEvento));
         if (!in_array($normalizado, $permitidos, true)) {

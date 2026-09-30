@@ -233,6 +233,7 @@ class AutenticacionServicio
                 'nombre_completo'      => $nombreCompleto,
                 'email'                => $usuario->obtenerEmail(),
                 'version_autorizacion' => $usuario->obtenerVersionAutorizacion(),
+                'debe_cambiar_password'=> $usuario->debeCambiarPassword(),
                 'autenticado_en'       => time(),
             ];
 
@@ -287,7 +288,8 @@ class AutenticacionServicio
         string $passwordPlano,
         int $rolId,
         ?PDO $conexion = null,
-        ?ContextoPeticion $contexto = null
+        ?ContextoPeticion $contexto = null,
+        bool $debeCambiarPassword = false
     ): array {
         $conn = $conexion ?? $this->proveedorConexion->obtenerConexion();
         $transaccionPropia = !$conn->inTransaction();
@@ -360,7 +362,8 @@ class AutenticacionServicio
                 0,
                 null,
                 null,
-                1
+                1,
+                $debeCambiarPassword
             );
             $usuarioId = $this->usuarioRepositorio->insertar($usuario, $conn);
 
