@@ -44,8 +44,9 @@ flowchart TD
 - **Microfase 1E (Cerrada):** Listado interactivo en Alina con DataTables 1.13.3 server-side con fetch nativo, búsqueda debounced, filtros rápidos y modal de Ficha de Identidad (`mb-fase1e-listado-personas`).
 - **Normalización Visual Global (Cerrada):** Tipografía oficial Fira Sans, migración total a Font Awesome (erradicación de Tabler), tooltips Bootstrap delegados y Theme Customizer funcional (`mb-ui-normalizacion-global`).
 - **Gobernanza CRUD Asíncrono (Cerrada):** Oficialización del patrón CRUD asíncrono en gobernanza, convenciones, skills, ADRs (ADR-023, ADR-024) y batería de gates G-CRUD-1 a G-CRUD-6 como prerrequisito normativo cumplido (`mb-gobernanza-crud-asincrono`).
-- **Microfase 1F (Pendiente):** Alta, edición y transición de estados con formularios en modales Alina, CleaveJS, PristineJS, confirmaciones SweetAlert2 y sincronización asíncrona `tabla.ajax.reload(null, false)`.
-- **Microfase 1G (Pendiente):** Autenticación, usuarios del sistema, catálogo RBAC (`modulo.accion`) y scopes territoriales.
+- **Microfase 1F (Cerrada):** Alta, edición y transición de estados con formularios en modales Alina, CleaveJS, PristineJS, confirmaciones SweetAlert2, consulta asistida DNI/RUC desacoplada y sincronización asíncrona `tabla.ajax.reload(null, false)` (`mb-fase1f-crud-personas`, commit `76c7911`).
+- **Microfase 1G-1 (Pendiente):** Núcleo de autenticación y autorización: modelo Usuario ↔ Persona, credenciales, política de contraseñas, login/logout, sesiones, intentos y bloqueo temporal, Actor USER real, Roles, Privilegios `modulo.accion`, asignación Usuario ↔ Rol, diseño formal de scopes, middlewares de autenticación/autorización y adaptación de `sign_in.html`.
+- **Microfase 1G-2 (Pendiente):** Administración de usuarios y accesos: CRUD asíncrono de usuarios desde Persona Natural, asignación de roles y scopes, cambio de contraseña, bloqueo/desbloqueo administrativo y auditoría.
 
 ### Fase 2 — Estructura Multiempresa y Menú Dinámico
 - Gestión de `empresas` y asignación de usuarios a ámbitos territoriales.
