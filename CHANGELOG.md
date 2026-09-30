@@ -59,6 +59,18 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Gobernanza:**
   - Formalizada la excepción de jQuery en `AGENTS.md`, `07-UI-UX-ALINA.md` y `ADR-007`.
   - Clarificada la separación entre DataTables (Alina client-side) y procesamiento server-side (arquitectura propia CasaPRO) en `07-UI-UX-ALINA.md` y `ADR-010`.
+- **Catálogo Oficial de Errores Alina:**
+  - Vistas adaptadas al español en `app/Vistas/modulos/errores/`: `400.php`, `403.php`, `404.php`, `500.php`, `503.php`.
+  - Layout dedicado `app/Vistas/layouts/error.php` con el estilo y background nativo `.error-container` de Alina.
+  - Controlador centralizado `app/Controladores/ErrorControlador.php` y excepción `app/Core/ExcepcionHttp.php`.
+  - Sincronización estricta de códigos de estado HTTP reales (400, 403, 404, 500, 503) con soporte JSON para Ajax.
+  - Blindaje de seguridad en excepciones internas (cero fuga de stack traces, SQL o rutas del servidor) y emisión de códigos de correlación técnicos para soporte.
+  - Incorporación de imágenes oficiales en `public/assets/images/error/` (`error-400.png` a `error-503.png`).
+- **Patrón Visual de Perfil de Usuario:**
+  - Inspección y documentación exhaustiva de `admin-dashboard/alina/template/profile.html` como patrón visual oficial para la Fase 1.
+  - Declaración del desacoplamiento `Persona != Personal != Usuario` y reglas de inmutabilidad frontend.
+- **Soporte Multi-Entorno:**
+  - Ajuste de extracción y normalización de ruta en `Peticion.php` y `Vista::url()` para compatibilidad transparente en `https://app.casa-pro.test/` y `https://localhost/app.casa-pro/`.
 
 ### Estado
-- Micro-baseline de Plantilla Maestra cerrado satisfactoriamente (`mb-fase0b-plantilla-maestra`).
+- Micro-baseline de Plantilla Maestra, Errores y Núcleo MVC completado y consolidado (`mb-fase0b-plantilla-maestra`).

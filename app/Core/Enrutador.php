@@ -99,22 +99,13 @@ class Enrutador
             }
         }
 
-        // Manejo 404 No Encontrado
-        $respuesta->establecerCodigoEstado(404);
-        if ($peticion->esAjax()) {
-            $respuesta->json([
-                'estado' => 'error',
-                'codigo' => 404,
-                'mensaje' => "Recurso no encontrado: {$rutaPeticion}"
-            ], 404);
-        } else {
-            $html404 = Vista::renderizar('modulos/errores/404', [
-                'tituloPagina' => 'Página no encontrada (404) | CasaPRO',
-                'rutaSolicitada' => $rutaPeticion
-            ], 'maestro');
-            $respuesta->establecerCuerpo($html404);
-            $respuesta->enviar();
-        }
+        // Manejo centralizado 404 No Encontrado
+        \App\Controladores\ErrorControlador::responder(
+            404,
+            $peticion,
+            $respuesta,
+            "El recurso o página solicitado no existe: {$rutaPeticion}"
+        );
     }
 
     private function convertirRutaEnRegex(string $ruta): string

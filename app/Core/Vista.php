@@ -71,9 +71,15 @@ class Vista
      */
     public static function url(string $ruta = ''): string
     {
+        $uriCompleta = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
         $baseDir = dirname($scriptName);
         $baseDir = str_replace('\\', '/', $baseDir);
+
+        if (str_ends_with($baseDir, '/public') && !str_starts_with($uriCompleta, $baseDir)) {
+            $baseDir = substr($baseDir, 0, -7);
+        }
+
         if ($baseDir === '/' || $baseDir === '.') {
             $baseDir = '';
         }

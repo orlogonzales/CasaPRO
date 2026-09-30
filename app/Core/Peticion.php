@@ -42,6 +42,11 @@ class Peticion
         $baseDir = dirname($scriptName);
         $baseDir = str_replace('\\', '/', $baseDir);
 
+        // Si Apache reescribe internamente hacia /public pero la URL del cliente no incluye /public
+        if (str_ends_with($baseDir, '/public') && !str_starts_with($uriCompleta, $baseDir)) {
+            $baseDir = substr($baseDir, 0, -7);
+        }
+
         if ($baseDir !== '/' && $baseDir !== '' && str_starts_with($uriCompleta, $baseDir)) {
             $rutaRelativa = substr($uriCompleta, strlen($baseDir));
         } else {

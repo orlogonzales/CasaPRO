@@ -46,21 +46,41 @@ $enrutador = new Enrutador();
 $configuradorRutas = require CASAPRO_RAIZ . '/config/rutas.php';
 $configuradorRutas($enrutador);
 
-// Despachar la petición
+// Despachar la petición de forma controlada y segura
 try {
     $enrutador->despachar($peticion, $respuesta);
+} catch (\App\Core\ExcepcionHttp $excepcionHttp) {
+    \App\Controladores\ErrorControlador::responder(
+        $excepcionHttp->obtenerCodigoEstado(),
+        $peticion,
+        $respuesta,
+        $excepcionHttp->getMessage()
+    );
 } catch (\Throwable $excepcion) {
-    http_response_code(500);
-    if ($peticion->esAjax()) {
-        $respuesta->json([
-            'estado' => 'error',
-            'codigo' => 500,
-            'mensaje' => 'Error interno del servidor.',
-            'detalle' => $excepcion->getMessage()
-        ], 500);
-    } else {
-        echo '<h1>Error Interno del Servidor (500)</h1>';
-        echo '<p>' . htmlspecialchars($excepcion->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
-        echo '<pre>' . htmlspecialchars($excepcion->getTraceAsString(), ENT_QUOTES, 'UTF-8') . '</pre>';
-    }
+    // Generar identificador de correlación técnico (seguro, no predecible)
+    $idCorrelacion = 'ERR-' . strtoupper(bin2hex(random_bytes(4)));
+
+    // Registrar contexto completo en log interno del servidor
+    error_log(sprintf(
+        "[%s] [%s] %s: %s en %s:%d\nTraza:\n%s",
+        date('Y-m-d H:i:s'),
+        $idCorrelacion,
+        get_class($excepcion),
+        $excepcion->getMessage(),
+        $excepcion->getFile(),
+        $excepcion->getLine(),
+        $excepcion->getTraceAsString()
+    ));
+
+    $codigo = ($excepcion->getCode() >= 400 && $excepcion->getCode() <= 599)
+        ? (int) $excepcion->getCode()
+        : 500;
+
+    \App\Controladores\ErrorControlador::responder(
+        $codigo,
+        $peticion,
+        $respuesta,
+        'Ocurrió un error inesperado al procesar la solicitud.',
+        $idCorrelacion
+    );
 }

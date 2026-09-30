@@ -31,8 +31,8 @@
 ### ADR-002: Patrón MVC Propio Desacoplado
 - **Estado:** Aceptado
 - **Contexto:** Evitar la dependencia de frameworks monolíticos (Laravel, Symfony) que imponen deuda técnica y sobrecarga de procesamiento innecesaria.
-- **Decisión:** Desarrollar un MVC ligero y específico para CasaPRO compuesto por Front Controller (`public/index.php`), Enrutador, Middlewares, Controladores, Servicios, Repositorios y Vistas.
-- **Consecuencias:** Control absoluto sobre el ciclo de vida de la petición, rendimiento óptimo en servidores compartidos o VPS y claridad estructural.
+- **Decisión:** Desarrollar un MVC ligero y específico para CasaPRO compuesto por Front Controller (`public/index.php`), Enrutador, Middlewares, Controladores, Servicios, Repositorios, Vistas y Manejador Centralizado de Errores (`ErrorControlador` y `ExcepcionHttp` para 400, 403, 404, 500 y 503 con emisión HTTP real y códigos de correlación seguros).
+- **Consecuencias:** Control absoluto sobre el ciclo de vida de la petición, rendimiento óptimo en servidores compartidos o VPS, respuestas de error unificadas y cero fuga de información técnica sensible.
 
 ### ADR-003: Persistencia Exclusiva con PDO
 - **Estado:** Aceptado
@@ -55,7 +55,7 @@
 ### ADR-006: Alina Bootstrap 5 como Sistema de Diseño Oficial
 - **Estado:** Aceptado
 - **Contexto:** Es necesario mantener una interfaz profesional, consistente y responsiva sin inventar estilos arbitrarios.
-- **Decisión:** Alina Bootstrap 5 (ubicada en `admin-dashboard\alina\`) es la única referencia visual del proyecto. `blank.html` es la plantilla base obligatoria para toda pantalla.
+- **Decisión:** Alina Bootstrap 5 (ubicada en `admin-dashboard\alina\`) es la única referencia visual del proyecto. `blank.html` es la plantilla base obligatoria para toda pantalla administrativa, el conjunto `error_400.html` a `error_503.html` para pantallas de error (con layout `.error-container`), y `profile.html` como patrón visual oficial para el Perfil de Usuario.
 - **Consecuencias:** Experiencia visual unificada, cero dispersión estética y reutilización eficiente de componentes probados.
 
 ### ADR-007: JavaScript Modular Moderno sin Dependencia de jQuery en Código Propio
