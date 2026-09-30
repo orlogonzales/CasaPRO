@@ -138,4 +138,31 @@ class Peticion
         return strtolower($this->obtenerCabecera('X-Requested-With', '')) === 'xmlhttprequest'
             || str_contains($this->obtenerCabecera('Accept', ''), 'application/json');
     }
+
+    public function establecerMetodo(string $metodo): self
+    {
+        $this->metodo = strtoupper($metodo);
+        return $this;
+    }
+
+    public function establecerRuta(string $ruta): self
+    {
+        $this->ruta = '/' . trim($ruta, '/');
+        if ($this->ruta === '//') {
+            $this->ruta = '/';
+        }
+        return $this;
+    }
+
+    public function establecerJson(array $datos): self
+    {
+        $this->datosJson = $datos;
+        return $this;
+    }
+
+    public function establecerCabecera(string $nombre, string $valor): self
+    {
+        $this->cabeceras[strtolower($nombre)] = $valor;
+        return $this;
+    }
 }

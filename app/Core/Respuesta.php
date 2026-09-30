@@ -31,6 +31,21 @@ class Respuesta
         return $this;
     }
 
+    public function obtenerCodigoEstado(): int
+    {
+        return $this->codigoEstado;
+    }
+
+    public function obtenerCabeceras(): array
+    {
+        return $this->cabeceras;
+    }
+
+    public function obtenerCuerpo(): string
+    {
+        return $this->cuerpo;
+    }
+
     /**
      * Emite una respuesta JSON estructurada y finaliza.
      */
@@ -39,8 +54,9 @@ class Respuesta
         $this->establecerCodigoEstado($codigo);
         $this->agregarCabecera('Content-Type', 'application/json; charset=utf-8');
         $this->enviarCabeceras();
+        $this->cuerpo = (string) json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'HEAD') {
-            echo json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            echo $this->cuerpo;
         }
         if (!defined('CASAPRO_TESTING')) {
             exit;

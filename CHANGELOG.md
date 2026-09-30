@@ -3,6 +3,49 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Fase 1D: Repositorio, Servicio y API JSON de Personas] — 2026-09-29
+
+### Añadido
+- **Excepciones de Dominio y Errores HTTP Normalizados:**
+  - `App\Excepciones\PeticionIncorrectaExcepcion`: Manejo de parámetros de consulta o ruta malformados (HTTP 400).
+  - `App\Excepciones\RecursoNoEncontradoExcepcion`: Recurso no encontrado (HTTP 404).
+  - `App\Excepciones\ReglaNegocioExcepcion`: Violación de invariantes de negocio o conflictos de concurrencia (HTTP 422 / 409).
+  - `App\Excepciones\ValidacionExcepcion`: Fallos de validación estructural y semántica con array asociativo de errores (HTTP 422).
+- **Capa de DTOs con Allowlist Inviolable y Whitelist SQL:**
+  - `App\DTOs\CrearPersonaDTO`: Validación rígida de campos permitidos en raíz y colecciones anidadas (`documentos`, `contactos`, `direcciones`, `representantes`). Rechazo inmediato HTTP 422 a campos desconocidos (blindaje anti-*Mass Assignment*).
+  - `App\DTOs\ActualizarPersonaDTO`: Prohibición estricta de cambio de `tipo_persona` (HTTP 422). Diferenciación semántica entre colecciones omitidas (`null`, se preservan) y colecciones vacías (`[]`, se desactivan).
+  - `App\DTOs\CambiarEstadoPersonaDTO`: Validación estricta para transición de estado y motivo.
+  - `App\DTOs\ConsultaDataTablesDTO`: Whitelist estricta de ordenamiento SQL (`MAPA_COLUMNAS`), validación de `order_dir` (`ASC` / `DESC`), `start` no negativo, `length` acotado a un máximo de 100 filas, y rechazo HTTP 400 a columnas manipuladas o inyecciones SQL.
+- **Capa de Persistencia PDO (Repositorio Desacoplado):**
+  - `App\Repositorios\PersonaRepositorio`: Persistencia exclusiva con sentencias preparadas nativas PDO y parámetros vinculados (`bindValue`). Métodos atómicos de inserción, actualización, desactivación en lote, verificación de unicidad, consulta 360 multientidad y paginación DataTables.
+- **Capa de Servicio de Dominio Transaccional:**
+  - `App\Servicios\PersonaServicio`: Soberanía completa de lógica de negocio, validaciones semánticas cruzadas con catálogos oficiales, regla de multiplicidad de identidad central (0..N documentos permitidos; como máximo 1 principal activo), transacciones multientidad atómicas con inyección del mismo PDO hacia `AuditoriaServicio::registrar`, traducción específica de MySQL 1062 en documentos hacia HTTP 409 Conflict, y serialización limpia de ficha 360.
+- **Controlador REST y Enrutamiento Central:**
+  - `App\Controladores\PersonaControlador`: Orquestación HTTP sin SQL directo, retorno de respuestas JSON estructuradas según `docs/08-API-Y-CONTRATOS.md` y captura de excepciones con cero fugas de SQL interno (HTTP 500 genérico con correlation ID en `error_log`).
+  - Registro de 5 rutas REST en `config/rutas.php`:
+    - `GET /api/personas`: DataTables server-side con `GuardiaActorMiddleware`.
+    - `GET /api/personas/{id}`: Detalle 360 con `GuardiaActorMiddleware`.
+    - `POST /api/personas`: Creación atómica con `GuardiaActorMiddleware` y `CsrfMiddleware`.
+    - `PUT /api/personas/{id}`: Actualización integral con `GuardiaActorMiddleware` y `CsrfMiddleware`.
+    - `PATCH /api/personas/{id}/estado`: Transición de estado con `GuardiaActorMiddleware` y `CsrfMiddleware`.
+  - Método `patch()` en `App\Core\Enrutador` y propagación del objeto `ContextoPeticion`.
+  - Prohibición y omisión total de endpoints destructivos `DELETE`.
+- **Suite Integral de Pruebas de la API de Identidad:**
+  - `tests/verificar_api_personas.php`: 63/63 pruebas superadas al 100% abarcando Deny by Default (401), CSRF (403), DTO allowlist (422), DataTables whitelist (400), multiplicidad de documentos (0..N), unicidad (409), consultas 360 (200), PUT integral con preservación de colecciones omitidas, PATCH de estado, no-DELETE físico, auditoría en BD y rollback transaccional ante fallos.
+- **Decisiones Arquitectónicas (ADRs) y Documentación:**
+  - `ADR-022: Arquitectura Desacoplada de Personas, DTOs con Allowlist y DataTables Server-Side con Whitelist Rígida` en `docs/16-DECISIONES-ARQUITECTONICAS.md`.
+  - Actualización de `docs/02-ARQUITECTURA.md` y `docs/08-API-Y-CONTRATOS.md`.
+
+### Modificado
+- `app/Core/Enrutador.php`: Agregado soporte para verbo HTTP PATCH y paso de `$contexto` a controladores y middlewares.
+- `app/Core/Peticion.php`: Getters y setters configurables para pruebas de integración automatizadas.
+- `app/Core/Respuesta.php`: Getters de código de estado, cabeceras y cuerpo para validación de aserciones.
+
+### Estado
+- Micro-baseline 1D cerrado satisfactoriamente (`mb-fase1d-api-personas`).
+
+---
+
 ## [Fase 1C: Actores, Auditoría Transversal, CSRF y Seguridad de Mutaciones] — 2026-09-29
 
 ### Añadido

@@ -109,3 +109,49 @@ D:\laragon\www\app.casa-pro\
 - Ensambla las páginas del sistema respetando la estructura física de `admin-dashboard\alina\template\blank.html`.
 - Separa layout general (sidebar dinámico, header con usuario/notificaciones, footer) de las vistas específicas de cada pantalla.
 - Toda salida variable se escapa adecuadamente (`htmlspecialchars`) para mitigar vulnerabilidades XSS.
+
+### 4.5. Capa de DTOs con Allowlist Estricto (`app/DTOs/`)
+- Encapsula y tipa estrictamente los datos de entrada para mutaciones y consultas complejas.
+- **Política de Allowlist Inviolable:** Valida estructura, tipos y listas blancas de campos admitidos tanto en la raíz del payload como en colecciones anidadas (e.g. `documentos`, `contactos`, `direcciones`, `representantes`). Cualquier campo desconocido o inesperado provoca de forma inmediata un error **HTTP 422 Unprocessable Content** (nunca se ignora silenciosamente).
+- Protege de forma activa contra vulnerabilidades de *Mass Assignment* y *Parameter Tampering*.
+- Los DTOs validan forma y tipo sintáctico; la soberanía semántica, reglas de negocio y transacciones multientidad residen exclusivamente en los Servicios de Dominio.
+
+---
+
+## 5. Flujo Desacoplado de Ejecución para Mutaciones y Consultas
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente as Cliente HTTP
+    participant Front as Front Controller (index.php)
+    participant Guardia as GuardiaActor / CsrfMiddleware
+    participant Ctrl as PersonaControlador
+    participant DTO as DTO (Allowlist Estricto)
+    participant Svc as PersonaServicio
+    participant Repo as PersonaRepositorio
+    participant Aud as AuditoriaServicio
+    participant BD as MySQL (PDO)
+
+    Cliente->>Front: Petición HTTP (POST/PUT/PATCH/GET)
+    Front->>Guardia: Validación de Actor (Deny by Default) y Token CSRF
+    alt Actor no autenticado o CSRF inválido
+        Guardia-->>Cliente: HTTP 401 Unauthorized / 403 Forbidden
+    else Autorizado
+        Guardia->>Ctrl: Despacho a Acción del Controlador
+        Ctrl->>DTO: Instanciación e inspección allowlist (desdeArray)
+        alt Campo desconocido o estructura inválida
+            DTO-->>Cliente: HTTP 422 Unprocessable Content
+        else DTO Válido
+            Ctrl->>Svc: Invoca método de servicio ($dto, $contexto)
+            Svc->>BD: beginTransaction()
+            Svc->>Repo: Operaciones atómicas de inserción/actualización
+            Repo->>BD: Sentencias preparadas nativas PDO (bindValue)
+            Svc->>Aud: registrar(snapshot, contexto, pdo_compartido)
+            Aud->>BD: Inserción en auditorias (misma conexión)
+            Svc->>BD: commit()
+            Svc-->>Ctrl: Array de resultado serializado
+            Ctrl-->>Cliente: Respuesta JSON 200/201 Normalizada
+        end
+    end
+```

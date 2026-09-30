@@ -49,6 +49,11 @@ class Enrutador
         $this->agregar('PUT', $ruta, $manejador, $middlewares);
     }
 
+    public function patch(string $ruta, array|callable $manejador, array $middlewares = []): void
+    {
+        $this->agregar('PATCH', $ruta, $manejador, $middlewares);
+    }
+
     public function delete(string $ruta, array|callable $manejador, array $middlewares = []): void
     {
         $this->agregar('DELETE', $ruta, $manejador, $middlewares);
@@ -89,7 +94,7 @@ class Enrutador
                 // Ejecutar manejador
                 $manejador = $entrada['manejador'];
                 if (is_callable($manejador)) {
-                    $salida = call_user_func_array($manejador, [$peticion, $respuesta, $parametros]);
+                    $salida = call_user_func_array($manejador, [$peticion, $respuesta, $parametros, $contexto]);
                     if (is_string($salida)) {
                         $respuesta->establecerCuerpo($salida);
                         $respuesta->enviar();
@@ -108,7 +113,7 @@ class Enrutador
                         throw new \RuntimeException("La acción no existe: {$claseControlador}::{$metodoAccion}");
                     }
 
-                    $salida = $instanciaControlador->$metodoAccion($peticion, $respuesta, $parametros);
+                    $salida = $instanciaControlador->$metodoAccion($peticion, $respuesta, $parametros, $contexto);
                     if (is_string($salida)) {
                         $respuesta->establecerCuerpo($salida);
                         $respuesta->enviar();

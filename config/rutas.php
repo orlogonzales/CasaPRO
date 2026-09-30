@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Core\Enrutador;
 use App\Controladores\InicioControlador;
+use App\Controladores\PersonaControlador;
+use App\Middlewares\GuardiaActorMiddleware;
 
 /**
  * Tabla de enrutamiento oficial de CasaPRO.
@@ -26,4 +28,15 @@ return function (Enrutador $enrutador): void {
             ]
         ]);
     });
+
+    // -------------------------------------------------------------------------
+    // API REST de Identidad — Módulo de Personas (Fase 1D)
+    // Política: Deny by Default (GuardiaActorMiddleware en lectura y mutación)
+    // Mutaciones protegidas globalmente por CsrfMiddleware en public/index.php
+    // -------------------------------------------------------------------------
+    $enrutador->get('/api/personas', [PersonaControlador::class, 'listar'], [GuardiaActorMiddleware::class]);
+    $enrutador->get('/api/personas/{id}', [PersonaControlador::class, 'obtener'], [GuardiaActorMiddleware::class]);
+    $enrutador->post('/api/personas', [PersonaControlador::class, 'crear'], [GuardiaActorMiddleware::class]);
+    $enrutador->put('/api/personas/{id}', [PersonaControlador::class, 'actualizar'], [GuardiaActorMiddleware::class]);
+    $enrutador->patch('/api/personas/{id}/estado', [PersonaControlador::class, 'cambiarEstado'], [GuardiaActorMiddleware::class]);
 };

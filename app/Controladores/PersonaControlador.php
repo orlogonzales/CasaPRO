@@ -1,0 +1,291 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controladores;
+
+use App\Core\Peticion;
+use App\Core\Respuesta;
+use App\Core\ContextoPeticion;
+use App\Core\ProveedorConexion;
+use App\Servicios\PersonaServicio;
+use App\Servicios\AuditoriaServicio;
+use App\Repositorios\PersonaRepositorio;
+use App\DTOs\CrearPersonaDTO;
+use App\DTOs\ActualizarPersonaDTO;
+use App\DTOs\CambiarEstadoPersonaDTO;
+use App\DTOs\ConsultaDataTablesDTO;
+use App\Excepciones\PeticionIncorrectaExcepcion;
+use App\Excepciones\ValidacionExcepcion;
+use App\Excepciones\ReglaNegocioExcepcion;
+use App\Excepciones\RecursoNoEncontradoExcepcion;
+use Throwable;
+
+/**
+ * PersonaControlador — Controlador de API REST para la gestión integral de identidad (Personas).
+ *
+ * Orquesta la recepción de solicitudes HTTP, instanciación de DTOs con allowlist estricto,
+ * delegación en PersonaServicio y emisión de respuestas JSON normalizadas según docs/08-API-Y-CONTRATOS.md.
+ */
+class PersonaControlador extends BaseControlador
+{
+    private PersonaServicio $personaServicio;
+
+    public function __construct(?PersonaServicio $personaServicio = null)
+    {
+        $this->personaServicio = $personaServicio ?? new PersonaServicio(
+            new ProveedorConexion(),
+            new PersonaRepositorio(new ProveedorConexion()),
+            new AuditoriaServicio()
+        );
+    }
+
+    /**
+     * GET /api/personas
+     * Consulta paginada server-side compatible con el protocolo DataTables.
+     */
+    public function listar(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $idCorrelacion = $this->resolverIdCorrelacion($contexto);
+
+        try {
+            $parametrosConsulta = $_GET;
+            $dto = ConsultaDataTablesDTO::desdeArray($parametrosConsulta);
+            $resultado = $this->personaServicio->listarDataTables($dto);
+
+            $respuesta->json($resultado, 200);
+        } catch (PeticionIncorrectaExcepcion $e) {
+            $this->responderError($respuesta, 400, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * GET /api/personas/{id}
+     * Obtiene el detalle compuesto 360 de una persona (datos civiles, satélites, colecciones).
+     */
+    public function obtener(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $idCorrelacion = $this->resolverIdCorrelacion($contexto);
+
+        try {
+            $id = $this->validarId($parametros['id'] ?? null);
+            $datos = $this->personaServicio->obtenerPorId($id);
+
+            $this->responderExito($respuesta, 200, 'Ficha 360 de identidad recuperada exitosamente.', $datos, $idCorrelacion);
+        } catch (PeticionIncorrectaExcepcion $e) {
+            $this->responderError($respuesta, 400, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (RecursoNoEncontradoExcepcion $e) {
+            $this->responderError($respuesta, 404, $e->getMessage(), null, $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * POST /api/personas
+     * Registra de forma atómica una nueva Persona (Natural o Jurídica) con sus datos iniciales.
+     */
+    public function crear(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $contexto = $contexto ?? ContextoPeticion::crearDesdeEntorno($peticion);
+        $idCorrelacion = $contexto->obtenerIdCorrelacion();
+
+        try {
+            $cuerpo = $this->extraerDatosCuerpo($peticion);
+            $dto = CrearPersonaDTO::desdeArray($cuerpo);
+            $resultado = $this->personaServicio->crear($dto, $contexto);
+
+            $this->responderExito(
+                $respuesta,
+                201,
+                'Persona registrada exitosamente en el sistema de identidad.',
+                $resultado,
+                $idCorrelacion
+            );
+        } catch (PeticionIncorrectaExcepcion $e) {
+            $this->responderError($respuesta, 400, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (ValidacionExcepcion $e) {
+            $this->responderError($respuesta, 422, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (ReglaNegocioExcepcion $e) {
+            $codigo = ($e->getCode() >= 400 && $e->getCode() <= 499) ? (int) $e->getCode() : 422;
+            $this->responderError($respuesta, $codigo, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * PUT /api/personas/{id}
+     * Actualiza integralmente los datos editables de la ficha de una persona.
+     */
+    public function actualizar(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $contexto = $contexto ?? ContextoPeticion::crearDesdeEntorno($peticion);
+        $idCorrelacion = $contexto->obtenerIdCorrelacion();
+
+        try {
+            $id = $this->validarId($parametros['id'] ?? null);
+            $cuerpo = $this->extraerDatosCuerpo($peticion);
+            $dto = ActualizarPersonaDTO::desdeArray($cuerpo);
+            $resultado = $this->personaServicio->actualizar($id, $dto, $contexto);
+
+            $this->responderExito(
+                $respuesta,
+                200,
+                'Ficha de persona actualizada exitosamente.',
+                $resultado,
+                $idCorrelacion
+            );
+        } catch (PeticionIncorrectaExcepcion $e) {
+            $this->responderError($respuesta, 400, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (RecursoNoEncontradoExcepcion $e) {
+            $this->responderError($respuesta, 404, $e->getMessage(), null, $idCorrelacion);
+        } catch (ValidacionExcepcion $e) {
+            $this->responderError($respuesta, 422, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (ReglaNegocioExcepcion $e) {
+            $codigo = ($e->getCode() >= 400 && $e->getCode() <= 499) ? (int) $e->getCode() : 422;
+            $this->responderError($respuesta, $codigo, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * PATCH /api/personas/{id}/estado
+     * Transición controlada de estado (ACTIVO <-> INACTIVO) con motivo auditable.
+     */
+    public function cambiarEstado(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $contexto = $contexto ?? ContextoPeticion::crearDesdeEntorno($peticion);
+        $idCorrelacion = $contexto->obtenerIdCorrelacion();
+
+        try {
+            $id = $this->validarId($parametros['id'] ?? null);
+            $cuerpo = $this->extraerDatosCuerpo($peticion);
+            $dto = CambiarEstadoPersonaDTO::desdeArray($cuerpo);
+            $resultado = $this->personaServicio->cambiarEstado($id, $dto, $contexto);
+
+            $this->responderExito(
+                $respuesta,
+                200,
+                $resultado['mensaje'],
+                $resultado,
+                $idCorrelacion
+            );
+        } catch (PeticionIncorrectaExcepcion $e) {
+            $this->responderError($respuesta, 400, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (RecursoNoEncontradoExcepcion $e) {
+            $this->responderError($respuesta, 404, $e->getMessage(), null, $idCorrelacion);
+        } catch (ValidacionExcepcion $e) {
+            $this->responderError($respuesta, 422, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (ReglaNegocioExcepcion $e) {
+            $codigo = ($e->getCode() >= 400 && $e->getCode() <= 499) ? (int) $e->getCode() : 422;
+            $this->responderError($respuesta, $codigo, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // UTILIDADES PRIVADAS
+    // -------------------------------------------------------------------------
+
+    private function validarId(mixed $idCandidato): int
+    {
+        if ($idCandidato === null || !is_numeric($idCandidato)) {
+            throw new PeticionIncorrectaExcepcion("El identificador de persona especificado debe ser un número entero positivo mayor a cero.", 400);
+        }
+
+        $idInt = (int) $idCandidato;
+        if ($idInt <= 0 || (string) $idInt !== (string) $idCandidato) {
+            throw new PeticionIncorrectaExcepcion("El identificador de persona especificado ('{$idCandidato}') es inválido.", 400);
+        }
+
+        return $idInt;
+    }
+
+    private function extraerDatosCuerpo(Peticion $peticion): array
+    {
+        $cuerpoCrudo = file_get_contents('php://input');
+        if (!empty($cuerpoCrudo)) {
+            $decodificado = json_decode($cuerpoCrudo, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $tipoContenido = $peticion->obtenerCabecera('Content-Type', '');
+                if (str_contains($tipoContenido, 'application/x-www-form-urlencoded')) {
+                    parse_str($cuerpoCrudo, $datosParsed);
+                    if (is_array($datosParsed)) {
+                        return $datosParsed;
+                    }
+                }
+                throw new PeticionIncorrectaExcepcion('El cuerpo de la petición no contiene una estructura JSON válida: ' . json_last_error_msg(), 400);
+            }
+            if (is_array($decodificado)) {
+                return $decodificado;
+            }
+        }
+
+        $datos = $peticion->obtenerJson();
+        if (empty($datos)) {
+            $todos = $peticion->obtenerTodosLosParametros();
+            if (!empty($todos)) {
+                return $todos;
+            }
+        }
+
+        return $datos;
+    }
+
+    private function responderExito(Respuesta $respuesta, int $codigo, string $mensaje, mixed $datos, string $idCorrelacion): void
+    {
+        $respuesta->json([
+            'estado'  => 'exito',
+            'codigo'  => $codigo,
+            'mensaje' => $mensaje,
+            'datos'   => $datos,
+            'meta'    => [
+                'timestamp'      => date('c'),
+                'id_correlacion' => $idCorrelacion
+            ]
+        ], $codigo);
+    }
+
+    private function responderError(Respuesta $respuesta, int $codigo, string $mensaje, ?array $errores, string $idCorrelacion): void
+    {
+        $respuesta->json([
+            'estado'         => 'error',
+            'codigo'         => $codigo,
+            'mensaje'        => $mensaje,
+            'errores'        => $errores,
+            'datos'          => null,
+            'id_correlacion' => $idCorrelacion
+        ], $codigo);
+    }
+
+    private function manejarErrorInterno(Throwable $t, Respuesta $respuesta, string $idCorrelacion): void
+    {
+        error_log(sprintf(
+            "[%s] [%s] ERROR 500 en PersonaControlador: %s en %s:%d\nTraza:\n%s",
+            date('Y-m-d H:i:s'),
+            $idCorrelacion,
+            $t->getMessage(),
+            $t->getFile(),
+            $t->getLine(),
+            $t->getTraceAsString()
+        ));
+
+        $this->responderError(
+            $respuesta,
+            500,
+            'Ocurrió un error inesperado al procesar la solicitud de persona en el servidor.',
+            null,
+            $idCorrelacion
+        );
+    }
+
+    private function resolverIdCorrelacion(?ContextoPeticion $contexto): string
+    {
+        return $contexto ? $contexto->obtenerIdCorrelacion() : ('REQ-' . strtoupper(bin2hex(random_bytes(8))));
+    }
+}
