@@ -14,34 +14,34 @@ Un **Skill** en CasaPRO es un procedimiento operativo estándar reutilizable y d
 - **Salida:** Reporte con archivo plantilla real, líneas exactas, clases CSS y dependencias de vendor requeridas.
 
 ### 2. `crear-pantalla-alina`
-- **Objetivo:** Ensamblar una nueva vista basada en `blank.html` incorporando el header, sidebar dinámico, breadcrumbs, contenedores y scripts declarados en la inspección previa.
+- **Objetivo:** Ensamblar una nueva vista basada en `blank.html` incorporando cabecera, sidebar dinámico con tooltips delegados, iconografía Font Awesome exclusiva, DataTables y modales Alina.
 - **Entrada:** Contrato de pantalla verificado por `inspeccionar-alina`.
 - **Salida:** Archivo de vista PHP en `app/Vistas/modulos/{modulo}/{pantalla}.php`.
 
 ### 3. `crear-crud`
-- **Objetivo:** Generar el flujo integral de una entidad (Modelo, DTO, Repositorio, Servicio, Controlador, Rutas y Vistas) bajo la arquitectura MVC y reglas de tipado estricto.
-- **Entrada:** Nombre de la entidad y atributos de negocio.
-- **Salida:** Módulo funcional completo con validaciones y CSRF.
+- **Objetivo:** Generar el flujo integral de una entidad bajo el patrón oficial asíncrono: Listado DataTables + Modal Alina + Formulario + PristineJS + Fetch/JSON + sincronización `ajax.reload(null, false)` sin recarga de página completa.
+- **Entrada:** Nombre de la entidad, atributos de negocio y política modal/página.
+- **Salida:** Módulo funcional completo desacoplado (Controlador, DTOs allowlist, Servicio transaccional, Repositorio PDO, Vista con Modal y módulo JS modular).
 
 ### 4. `crear-datatable-dinamico`
-- **Objetivo:** Implementar un listado interactivo con paginación, ordenamiento y búsqueda server-side conectando DataTables con un endpoint JSON del repositorio.
-- **Entrada:** Tabla de BD, columnas a mostrar y filtros de búsqueda.
-- **Salida:** Endpoint en controlador y conector JavaScript estandarizado.
+- **Objetivo:** Implementar un listado interactivo server-side conectando DataTables con endpoints JSON mediante `window.fetch()` nativo, con debouncing de 400 ms, conservación estricta de contexto (página, búsqueda, orden) y sincronización con `tabla.ajax.reload(null, false)`.
+- **Entrada:** Endpoint API, columnas mapeadas en DTO allowlist y filtros de búsqueda.
+- **Salida:** Conector JavaScript estandarizado y tabla HTML Alina responsive.
 
 ### 5. `crear-formulario`
-- **Objetivo:** Construir un formulario estilizado con Alina Bootstrap 5, inputs flotantes o estándar, máscaras de entrada (CleaveJS), selectores (Select2), fechas (Flatpickr) y validación frontend.
-- **Entrada:** Campos requeridos y reglas de validación.
-- **Salida:** Fragmento HTML y controlador JS de envío asíncrono.
+- **Objetivo:** Construir un formulario estilizado con componentes Alina (`needs-validation`), validación declarativa con PristineJS, máscaras CleaveJS, prevención de doble envío (botón submit deshabilitado + spinner) y permanencia del formulario ante errores 422.
+- **Entrada:** Campos requeridos, reglas de validación y endpoint de destino.
+- **Salida:** Fragmento HTML y controlador JS asíncrono con manejo de estados `NORMAL -> PROCESANDO -> ÉXITO/ERROR`.
 
 ### 6. `crear-modal`
-- **Objetivo:** Crear un diálogo modal Bootstrap 5 integrado en la plantilla para operaciones rápidas (creación, edición, confirmación de anulación).
-- **Entrada:** Título, tamaño (sm, md, lg, xl) y contenido del cuerpo.
-- **Salida:** Componente modal en vista y lógica de apertura/cierre JS.
+- **Objetivo:** Crear un diálogo modal Bootstrap 5 centrado y scrolleable (`modal-dialog-centered modal-dialog-scrollable modal-lg/modal-xl`) según `modals.html` de Alina para creación, edición rápida y confirmación con SweetAlert2.
+- **Entrada:** Título, tamaño estándar Alina y contenido del cuerpo.
+- **Salida:** Componente modal en vista y ciclo de vida JS (apertura, poblado por fetch, reseteo).
 
 ### 7. `crear-endpoint-json`
-- **Objetivo:** Implementar una ruta y método de controlador que retorne una respuesta JSON normalizada (`estado`, `codigo`, `mensaje`, `datos`, `errores`).
-- **Entrada:** Ruta HTTP, método (GET, POST, PUT, DELETE) y DTO de entrada.
-- **Salida:** Acción de controlador con Middlewares de autenticación y CSRF/RBAC.
+- **Objetivo:** Implementar una ruta y método de controlador que retorne una respuesta JSON normalizada (`estado`, `codigo`, `mensaje`, `datos`, `errores`) validando con DTO Allowlist estricto (422 ante campos desconocidos).
+- **Entrada:** Ruta HTTP, método (GET, POST, PUT, PATCH) y DTO de entrada.
+- **Salida:** Acción de controlador protegida por GuardiaActorMiddleware, CsrfMiddleware y RBAC.
 
 ### 8. `crear-servicio-dominio`
 - **Objetivo:** Encapsular la lógica de negocio, validaciones complejas, transacciones PDO y emisión de eventos de auditoría para una operación específica.
@@ -79,7 +79,7 @@ Un **Skill** en CasaPRO es un procedimiento operativo estándar reutilizable y d
 - **Salida:** Archivo PDF generado y firmado con hash de integridad.
 
 ### 15. `ejecutar-gates`
-- **Objetivo:** Ejecutar la verificación rigurosa de los 12 gates de calidad universales y las pruebas financieras antes de aprobar una entrega.
+- **Objetivo:** Ejecutar la verificación rigurosa de los 12 gates de calidad universales, la batería de 6 gates de CRUD asíncrono (G-CRUD-1 al G-CRUD-6) y las pruebas financieras antes de aprobar una entrega.
 - **Entrada:** Código modificado en la microfase.
 - **Salida:** Reporte formal de auditoría de calidad con dictamen `PASS` o `FAIL`.
 

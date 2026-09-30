@@ -16,25 +16,17 @@ Tras la inspección física directa en `admin-dashboard\alina\`, se certifica la
 | Plugin / Librería | Archivos Clave | Propósito en CasaPRO |
 | :--- | :--- | :--- |
 | **bootstrap** | `bootstrap.bundle.min.js`, `bootstrap.min.css` | Framework base Bootstrap 5 (grid, modales, alertas, offcanvas). |
-| **tabler-icons** | `tabler-icons.css` | Iconografía principal del sistema (`ti ti-*`). |
-| **phosphor** | `phosphor-*.css`, `phosphor.js` | Iconografía complementaria de alta fidelidad. |
-| **fontawesome** | `css/all.css` | Iconografía estándar de soporte. |
-| **ionio-icon** | `css/iconoir.css` | Iconografía lineal y minimalista. |
+| **fontawesome** | `css/all.css`, fuentes en `fonts/fontawesome/` | **Único sistema oficial de iconografía de CasaPRO** (`fa-solid`, `fa-brands`, `fa-regular`). |
 | **simplebar** | `simplebar.css`, `simplebar.js` | Scrollbars personalizados en menús y contenedores. |
-| **datatable** | `jquery.dataTables.min.js`, `dataTables.responsive.min.js`, `datatable2/*` (buttons, pdfmake, jszip) | Tablas interactivas con paginación, búsqueda, exportación a Excel/PDF. |
+| **datatable** | `jquery.dataTables.min.js`, `dataTables.responsive.min.js` | Tablas interactivas con paginación server-side, búsqueda rápida y ordenamiento. |
 | **select** | `select2.min.css`, `select2.min.js` | Selects avanzados con autocompletado y búsqueda rápida. |
 | **flatpickr** | `flatpickr.min.css`, `flatpickr.js` | Selectores de fecha y rangos temporales. |
-| **sweetalert** | `sweetalert.js` | Modales de confirmación, diálogos de éxito, advertencia y error. |
+| **sweetalert** | `sweetalert.js` | Modales de confirmación interactiva para acciones destructivas/anulaciones. |
 | **notifications** | `toastify.min.css`, `toastify-js.js` | Notificaciones flotantes no intrusivas tipo toast. |
-| **filepond** | `filepond.css`, `filepond.min.js`, plugins de preview y validación | Carga de archivos y documentos con previsualización arrastrar y soltar. |
-| **leaflet-maps** | `leaflet.css`, `leaflet.js`, imágenes de marcadores | Mapas interactivos para visualización planimétrica y GIS de lotes. |
+| **filepond** | `filepond.css`, `filepond.min.js`, plugins | Carga de archivos y documentos con previsualización. |
+| **leaflet-maps** | `leaflet.css`, `leaflet.js` | Mapas interactivos para visualización planimétrica y GIS de lotes. |
 | **apexcharts** | `apexcharts.css`, `apexcharts.min.js` | Gráficos interactivos de dashboards comerciales y financieros. |
-| **chartjs** | `chart.js` | Gráficos estadísticos secundarios. |
 | **cleavejs** | `cleave.min.js` | Máscaras de entrada para moneda, teléfonos y números de documento. |
-| **dual_list_boxes**| `dual-listbox.css`, `dual-listbox.js` | Asignación de permisos a roles y lotes a asesores. |
-| **jstree** | `style.min.css`, `jstree.min.js` | Árboles jerárquicos de proyectos, sectores y organigramas. |
-| **sortable** | `Sortable.min.js` | Reordenamiento interactivo de elementos. |
-| **trumbowyg** | `trumbowyg.min.css`, `trumbowyg.min.js` | Editor de texto enriquecido para contratos, cartas y plantillas. |
 
 ---
 
@@ -49,11 +41,12 @@ Toda vista del sistema CasaPRO debe derivarse de la estructura definida en `admi
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Título Pantalla | CasaPRO</title>
-    <!-- 1. Google Fonts: Lexend Deca -->
+    <!-- 1. Google Fonts: Fira Sans (Normal, Condensed, Extra Condensed) oficial de CasaPRO -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
-    <!-- 2. Tabler Icons -->
-    <link href="/assets/vendor/tabler-icons/tabler-icons.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Fira+Sans+Extra+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <!-- 2. Font Awesome oficial de Alina (sistema iconográfico único de CasaPRO) -->
+    <link href="/assets/vendor/fontawesome/css/all.css" rel="stylesheet">
     <!-- 3. Bootstrap 5 CSS -->
     <link href="/assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <!-- 4. Simplebar CSS -->
@@ -210,7 +203,7 @@ Implementado en la ruta visual `/personas` (`app/Vistas/modulos/personas/index.p
 ### 2. Estándares Visuales Alina (Anti-Invención):
 - **Estados de Persona:** Implementados con *Variants of badge* de Alina (`.badge .text-light-success` para `ACTIVO`, `.badge .text-light-secondary` para `INACTIVO`). Se prohíbe el uso de bordes punteados (*dotted*) o estilos ajenos a la plantilla.
 - **Tipos de Persona:** Implementados con *Variants of chip* de Alina (`.chip .bg-light-primary .text-primary` para `NATURAL`, `.chip .bg-light-info .text-info` para `JURÍDICA`).
-- **Acciones Funcionales:** Un único botón iconográfico probado (`.btn .btn-outline-primary .btn-sm .icon-btn .b-r-4` con icono `ti ti-eye`) para consultar la Ficha de Identidad. Sin controles muertos ni botones deshabilitados anunciando fases futuras.
+- **Acciones Funcionales:** Un único botón iconográfico probado (`.btn .btn-outline-primary .btn-sm .icon-btn .b-r-4` con icono `fa-solid fa-eye`) para consultar la Ficha de Identidad. Sin controles muertos ni botones deshabilitados anunciando fases futuras.
 
 ### 3. Ficha de Identidad de Persona:
 - **Estructura Modal:** Modal grande scrollable centrado (`.modal-dialog .modal-lg .modal-dialog-centered .modal-dialog-scrollable`) según `modals.html` y `profile.html`.
@@ -218,4 +211,82 @@ Implementado en la ruta visual `/personas` (`app/Vistas/modulos/personas/index.p
 - **Gobernanza y Privacidad:** La ficha consulta exclusivamente datos de identidad entregados legítimamente por `GET /api/personas/{id}` (1D). Queda estrictamente excluida la exposición de auditoría forense, snapshots o histórico de estados.
 - **Inmunidad XSS:** Manipulación del DOM mediante `document.createElement()` y asignación exclusiva a través de `.textContent` y sanitización contextual de strings en celdas de tabla.
 - **Información Territorial:** Despliegue limpio de Departamento, Provincia, Distrito, Dirección y Referencia sin incorporar al usuario leyendas técnicas de certificación.
+
+---
+
+## 10. Patrón Visual y Componentes para CRUDs Asíncronos con Modales Alina y DataTables
+
+### 1. Diálogos Modales Oficiales de Alina (`modals.html`):
+- **Tamaños Permitidos:** Se utilizan estrictamente las clases estándar de Bootstrap 5 verificadas en Alina:
+  - `modal-sm`: Diálogos breves de confirmación o solicitud de motivo/comentario.
+  - `modal-dialog` (por defecto, ~500px): Formularios cortos (1 a 4 campos).
+  - `modal-lg` (~800px): Formularios administrativos estándar (Personas, Proveedores, Lotes).
+  - `modal-xl` (~1140px): Formularios multisección o extensos que conservan aptitud modal.
+  - `modal-fullscreen`: Exclusivo para vistas de diseño planimétrico o visores documentales.
+  *Regla Anti-Invención:* Queda prohibido inventar anchos en píxeles personalizados mediante CSS inline o clases arbitrarias.
+- **Comportamiento Centrado y Scrolleable Obligatorio:** Todo modal de formulario o ficha debe incorporar:
+  ```html
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+  ```
+  Esto garantiza que formularios con múltiples secciones o desplegables nunca desborden la ventana gráfica del usuario ni queden cortados en resoluciones laptop o tablet.
+
+### 2. Estructura Canónica de Formulario en Modal:
+```html
+<div class="modal fade" id="modalFormulario" tabindex="-1" aria-labelledby="modalFormularioTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content b-r-16">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-dark" id="modalFormularioTitulo">Registrar Nueva Entidad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form id="formEntidad" class="needs-validation" novalidate>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="entidadId" name="id" value="">
+                    <!-- Campos organizados en grid Bootstrap row g-3 -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="campoTexto" class="form-label f-s-13 text-secondary">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" id="campoTexto" name="nombre" class="form-control" required>
+                            <div class="invalid-feedback">El nombre es obligatorio.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnGuardarEntidad" class="btn btn-primary btn-sm">
+                        <span id="btnGuardarSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnGuardarTexto"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+```
+
+### 3. Botones de Acción en Filas DataTables:
+Para preservar la limpieza visual y ergonomía de las tablas Alina, las acciones por fila se diseñan mediante botones iconográficos compactos con tooltips:
+- **Ver Ficha / Detalle:** `.btn .btn-outline-primary .btn-sm .icon-btn .b-r-4` con `<i class="fa-solid fa-eye"></i>`.
+- **Editar:** `.btn .btn-outline-warning .btn-sm .icon-btn .b-r-4` con `<i class="fa-solid fa-pen-to-square"></i>`.
+- **Desactivar / Activar:** `.btn .btn-outline-danger .btn-sm .icon-btn .b-r-4` con `<i class="fa-solid fa-toggle-on"></i>` o `<i class="fa-solid fa-toggle-off"></i>`.
+- **Accesibilidad:** Cada botón debe incluir atributo `title` semántico y `data-bs-toggle="tooltip"` delegable.
+
+### 4. Diálogos de Confirmación con SweetAlert2 de Alina (`sweetalert.html`):
+Toda operación sensible (desactivación de persona, anulación de recibo, baja lógica) dispara una alerta interactiva antes de emitir la petición:
+```javascript
+Swal.fire({
+    title: '¿Confirmar operación?',
+    text: 'Esta acción actualizará el estado de la entidad en el sistema.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#082f32',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, confirmar',
+    cancelButtonText: 'Cancelar'
+}).then((result) => {
+    if (result.isConfirmed) {
+        ejecutarCambioEstado(id, nuevoEstado);
+    }
+});
+```
 

@@ -50,16 +50,50 @@ Se exceptúan únicamente las palabras clave reservadas de los lenguajes (PHP, S
 
 ## 4. Estándares JavaScript
 
-1. **ES6+ Moderno:** Código modular, uso de `const` y `let` (prohibido `var`), arrow functions y desestructuración.
-2. **Fetch API Nativo:** Toda comunicación asíncrona se realiza mediante `fetch` nativo con `async/await` y cabeceras de seguridad (`X-CSRF-TOKEN`, `Accept: application/json`).
-3. **Prohibición de jQuery en Código Nuevo:** Aunque Alina incluye jQuery para plugins de legado de la plantilla, el código de los módulos de CasaPRO se escribe en JavaScript estándar y modular.
-4. **Estructura de Módulos Frontend:**
+1. **ES6+ Moderno:** Código modular, uso de `const` y `let` (prohibido `var`), arrow functions, desestructuración y encapsulamiento bajo espacio de nombres propio (e.g. `window.CasaPro{Modulo}`).
+2. **Fetch API Nativo Exclusivo:** Toda comunicación asíncrona se realiza mediante `window.fetch()` nativo con `async/await` y cabeceras de seguridad (`X-CSRF-Token`, `Accept: application/json`, `Content-Type: application/json`).
+3. **Prohibición Estricta de jQuery en Código Propio:** Aunque Alina incluye jQuery para plugins de legado de la plantilla y DataTables, el código de los módulos propios de CasaPRO tiene prohibido invocar `$.ajax()`, `$.get()`, `$.post()`, `$.getJSON()` o librerías AJAX de terceros.
+4. **Prohibición de Recarga Completa:** Queda terminantemente prohibido utilizar `location.reload()` o `window.location.reload()` como flujo ordinario de actualización tras crear, editar o cambiar de estado un registro. La sincronización se realiza siempre a nivel de datos mediante `tabla.ajax.reload(null, false)`.
+5. **Prevención de Doble Envío:** Toda función de envío asíncrono debe deshabilitar inmediatamente el botón de acción (`btn.disabled = true;`), alternar a estado de procesamiento con spinner (`.spinner-border`) y rehabilitar limpiamente el control en caso de error HTTP o fallo de validación.
+6. **Confirmaciones Interactivas con SweetAlert2:** Para acciones destructivas, anulaciones o cambios de estado sensibles, se utiliza la API oficial de SweetAlert2 (`assets/vendor/sweetalert/sweetalert.js`) con diálogos no bloqueantes en español.
+7. **Estructura Modular Frontend Estandarizada:**
    ```javascript
-   // public/assets/js/modulos/personas.js
-   document.addEventListener('DOMContentLoaded', () => {
-       inicializarTabla();
-       inicializarFormulario();
-   });
+   // public/assets/js/modulos/{modulo}/{pantalla}.js
+   (function () {
+       'use strict';
+
+       const CasaProModulo = {
+           tabla: null,
+           modalFormulario: null,
+           validadorPristine: null,
+
+           inicializar: function () {
+               this.inicializarTabla();
+               this.inicializarModal();
+               this.vincularEventos();
+           },
+
+           inicializarTabla: function () {
+               // DataTables con conector Fetch nativo y serverSide: true
+           },
+
+           abrirModalCrear: function () {
+               // Limpiar formulario, resetear PristineJS y abrir modal Alina
+           },
+
+           abrirModalEditar: function (id) {
+               // Fetch GET /api/.../{id}, poblar inputs y abrir modal Alina
+           },
+
+           guardarRegistro: async function (evento) {
+               // Validar PristineJS, deshabilitar botón, Fetch POST/PUT + CSRF
+               // Al éxito: cerrar modal, limpiar y this.tabla.ajax.reload(null, false)
+               // Al error 422: modal permanece abierto con errores visibles
+           }
+       };
+
+       document.addEventListener('DOMContentLoaded', () => CasaProModulo.inicializar());
+   })();
    ```
 
 ---

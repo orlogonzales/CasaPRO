@@ -3,6 +3,52 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Microfase: Oficialización del Patrón CRUD Asíncrono en Gobernanza y Arquitectura] — 2026-09-30
+
+### Añadido
+- **Gobernanza del Patrón CRUD Asíncrono Oficial (`docs/01-GOBERNANZA.md`):**
+  - Incorporación de la Sección 5: "Patrón CRUD Asíncrono Oficial de CasaPRO".
+  - Definición de la tríada arquitectónica: `LISTADO + DATATABLE + MODAL ALINA + PRISTINEJS + FETCH/JSON + SINCRONIZACIÓN ASÍNCRONA`.
+  - Erradicación explícita del flujo sincrónico arcaico (`crear.php -> guardar -> redirect -> listado`).
+  - Protocolo para Creación (limpieza, reseteo PristineJS, foco), Edición (población asíncrona, spinner) y Baja Lógica/Anulación (cero `DELETE` físico).
+  - Confirmación interactiva obligatoria con SweetAlert2 temático de Alina.
+  - Sincronización DataTables con `tabla.ajax.reload(null, false)` preservando página, búsqueda con debounce (350-400 ms), orden y longitud de visualización. Manejo de retroceso de página si se vacía la página actual tras baja lógica.
+  - Política de Modal por defecto para CRUDs administrativos estándar vs justificación formal obligatoria en ADR para procesos multietapa o de alto riesgo financiero.
+  - Prevención de doble envío mediante bloqueo de botón (`disabled`), spinner Alina (`spinner-border spinner-border-sm`) y neutralización de Enter durante peticiones en curso.
+  - Manejo seguro de errores: ante error HTTP 422 de backend, el modal permanece abierto con los valores ingresados intactos y mapeo de errores en inputs; ante HTTP 500, mensaje genérico seguro sin trazas.
+- **Estándares Frontend Actualizados (`docs/03-CONVENCIONES.md`):**
+  - Prohibición categórica de `window.location.reload()`, `location.reload()` y `$.ajax()` en código propio de CasaPRO.
+  - Estandarización de módulos JavaScript ES6+ con Fetch nativo, DTOs JSON estructurados y manejo de tokens CSRF vía cabecera `X-CSRF-Token` o payload.
+- **Patrón Visual y Componentes Modales Alina (`docs/07-UI-UX-ALINA.md`):**
+  - Incorporación de la Sección 10: "Patrón Visual y Componentes para CRUDs Asíncronos con Modales Alina y DataTables".
+  - Especificación de anatomía modal Alina (`modal-dialog-centered`, `modal-dialog-scrollable`, `modal-lg`, `modal-xl`), botones compactos de acción en tablas con Font Awesome (`fa-solid fa-eye`, `fa-solid fa-pen-to-square`, `fa-solid fa-toggle-on/off`) y notificaciones con SweetAlert2.
+- **Batería de Gates para CRUDs Asíncronos (`docs/11-PRUEBAS-Y-GATES.md`):**
+  - Incorporación de la batería especializada G-CRUD-1 a G-CRUD-6:
+    - `G-CRUD-1 (Asincronía Real)`: Cero recargas completas o redirecciones síncronas.
+    - `G-CRUD-2 (Conservación de Contexto)`: `ajax.reload(null, false)` con debounce y preservación de estado.
+    - `G-CRUD-3 (Validación Dual y Preservación)`: PristineJS en modal + preservación de campos ante 422.
+    - `G-CRUD-4 (Prevención de Doble Envío)`: Deshabilitación de botón submit, spinner y bloqueo de tecla Enter.
+    - `G-CRUD-5 (Confirmación Destructiva)`: SweetAlert2 para baja lógica, inmutabilidad y cero DELETE físico.
+    - `G-CRUD-6 (Seguridad y Auditoría Atómica)`: CSRF, RBAC, scope territorial y auditoría transaccional append-only en la misma conexión.
+- **Decisiones Arquitectónicas Oficializadas (`docs/16-DECISIONES-ARQUITECTONICAS.md`):**
+  - `ADR-023: Estandarización de Identidad Visual: Tipografía Fira Sans, Font Awesome Exclusivo y Theme Customizer Adaptado`.
+  - `ADR-024: Patrón CRUD Asíncrono Oficial: Listado DataTables + Modal Alina + PristineJS + Fetch/JSON + Sincronización sin Recarga Completa`.
+- **Evolución del Catálogo de Skills (`docs/15-SKILLS.md` y `.agents/skills/`):**
+  - Actualización de `crear-crud`: alineada al flujo asíncrono con modales Alina, PristineJS y recarga sin salto de página.
+  - Actualización de `crear-datatable-dinamico`: fetch nativo, `tabla.ajax.reload(null, false)`, debounce y conservación de contexto.
+  - Actualización de `crear-formulario`: validación PristineJS, máscaras CleaveJS, control de doble submit y preservación modal ante 422.
+  - Actualización de `crear-modal`: política modal por defecto, tamaños Alina (`modal-lg`, `modal-xl`), scrollable y eventos de ciclo de vida.
+  - Actualización de `crear-pantalla-alina`: ensamble de vistas basadas en `blank.html` con modales Alina, Fira Sans y Font Awesome exclusivo.
+  - Actualización de `inspeccionar-alina`: inventario de modales (`modals.html`), formularios (`form_*.html`), tablas y sweetalerts (`sweet_alert.html`).
+  - Actualización de `ejecutar-gates`: verificación de la batería G-CRUD-1 a G-CRUD-6 y Gate G11 con Fira Sans y Font Awesome.
+- **Alineación del Roadmap General (`docs/13-ROADMAP.md`):**
+  - Registro de la microfase de Normalización Visual Global (`mb-ui-normalizacion-global`) y de Gobernanza CRUD Asíncrono (`mb-gobernanza-crud-asincrono`) como requisitos normativos completados con anterioridad al inicio de la Microfase 1F.
+
+### Estado
+- Micro-baseline documental y normativo cerrado formalmente (`mb-gobernanza-crud-asincrono`).
+
+---
+
 ## [Microfase: Normalización Visual Global de Alina] — 2026-09-29
 
 ### Añadido

@@ -22,6 +22,10 @@
 - [ADR-018: Carga de Variables de Entorno con vlucas/phpdotenv y Respaldo Determinista](#adr-018-carga-de-variables-de-entorno-con-vlucasphpdotenv-y-respaldo-determinista)
 - [ADR-019: Proveedor Inyectable de Conexión PDO sin Singleton Rígido y Motor Determinista de Migraciones](#adr-019-proveedor-inyectable-de-conexión-pdo-sin-singleton-rígido-y-motor-determinista-de-migraciones)
 - [ADR-020: Modelo Normalizado de Identidad Persona, Estados Restringidos y Catálogo UBIGEO Vigente de CasaPRO](#adr-020-modelo-normalizado-de-identidad-persona-estados-restringidos-y-catálogo-ubigeo-vigente-de-casapro)
+- [ADR-021: Arquitectura Transversal de Actores, Bitácora Inmutable de Auditoría Forense y Protección Estricta Anti-CSRF](#adr-021-arquitectura-transversal-de-actores-bitácora-inmutable-de-auditoría-forense-y-protección-estricta-anti-csrf)
+- [ADR-022: Arquitectura Desacoplada de Personas, DTOs con Allowlist y DataTables Server-Side con Whitelist Rígida](#adr-022-arquitectura-desacoplada-de-personas-dtos-con-allowlist-y-datatables-server-side-con-whitelist-rígida)
+- [ADR-023: Estandarización de Identidad Visual: Tipografía Fira Sans, Font Awesome Exclusivo y Theme Customizer Adaptado](#adr-023-estandarización-de-identidad-visual-tipografía-fira-sans-font-awesome-exclusivo-y-theme-customizer-adaptado)
+- [ADR-024: Patrón CRUD Asíncrono Oficial: Listado DataTables + Modal Alina + PristineJS + Fetch/JSON + Sincronización sin Recarga Completa](#adr-024-patrón-crud-asíncrono-oficial-listado-datatables--modal-alina--pristinejs--fetchjson--sincronización-sin-recarga-completa)
 
 ---
 
@@ -185,3 +189,34 @@
   7. **Prohibición Total de `DELETE` Físico:** Se omite cualquier ruta `DELETE /api/personas/{id}`. La transición de estado se ejecuta exclusivamente mediante `PATCH /api/personas/{id}/estado` (ACTIVO <-> INACTIVO) con motivo auditable obligatorio. Se prohíbe asignar `BLOQUEADO` o `ELIMINADO` a Persona.
   8. **Auditoría Atómica y Cero Fuga de SQL:** El servicio de dominio coordina la transacción PDO única que envuelve las mutaciones de identidad y el registro de auditoría. Si la base de datos lanza un error, se garantiza `rollBack()` total y captura limpia sin exponer mensajes SQL al cliente (HTTP 500 genérico con correlation ID registrado en error_log).
 - **Consecuencias:** Integridad referencial inviolable, protección garantizada contra Mass Assignment e inyecciones SQL en consultas DataTables, seguridad alineada con Deny by Default, y trazabilidad forense 100% auditable sin deuda técnica.
+
+### ADR-023: Estandarización de Identidad Visual: Tipografía Fira Sans, Font Awesome Exclusivo y Theme Customizer Adaptado
+- **Estado:** Aceptado (Microfase Normalización Visual Global)
+- **Contexto:** La experiencia visual requería unificar la iconografía oficial, consolidar una tipografía corporativa de alta legibilidad técnica en pantallas de gestión inmobiliaria y habilitar el personalizador de tema de Alina sin dependencias de compra ni opciones innecesarias.
+- **Decisión:**
+  1. **Tipografía Oficial:** Adopción obligatoria de **Fira Sans** (con variantes `Fira Sans`, `Fira Sans Condensed` y `Fira Sans Extra Condensed` importadas de Google Fonts). `--theme-fonts: "Fira Sans", sans-serif;` se define como la fuente base del sistema en `style.css` y `responsive.css`. Lexend Deca queda retirada del código propio.
+  2. **Iconografía Oficial Única:** **Font Awesome** pasa a ser el único sistema oficial de iconografía de CasaPRO. Se trasladaron las fuentes web y estilos verificados de Alina (`assets/vendor/fontawesome/css/all.css`, fuentes en `fonts/fontawesome/`). Se migraron exhaustivamente todas las clases `ti ti-*` a sus equivalentes Font Awesome (`fa-solid`, `fa-brands`) y se eliminaron los assets de Tabler Icons del código propio activo.
+  3. **Tooltips Reales Bootstrap 5:** Inicialización delegada global en `script.js` con soporte para elementos estáticos y dinámicos (`[data-bs-toggle="tooltip"]`), garantizando tooltips accesibles y semánticos en el menú lateral y botones de acción.
+  4. **Theme Customizer Adaptado:** Restaurado sobre `#theme-customizer-box` y traducido 100% al español. Se eliminaron los enlaces comerciales externos ("Buy Now", ThemeForest) y se omitieron las dos últimas opciones originales de Alina (`Sidebar Variant` y `Font Sizing`) para evitar dispersión técnica. Se conservaron: Colores del tema (gradientes 1 a 6), Diseños del tema (LTR, RTL, Box) y botón Restablecer (`resetCustomizer()`).
+- **Consecuencias:** Identidad visual coherente, moderna y libre de artefactos comerciales externos, manteniendo la soberanía y fidelidad absoluta a la plantilla Alina.
+
+### ADR-024: Patrón CRUD Asíncrono Oficial: Listado DataTables + Modal Alina + PristineJS + Fetch/JSON + Sincronización sin Recarga Completa
+- **Estado:** Aceptado (Gobernanza Vinculante previa a Microfase 1F)
+- **Contexto:** Las operaciones CRUD de gestión inmobiliaria (Personas, Proveedores, Lotes, etc.) deben ofrecer una experiencia ágil, empresarial y moderna, evitando recargas completas de página (`crear.php -> guardar -> redirect -> listado`) y garantizando a la vez validación robusta, prevención de envíos duplicados, confirmación visual de bajas y preservación estricta de la seguridad backend (Deny by Default, CSRF, RBAC, DTOs, PDO y Auditoría).
+- **Decisión:**
+  1. **Patrón Arquitectónico por Defecto:**
+     $$\text{LISTADO} + \text{DATATABLE} + \text{MODAL ALINA} + \text{PRISTINEJS} + \text{FETCH/JSON} + \text{SINCRONIZACIÓN ASÍNCRONA}$$
+     Para registros y catálogos administrativos simples, las acciones Crear y Editar se resuelven mediante el diálogo modal oficial de Alina (`#modalFormulario`) sin abandonar el listado.
+  2. **Política de Excepción Fundamentada:** Se autoriza el uso de páginas independientes o Wizards para procesos multietapa complejos (ventas inmobiliarias, financiamiento directo, múltiples titulares, expedientes documentales extensos), documentando brevemente en la microfase la razón por la cual el modal no es adecuado.
+  3. **Flujo de Mutación Asíncrona (Crear/Editar):**
+     - Apertura del modal Alina (`modal-dialog-centered modal-dialog-scrollable modal-lg` o `modal-xl`).
+     - Validación declarativa frontend obligatoria con PristineJS (complemento que nunca sustituye al backend).
+     - Prevención de doble envío: botón submit deshabilitado inmediatamente con spinner Bootstrap 5 (`.spinner-border`) durante la petición.
+     - Petición asíncrona mediante `window.fetch()` nativo (prohibido `$.ajax()`) con cabecera `X-CSRF-Token` y payload JSON estructurado.
+     - Procesamiento backend estricto: autenticación de actor, autorización, DTO allowlist, servicio transaccional, repositorio PDO parametrizado y bitácora en `auditorias`.
+     - Éxito: cierre de modal, reseteo de formulario y actualización de la DataTable mediante `tabla.ajax.reload(null, false)`. Queda prohibido `location.reload()` o `window.location.reload()`.
+  4. **Manejo de Errores de Validación (422):** Ante errores de validación de negocio, **el modal permanece abierto**, los datos ingresados por el usuario no se borran y los errores se asocian a los campos mediante `.invalid-feedback`.
+  5. **La Acción Eliminar No es DELETE Físico:** Representa Desactivación, Anulación, Archivo o Baja lógica auditable según las reglas del dominio. Requiere confirmación visual obligatoria mediante **SweetAlert2** de Alina antes de enviar la petición asíncrona.
+  6. **Conservación del Contexto de DataTables:** El refresco asíncrono debe conservar estrictamente la página actual, búsqueda, ordenamiento y longitud. Si la baja lógica provoca que la página actual se quede sin registros, el conector debe reubicar automáticamente la tabla en la página anterior válida.
+  7. **Cero Mega-Frameworks Prematuros:** No se construirán clases universales monolíticas (`CrudManagerUniversal`). La lógica se implementa modularmente por pantalla reutilizando componentes Alina reales y patrones verificados.
+- **Consecuencias:** Experiencia de usuario ágil y moderna, eliminación de recargas completas, conservación de filtros y contexto de búsqueda, prevención eficaz de duplicados, y garantía inviolable de las políticas de seguridad y auditoría de CasaPRO.
