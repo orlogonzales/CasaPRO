@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Script de Verificación para Gate SQL e Infraestructura de Persistencia (Microfase 1A).
+ * Script de Verificación para Gate SQL e Infraestructura de Persistencia (Microfase 1B).
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -15,7 +15,7 @@ use App\Core\MigradorSQL;
 CargadorEntorno::cargar(dirname(__DIR__));
 
 echo "===============================================================\n";
-echo " PRUEBA DE GATE SQL Y RECONSTRUCCIÓN LIMPIA (MICROFASE 1A)\n";
+echo " PRUEBA DE GATE SQL Y RECONSTRUCCIÓN LIMPIA (MICROFASE 1B)\n";
 echo "===============================================================\n";
 
 $proveedorBase = new ProveedorConexion();
@@ -37,7 +37,8 @@ $cfgA['database'] = $dbA;
 $provA = new ProveedorConexion($cfgA);
 $migA = new MigradorSQL($provA);
 $resA = $migA->ejecutar();
-echo "   + Migraciones aplicadas: " . count($resA['aplicadas']) . " (Lote #" . $resA['lote'] . ")\n";
+$totalAplicadasA = count($resA['aplicadas']);
+echo "   + Migraciones aplicadas: {$totalAplicadasA} (Lote #{$resA['lote']})\n";
 
 // --- CAMINO B: Consolidado ---
 echo "3. Ejecutando Camino B (Importación de SQL/casa-pro.sql en {$dbB})...\n";
@@ -74,7 +75,7 @@ function obtenerEstructuraTablas(PDO $pdo, string $baseDatos): array
     $stmtColumnas->execute([$baseDatos]);
     $columnas = $stmtColumnas->fetchAll(PDO::FETCH_ASSOC);
 
-    // Índices y restricciones
+    // Índices
     $stmtIndices = $pdo->prepare("
         SELECT TABLE_NAME, INDEX_NAME, NON_UNIQUE, COLUMN_NAME, SEQ_IN_INDEX
         FROM information_schema.STATISTICS
@@ -84,31 +85,54 @@ function obtenerEstructuraTablas(PDO $pdo, string $baseDatos): array
     $stmtIndices->execute([$baseDatos]);
     $indices = $stmtIndices->fetchAll(PDO::FETCH_ASSOC);
 
+    // Claves foráneas y reglas referenciales
+    $stmtFks = $pdo->prepare("
+        SELECT
+            kcu.TABLE_NAME,
+            kcu.COLUMN_NAME,
+            kcu.CONSTRAINT_NAME,
+            kcu.REFERENCED_TABLE_NAME,
+            kcu.REFERENCED_COLUMN_NAME,
+            rc.UPDATE_RULE,
+            rc.DELETE_RULE
+        FROM information_schema.KEY_COLUMN_USAGE kcu
+        JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+            ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+            AND kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
+        WHERE kcu.TABLE_SCHEMA = ?
+            AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+        ORDER BY kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+    ");
+    $stmtFks->execute([$baseDatos]);
+    $fks = $stmtFks->fetchAll(PDO::FETCH_ASSOC);
+
     return [
         'tablas' => $tablas,
         'columnas' => $columnas,
         'indices' => $indices,
+        'fks' => $fks,
     ];
 }
 
 $estructuraA = obtenerEstructuraTablas($pdoServidor, $dbA);
 $estructuraB = obtenerEstructuraTablas($pdoServidor, $dbB);
 
-// Filtrar TABLE_COLLATION o comparaciones triviales si fueran idénticas
 $tablasIguales = ($estructuraA['tablas'] == $estructuraB['tablas']);
 $columnasIguales = ($estructuraA['columnas'] == $estructuraB['columnas']);
 $indicesIguales = ($estructuraA['indices'] == $estructuraB['indices']);
+$fksIguales = ($estructuraA['fks'] == $estructuraB['fks']);
 
 echo "\n--- RESULTADO DE COMPARACIÓN ESTRUCTURAL (GATE SQL) ---\n";
-echo "Tablas:   " . ($tablasIguales ? "[PASS] 100% Idénticas" : "[FAIL] Discrepancia detectada") . "\n";
-echo "Columnas: " . ($columnasIguales ? "[PASS] 100% Idénticas" : "[FAIL] Discrepancia detectada") . "\n";
-echo "Índices:  " . ($indicesIguales ? "[PASS] 100% Idénticos" : "[FAIL] Discrepancia detectada") . "\n";
+echo "Tablas:          " . ($tablasIguales ? "[PASS] 100% Idénticas (" . count($estructuraA['tablas']) . " tablas)" : "[FAIL] Discrepancia detectada") . "\n";
+echo "Columnas:        " . ($columnasIguales ? "[PASS] 100% Idénticas (" . count($estructuraA['columnas']) . " columnas)" : "[FAIL] Discrepancia detectada") . "\n";
+echo "Índices:         " . ($indicesIguales ? "[PASS] 100% Idénticos (" . count($estructuraA['indices']) . " índices)" : "[FAIL] Discrepancia detectada") . "\n";
+echo "Claves Foráneas: " . ($fksIguales ? "[PASS] 100% Idénticas (" . count($estructuraA['fks']) . " FKs)" : "[FAIL] Discrepancia detectada") . "\n";
 
 // --- PRUEBA DE IDEMPOTENCIA ---
 echo "\n5. Verificando Idempotencia en Camino A (segunda corrida)...\n";
 $resAIdempotente = $migA->ejecutar();
-$idempotenciaPass = (count($resAIdempotente['aplicadas']) === 0 && count($resAIdempotente['omitidas']) === 1);
-echo "Idempotencia: " . ($idempotenciaPass ? "[PASS] 0 aplicadas, 1 omitida" : "[FAIL] Comportamiento no idempotente") . "\n";
+$idempotenciaPass = (count($resAIdempotente['aplicadas']) === 0 && count($resAIdempotente['omitidas']) === $totalAplicadasA);
+echo "Idempotencia:    " . ($idempotenciaPass ? "[PASS] 0 aplicadas, {$totalAplicadasA} omitidas" : "[FAIL] Comportamiento no idempotente") . "\n";
 
 // --- LIMPIEZA DE BASES TEMPORALES ---
 echo "6. Limpiando bases de datos de prueba...\n";
@@ -116,7 +140,7 @@ $pdoServidor->exec("DROP DATABASE IF EXISTS `{$dbA}`");
 $pdoServidor->exec("DROP DATABASE IF EXISTS `{$dbB}`");
 echo "   + Bases temporales eliminadas.\n";
 
-$todoPass = $tablasIguales && $columnasIguales && $indicesIguales && $idempotenciaPass;
+$todoPass = $tablasIguales && $columnasIguales && $indicesIguales && $fksIguales && $idempotenciaPass;
 echo "===============================================================\n";
 if ($todoPass) {
     echo " RESULTADO FINAL GATE SQL: [PASS] (ESQUEMA A == ESQUEMA B)\n";

@@ -3,6 +3,39 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Fase 1B: Catálogos Estructurales y Modelo Normalizado de Persona] — 2026-09-29
+
+### Añadido
+- **Catálogos Estructurales de Identidad:**
+  - Migración `SQL/migraciones/2026_09_29_000002_crear_catalogos_identidad.sql`: Creación y siembra de tablas maestras normalizadas sin ENUMs (`sexos`, `estados_civiles`, `tipos_documento`, `tipos_contacto`, `tipos_direccion`).
+  - Catálogo `tipos_documento`: Parámetros de validación y reglas para DNI, RUC, CE y Pasaporte.
+- **Catálogo Oficial Completo del INEI de UBIGEO y Países:**
+  - Migración `SQL/migraciones/2026_09_29_000003_crear_estructura_ubigeo.sql`: Estructura jerárquica relacional de `paises`, `departamentos`, `provincias` y `distritos` con claves foráneas `RESTRICT`.
+  - Migración `SQL/migraciones/2026_09_29_000004_cargar_datos_ubigeo.sql`: Carga masiva de datos oficiales del INEI del Perú: 11 países, 25 departamentos/regiones, 196 provincias y 1,874 distritos. Cero catálogos incompletos o piloto.
+- **Modelo Relacional Normalizado de Identidad Persona:**
+  - Migración `SQL/migraciones/2026_09_29_000005_crear_modelo_persona.sql`:
+    - `personas`: Entidad raíz indivisible con estado restringido exclusivamente a `ACTIVO | INACTIVO` (prohibido `BLOQUEADO`).
+    - `persona_natural`: Extensión de atributos civiles (nombres, apellidos, nacimiento, sexo, estado civil, nacionalidad, profesión).
+    - `persona_juridica`: Extensión corporativa (razón social, nombre comercial, fecha de constitución, objeto social) sin RUC incrustado.
+    - `persona_documentos`: Subsistema 1:N de documentos oficiales con clave única estricta `UNIQUE (tipo_documento_id, numero_documento)` e indicador de documento principal.
+    - `persona_contactos`: Medios de contacto multicanal 1:N (email, móvil, fijo, WhatsApp).
+    - `persona_direcciones`: Direcciones físicas y fiscales 1:N vinculadas a distritos del UBIGEO oficial.
+    - `persona_representantes`: Historial explícito de representación legal entre Persona Jurídica y Persona Natural (cargo, partida registral, vigencia).
+- **Esquema Consolidado Oficial Sincronizado:**
+  - `SQL/casa-pro.sql`: Actualizado con el esquema consolidado completo y vigente (17 tablas, 141 columnas, 63 índices, 18 FKs).
+- **Entidades de Dominio en PHP 8.3:**
+  - Clases fuertemente tipadas en `app/Modelos/`: `Persona`, `PersonaNatural`, `PersonaJuridica`, `PersonaDocumento`, `PersonaContacto`, `PersonaDireccion`, `PersonaRepresentante`.
+- **Pruebas Automatizadas de Integridad:**
+  - `tests/verificar_integridad_identidad.php`: 22 pruebas de integridad referencial, unicidad de documentos, relaciones 1:1 y 1:N, representación legal, transiciones de estado y política `ON DELETE RESTRICT`, ejecutadas en transacción revertida (cero basura residual).
+  - `tests/verificar_persistencia.php`: Suite ampliada para Gate SQL comparando tablas, columnas, índices, claves foráneas y reglas referenciales (100% PASS: Esquema A == Esquema B).
+- **Decisiones Arquitectónicas (ADRs):**
+  - Incorporación de `ADR-020: Modelo Normalizado de Identidad Persona, Estados Restringidos y Catálogo Oficial INEI de UBIGEO`.
+
+### Estado
+- Micro-baseline 1B cerrado satisfactoriamente (`mb-fase1b-identidad`).
+
+---
+
 ## [Fase 1A: Persistencia PDO y Motor de Migraciones] — 2026-09-29
 
 ### Añadido

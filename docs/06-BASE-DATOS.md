@@ -53,7 +53,9 @@ D:\laragon\www\app.casa-pro\
     └── migraciones\
         ├── 2026_09_29_000001_crear_tabla_migraciones.sql
         ├── 2026_09_29_000002_crear_catalogos_identidad.sql
-        └── ...
+        ├── 2026_09_29_000003_crear_estructura_ubigeo.sql
+        ├── 2026_09_29_000004_cargar_datos_ubigeo.sql
+        └── 2026_09_29_000005_crear_modelo_persona.sql
 ```
 
 ### Fuentes de Verdad y Responsabilidades:
