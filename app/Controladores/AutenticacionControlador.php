@@ -77,7 +77,7 @@ class AutenticacionControlador extends BaseControlador
         $idCorrelacion = $contexto->obtenerIdCorrelacion();
 
         try {
-            $datos = $peticion->obtenerCuerpo();
+            $datos = $this->obtenerDatosEntrada($peticion);
             $dto = AutenticarUsuarioDTO::desdeArray($datos);
 
             $auth = $this->autenticacionServicio->autenticar($dto, $contexto);
@@ -176,5 +176,24 @@ class AutenticacionControlador extends BaseControlador
         GestorSesion::iniciar();
         GestorSesion::establecerFlash('exito', 'Ha cerrado sesión correctamente.');
         $respuesta->redireccionar('/login');
+    }
+
+    /**
+     * Extrae los datos de entrada soportando tanto payloads JSON como envíos tradicionales de formulario.
+     *
+     * @param Peticion $peticion
+     * @return array<string, mixed>
+     */
+    private function obtenerDatosEntrada(Peticion $peticion): array
+    {
+        $datos = $peticion->obtenerJson();
+
+        if (!empty($datos)) {
+            return $datos;
+        }
+
+        $cuerpo = $peticion->obtenerCuerpo();
+
+        return !empty($cuerpo) ? $cuerpo : [];
     }
 }

@@ -94,13 +94,23 @@ function despacharHttp(string $metodo, string $ruta, array $cuerpo = [], array $
     $peticion = new Peticion();
     $peticion->establecerMetodo($metodo);
     $peticion->establecerRuta($ruta);
-    $peticion->establecerCuerpo($cuerpo);
-    if (!empty($cuerpo)) {
-        $peticion->establecerJson($cuerpo);
-    }
 
+    $esJson = false;
     foreach ($cabeceras as $nombre => $valor) {
         $peticion->establecerCabecera($nombre, $valor);
+        if (strtolower($nombre) === 'content-type' && str_contains(strtolower($valor), 'application/json')) {
+            $esJson = true;
+        }
+    }
+
+    if ($esJson) {
+        $peticion->establecerCuerpo([]);
+        $peticion->establecerJson($cuerpo);
+    } else {
+        $peticion->establecerCuerpo($cuerpo);
+        if (!empty($cuerpo)) {
+            $peticion->establecerJson($cuerpo);
+        }
     }
 
     $contexto = ContextoPeticion::crearDesdeEntorno($peticion);
@@ -457,18 +467,32 @@ $resLoginSinCsrf = despacharHttp('POST', '/login', [
 ]);
 afirmativo($resLoginSinCsrf['codigo'] === 403, "POST /login sin token CSRF es estrictamente bloqueado con HTTP 403");
 
-// POST /login con CSRF válido inicia sesión (AJAX)
+// POST /login tradicional (x-www-form-urlencoded) con CSRF válido
 $tokenCsrfLogin = CsrfServicio::obtenerToken();
-$resLoginAjax = despacharHttp('POST', '/login', [
+$resLoginForm = despacharHttp('POST', '/login', [
     'identificador' => $emailPrueba,
     'password'      => 'ClaveSegura#2026',
     'csrf_token'    => $tokenCsrfLogin
 ], [
-    'Accept'           => 'application/json',
+    'Content-Type'     => 'application/x-www-form-urlencoded',
     'X-Requested-With' => 'XMLHttpRequest',
     'X-CSRF-Token'     => $tokenCsrfLogin
 ]);
-afirmativo($resLoginAjax['codigo'] === 200 && ($resLoginAjax['json']['estado'] ?? '') === 'exito', "POST /login con CSRF válido autentica exitosamente respondiendo HTTP 200 JSON");
+afirmativo($resLoginForm['codigo'] === 200 && ($resLoginForm['json']['estado'] ?? '') === 'exito', "POST /login tradicional (x-www-form-urlencoded) autentica exitosamente respondiendo HTTP 200 JSON");
+
+// POST /login con Fetch JSON nativo (Content-Type: application/json, contrato real del navegador)
+$tokenCsrfJson = CsrfServicio::obtenerToken();
+$resLoginJson = despacharHttp('POST', '/login', [
+    'identificador' => $usuarioNombre,
+    'password'      => 'ClaveSegura#2026',
+    'csrf_token'    => $tokenCsrfJson
+], [
+    'Content-Type'     => 'application/json',
+    'Accept'           => 'application/json',
+    'X-Requested-With' => 'XMLHttpRequest',
+    'X-CSRF-Token'     => $tokenCsrfJson
+]);
+afirmativo($resLoginJson['codigo'] === 200 && ($resLoginJson['json']['estado'] ?? '') === 'exito', "POST /login con Fetch JSON nativo (Content-Type: application/json) autentica exitosamente respondiendo HTTP 200 JSON");
 
 // Petición anónima a /api/personas es rechazada con HTTP 401
 $resApiAnonima = despacharHttp('GET', '/api/personas', [], [
