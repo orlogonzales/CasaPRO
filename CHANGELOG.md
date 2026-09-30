@@ -3,6 +3,26 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Microfix Visual y Consolidación Documental: Escala de Texto, Tooltips y Menú Dinámico 1G-3] — 2026-09-30
+
+### Añadido / Restaurado
+- **Restauración de Escala de Texto en Personalizador de Tema (`public/assets/js/theme_customizer.js`):**
+  - Incorporación del bloque oficial Alina `theme-sizing-list` con opciones 100% en español: `Pequeño` (`small-text`), `Mediano` (`medium-text`) y `Grande` (`large-text`).
+  - Activación visual única con check Font Awesome (`fa-solid fa-check`) sobre selector nativo Alina.
+  - Modificación real de la tipografía mediante atributo `body[text="..."]` sobre **Fira Sans**.
+  - Persistencia de selección en `localStorage` con clave `font-size`.
+  - Restauración automática del valor predeterminado real de Alina (`medium-text`) al presionar `Restablecer`.
+- **Corrección de Tooltips en `navbar-menu-list` (`script.js`, `navegacion-lateral.php`, `style.css`):**
+  - Subsanada causa raíz: excepciones no capturadas en `script.js` prevenían el registro del listener de tooltips.
+  - Inicialización robusta de Bootstrap Tooltip con `selector: '[data-bs-toggle="tooltip"]'` y `container: 'body'` asegurando flotación libre por encima del z-index del sidebar.
+  - Inclusión de `aria-label` en enlaces de navegación para accesibilidad.
+  - Regla CSS `pointer-events: none` en iconos `<i>` dentro de `.nav-link` para garantizar focalización directa del disparador.
+- **Consolidación Documental del Menú Dinámico 1G-3 (`docs/13-ROADMAP.md` y `docs/16-DECISIONES-ARQUITECTONICAS.md`):**
+  - Desglose oficial de la Fase 1G en: `1G-1` (Autenticación y RBAC), `1G-2` (Administración de usuarios) y `1G-3` (Gestión de Menú Dinámico y Navegación).
+  - Especificación formal de 1G-3: jerarquía máxima estricta de 3 niveles, regla `MENÚ ≠ AUTORIZACIÓN`, consumo directo de RBAC sin duplicidad, y dependencia lineal `1G-1 → 1G-2 → 1G-3`.
+
+---
+
 ## [Microfase 1F: Alta, Edición, Estados de Personas y Consulta Documental Asistida] — 2026-09-30
 
 ### Añadido

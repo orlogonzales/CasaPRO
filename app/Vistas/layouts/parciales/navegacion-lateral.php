@@ -9,51 +9,51 @@ use App\Core\Vista;
     <!-- Mini Navegación Lateral (semi-side-nav) Nivel 1 -->
     <div class="semi-side-nav">
         <div class="py-4">
-           <a href="<?= Vista::url() ?>" class="bg-white h-40 w-40 d-flex-center b-r-12 mx-auto text-decoration-none shadow-sm">
+           <a href="<?= Vista::url() ?>" class="bg-white h-40 w-40 d-flex-center b-r-12 mx-auto text-decoration-none shadow-sm" data-bs-toggle="tooltip" data-bs-placement="right" title="CasaPRO - Inicio" aria-label="CasaPRO - Inicio">
                    <span class="f-w-700 text-primary">CP</span>
            </a>
         </div>
 
         <ul class="navbar-menu-list" role="tablist">
             <li class="nav-item">
-                <a href="#" class="nav-link active" data-target="menuInicio" data-bs-toggle="tooltip" data-bs-placement="right" title="Inicio">
+                <a href="#" class="nav-link active" data-target="menuInicio" data-bs-toggle="tooltip" data-bs-placement="right" title="Inicio" aria-label="Inicio">
                     <i class="fa-solid fa-house"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuIdentidad" data-bs-toggle="tooltip" data-bs-placement="right" title="Identidad y Accesos">
+                <a href="#" class="nav-link" data-target="menuIdentidad" data-bs-toggle="tooltip" data-bs-placement="right" title="Identidad y Accesos" aria-label="Identidad y Accesos">
                     <i class="fa-solid fa-users"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuCatastro" data-bs-toggle="tooltip" data-bs-placement="right" title="Catastro y Lotes">
+                <a href="#" class="nav-link" data-target="menuCatastro" data-bs-toggle="tooltip" data-bs-placement="right" title="Catastro y Lotes" aria-label="Catastro y Lotes">
                     <i class="fa-solid fa-location-dot"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuComercial" data-bs-toggle="tooltip" data-bs-placement="right" title="Comercial y Ventas">
+                <a href="#" class="nav-link" data-target="menuComercial" data-bs-toggle="tooltip" data-bs-placement="right" title="Comercial y Ventas" aria-label="Comercial y Ventas">
                     <i class="fa-solid fa-briefcase"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuTesoreria" data-bs-toggle="tooltip" data-bs-placement="right" title="Tesorería y Finanzas">
+                <a href="#" class="nav-link" data-target="menuTesoreria" data-bs-toggle="tooltip" data-bs-placement="right" title="Tesorería y Finanzas" aria-label="Tesorería y Finanzas">
                     <i class="fa-solid fa-money-bill-wave"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuOperaciones" data-bs-toggle="tooltip" data-bs-placement="right" title="Operaciones y Postventa">
+                <a href="#" class="nav-link" data-target="menuOperaciones" data-bs-toggle="tooltip" data-bs-placement="right" title="Operaciones y Postventa" aria-label="Operaciones y Postventa">
                     <i class="fa-solid fa-house-circle-check"></i>
                 </a>
             </li>
         </ul>
 
         <div class="mt-auto pb-3">
-            <span class="bg-primary-800 h-45 w-45 d-flex-center b-r-30 position-relative mx-auto cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="right" title="Usuario activo">
+            <span class="bg-primary-800 h-45 w-45 d-flex-center b-r-30 position-relative mx-auto cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="right" title="Usuario activo" aria-label="Usuario activo">
                <img alt="avatar" class="img-fluid b-r-30" src="<?= Vista::asset('images/avatar/01.png') ?>">
                <span class="position-absolute top-0 end-0 p-1 bg-gradient-success border border-light rounded-circle"></span>
            </span>

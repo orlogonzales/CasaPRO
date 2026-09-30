@@ -7,8 +7,8 @@ El desarrollo de CasaPRO se ejecuta en microfases secuenciales estrictas, donde 
 ```mermaid
 flowchart TD
     F0A[Fase 0A: Gobernanza, Inventario Alina y Documentación] --> F0B[Fase 0B: Infraestructura Base y Core MVC]
-    F0B --> F1[Fase 1: Núcleo de Identidad y Seguridad RBAC]
-    F1 --> F2[Fase 2: Multiempresa y Menú Dinámico 3 Niveles]
+    F0B --> F1[Fase 1: Identidad, Seguridad RBAC y Navegación Dinámica]
+    F1 --> F2[Fase 2: Multiempresa y Ámbitos Territoriales]
     F2 --> F3[Fase 3: Catastro, Proyectos, Lotes y GIS Leaflet]
     F3 --> F4[Fase 4: CRM Comercial, Visitas, Cotizaciones y Reservas]
     F4 --> F5[Fase 5: Ventas, Contratación y Cronogramas de Pago]
@@ -47,11 +47,19 @@ flowchart TD
 - **Microfase 1F (Cerrada):** Alta, edición y transición de estados con formularios en modales Alina, CleaveJS, PristineJS, confirmaciones SweetAlert2, consulta asistida DNI/RUC desacoplada y sincronización asíncrona `tabla.ajax.reload(null, false)` (`mb-fase1f-crud-personas`, commit `76c7911`).
 - **Microfase 1G-1 (Pendiente):** Núcleo de autenticación y autorización: modelo Usuario ↔ Persona, credenciales, política de contraseñas, login/logout, sesiones, intentos y bloqueo temporal, Actor USER real, Roles, Privilegios `modulo.accion`, asignación Usuario ↔ Rol, diseño formal de scopes, middlewares de autenticación/autorización y adaptación de `sign_in.html`.
 - **Microfase 1G-2 (Pendiente):** Administración de usuarios y accesos: CRUD asíncrono de usuarios desde Persona Natural, asignación de roles y scopes, cambio de contraseña, bloqueo/desbloqueo administrativo y auditoría.
+- **Microfase 1G-3 (Pendiente):** Gestión de Menú Dinámico y Navegación:
+  - Generador / CRUD de menú dinámico con jerarquía máxima estricta de **3 niveles** (Nivel 1 $\rightarrow$ Nivel 2 $\rightarrow$ Nivel 3; Nivel 4+ prohibido).
+  - Regla de Oro Inviolable: **`MENÚ ≠ AUTORIZACIÓN`**. El menú es una conveniencia visual de navegación; la autorización soberana reside en el backend.
+  - Consumo directo de RBAC: referencia privilegios existentes (`modulo.accion`) sin duplicar tablas de permisos (`menu_permiso`, etc.).
+  - Separación dimensional: RBAC (¿qué puede hacer?) vs Scope (¿dónde puede hacerlo?).
+  - Modelo conceptual: nombre, descripción, icono (Font Awesome Free validado), ruta (no es identidad primaria), opción padre (agrupador vs enlace), nivel, orden persistido (drag/drop o controles Alina) y estado (`ACTIVO`/`INACTIVO`).
+  - Integración nativa con `ul.navbar-menu-list` de Alina, tooltips Bootstrap automáticos por delegación, y CRUD asíncrono oficial CasaPRO con auditoría forense (`AuditoriaServicio` con Actor USER).
+  - Dependencia lineal estricta: `1G-1 → 1G-2 → 1G-3`.
 
-### Fase 2 — Estructura Multiempresa y Menú Dinámico
-- Gestión de `empresas` y asignación de usuarios a ámbitos territoriales.
-- Menú dinámico de 3 niveles almacenado en base de datos con filtrado automático por permisos de usuario.
+### Fase 2 — Estructura Multiempresa y Ámbitos Territoriales
+- Gestión de `empresas` y asignación de usuarios a ámbitos corporativos (`usuario_empresas`).
 - Selector de empresa/proyecto activo en el header superior.
+- Filtrado territorial de entidades según el scope activo del actor.
 
 ### Fase 3 — Catastro, Lotes y Módulo GIS
 - Jerarquía catastral: Proyectos $\rightarrow$ Sectores $\rightarrow$ Manzanas $\rightarrow$ Lotes.

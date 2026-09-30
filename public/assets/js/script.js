@@ -233,17 +233,16 @@ document.querySelectorAll('.language-dropdown .dropdown-item').forEach(item => {
 
 // >>-- 3.2  Maximize Screen js  --<<
 
-document.querySelector('.head-maximize-screen .head-icon')
-    .addEventListener('click', function () {
-
+const maxScreenBtn = document.querySelector('.head-maximize-screen .head-icon');
+if (maxScreenBtn) {
+    maxScreenBtn.addEventListener('click', function () {
         if (!document.fullscreenElement) {
-            // Enter fullscreen
             document.documentElement.requestFullscreen();
         } else {
-            // Exit fullscreen
             document.exitFullscreen();
         }
     });
+}
 
 
 // >>-- 3.3  Dark Mode js  --<<
@@ -284,11 +283,10 @@ document.querySelector(".header-dark")?.addEventListener("click", () => {
 
 function initNotifications() {
     const boxes = document.querySelectorAll(".notification-message");
+    if (!boxes.length) return;
 
     boxes.forEach(box => {
-        box.querySelector(".box-close").addEventListener("click", () => {
-
-            // Smooth fade + slide animation
+        box.querySelector(".box-close")?.addEventListener("click", () => {
             box.style.transition = "opacity 0.3s ease, transform 0.3s ease";
             box.style.opacity = "0";
             box.style.transform = "translateX(-15px)";
@@ -305,7 +303,7 @@ function checkEmptyNotifications() {
     const notifications = document.querySelectorAll(".notification-message");
     const emptyBox = document.querySelector(".hidden-notification-massage");
 
-    if (notifications.length === 0) {
+    if (emptyBox && notifications.length === 0) {
         emptyBox.classList.remove("d-none");
     }
 }
@@ -316,18 +314,23 @@ document.addEventListener("DOMContentLoaded", initNotifications);
 // >>-- 3.5  Cart Items js  --<<
 
 function initCart() {
-
     const totalPriceBox = document.querySelector('.offcanvas-footer h6');
     const cartCountEl = document.querySelector('.cartCount');
     const emptyMessage = document.querySelector('.hidden-cart-massage');
 
+    if (!totalPriceBox || !cartCountEl) {
+        return;
+    }
+
     function updateEmptyState() {
         const count = document.querySelectorAll('.cart-box').length;
 
-        if (count === 0) {
-            emptyMessage.classList.remove("d-none");
-        } else {
-            emptyMessage.classList.add("d-none");
+        if (emptyMessage) {
+            if (count === 0) {
+                emptyMessage.classList.remove("d-none");
+            } else {
+                emptyMessage.classList.add("d-none");
+            }
         }
     }
 
@@ -352,6 +355,7 @@ function initCart() {
         document.querySelectorAll('.cart-box-close').forEach((btn) => {
             btn.addEventListener('click', function () {
                 const cartItem = this.closest('.cart-box');
+                if (!cartItem) return;
 
                 cartItem.style.transition = "opacity 0.3s ease, transform 0.3s ease";
                 cartItem.style.opacity = "0";
@@ -366,7 +370,6 @@ function initCart() {
         });
     }
 
-
     updateCartCount();
     updateTotalPrice();
     attachDeleteEvents();
@@ -380,10 +383,12 @@ initCart();
 
 let calcScrollValue = () => {
     const $scrollProgress = document.getElementsByClassName("go-top")[0];
+    if (!$scrollProgress) return;
     const docElement = document.documentElement;
 
     const pos = docElement.scrollTop;
     const calcHeight = docElement.scrollHeight - docElement.clientHeight;
+    if (calcHeight <= 0) return;
     const scrollValue = Math.round((pos * 100) / calcHeight);
 
     if (pos > 100) {
@@ -392,23 +397,35 @@ let calcScrollValue = () => {
         $scrollProgress.style.display = 'none';
     }
 
-    $scrollProgress.addEventListener("click", () => {
-        docElement.scrollTop = 0;
-    });
-
     $scrollProgress.style.background = `conic-gradient(rgba(var(--dark), 1) ${scrollValue}%, rgba(var(--primary), 1) ${scrollValue}%)`;
 };
 
-window.onscroll = calcScrollValue;
+window.addEventListener("scroll", calcScrollValue);
+
+document.addEventListener("DOMContentLoaded", function () {
+    const $scrollProgress = document.getElementsByClassName("go-top")[0];
+    if ($scrollProgress) {
+        $scrollProgress.addEventListener("click", () => {
+            document.documentElement.scrollTop = 0;
+        });
+    }
+});
 
 //* ------------------------------------------------------
 //-----  05. Bootstrap Tooltips Globales ----------------
 //* ------------------------------------------------------
-document.addEventListener("DOMContentLoaded", function () {
+function initGlobalBootstrapTooltips() {
     if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
         new bootstrap.Tooltip(document.body, {
             selector: '[data-bs-toggle="tooltip"]',
+            container: 'body',
             trigger: 'hover focus'
         });
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", initGlobalBootstrapTooltips);
+} else {
+    initGlobalBootstrapTooltips();
+}

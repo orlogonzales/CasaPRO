@@ -4,10 +4,10 @@
  * Basado en admin-dashboard/alina/assets/js/theme_customizer.js.
  * Adaptaciones oficiales CasaPRO:
  * - Traducido 100% al español.
- * - Iconografía Font Awesome (fa-solid fa-gear).
- * - Sin botones ni enlaces comerciales externos.
- * - Omitidas variantes de barra lateral y tamaños de fuente.
- * - Conservadas opciones: Colores del tema (gradientes 1-6), Diseños (ltr, rtl, box) y Restablecer.
+ * - Iconografía Font Awesome (fa-solid fa-gear, fa-solid fa-check).
+ * - Sin botones ni enlaces externos de venta.
+ * - Omitida barra lateral alternativa.
+ * - Conservadas opciones: Colores del tema (gradientes 1-6), Diseños (ltr, rtl, box), Escala de texto (Pequeño, Mediano, Grande) y Restablecer.
  */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -87,6 +87,29 @@ document.addEventListener("DOMContentLoaded", function () {
                       </ul>
                     </li>
                   </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="mt-4">
+            <span class="title-badge-text">Escala de texto:</span>
+            <ul class="d-flex mt-3 gap-3 theme-sizing-list">
+                <li class="w-100 cursor-pointer b-r-24" data-size="small-text">
+                    Pequeño
+                    <span class="w-25 h-25 rounded-circle bg-success d-flex-center sizing-check-icon">
+                        <i class="fa-solid fa-check text-white f-s-12"></i>
+                    </span>
+                </li>
+                <li class="w-100 cursor-pointer b-r-24" data-size="medium-text">
+                    Mediano
+                    <span class="w-25 h-25 rounded-circle bg-success d-flex-center sizing-check-icon">
+                        <i class="fa-solid fa-check text-white f-s-12"></i>
+                    </span>
+                </li>
+                <li class="w-100 cursor-pointer b-r-24" data-size="large-text">
+                    Grande
+                    <span class="w-25 h-25 rounded-circle bg-success d-flex-center sizing-check-icon">
+                        <i class="fa-solid fa-check text-white f-s-12"></i>
+                    </span>
                 </li>
             </ul>
         </div>
@@ -194,6 +217,32 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem("theme_layout", layout);
         });
     });
+
+    // --- Lógica de Escala de Texto (Font Sizing) ---
+    const STORAGE_KEY_FONT = 'font-size';
+    const DEFAULT_FONT_SIZE = 'medium-text';
+
+    function applyFontSize(size) {
+        document.body.setAttribute('text', size);
+        localStorage.setItem(STORAGE_KEY_FONT, size);
+
+        document.querySelectorAll('.theme-sizing-list li').forEach(li => {
+            li.classList.toggle('active', li.getAttribute('data-size') === size);
+        });
+    }
+
+    const savedFontSize = localStorage.getItem(STORAGE_KEY_FONT) || DEFAULT_FONT_SIZE;
+    applyFontSize(savedFontSize);
+
+    document.addEventListener('click', function (e) {
+        const item = e.target.closest('.theme-sizing-list li');
+        if (!item) return;
+
+        const size = item.getAttribute('data-size');
+        if (size) {
+            applyFontSize(size);
+        }
+    });
 });
 
 /**
@@ -202,9 +251,11 @@ document.addEventListener("DOMContentLoaded", function () {
 function resetCustomizer() {
     const defaultTheme = 'theme-gradient-1';
     const defaultLayout = 'ltr';
+    const defaultFont = 'medium-text';
 
     localStorage.removeItem('theme_color');
     localStorage.removeItem('theme_layout');
+    localStorage.removeItem('font-size');
 
     const themeClasses = [
         'theme-gradient-1',
@@ -227,5 +278,10 @@ function resetCustomizer() {
 
     document.querySelectorAll(".theme-layout-list li").forEach(li => {
         li.classList.toggle('active', li.textContent.trim().toLowerCase() === defaultLayout);
+    });
+
+    document.body.setAttribute('text', defaultFont);
+    document.querySelectorAll('.theme-sizing-list li').forEach(li => {
+        li.classList.toggle('active', li.getAttribute('data-size') === defaultFont);
     });
 }

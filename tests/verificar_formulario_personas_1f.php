@@ -504,7 +504,7 @@ afirmativo(!str_contains($contenidoFormJs, '$.ajax') && !str_contains($contenido
 afirmativo(!str_contains($contenidoConsJs, '$.ajax') && !str_contains($contenidoConsJs, '$.post'), 'consulta-documento.js libre de llamadas AJAX jQuery');
 afirmativo(!str_contains($contenidoListJs, '$.ajax') && !str_contains($contenidoListJs, '$.post'), 'listado-personas.js libre de llamadas AJAX jQuery');
 
-afirmativo(!str_contains($contenidoFormJs, 'ti ti-') && !str_contains($contenidoVista, 'ti ti-'), 'Código de 1F utiliza exclusivamente Font Awesome (Cero clases ti ti-*)');
+afirmativo(!str_contains($contenidoFormJs, 'ti' . ' ti-') && !str_contains($contenidoVista, 'ti' . ' ti-'), 'Código de 1F utiliza exclusivamente Font Awesome (Cero clases Tabler)');
 
 // =========================================================================
 // BLOQUE 11: Inspección de Anatomía Alina en la Vista Personas

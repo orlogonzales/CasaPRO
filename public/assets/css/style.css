@@ -11615,6 +11615,9 @@ code[class*=language-], pre[class*=language-] {
   font-weight: 600;
   border-radius: 15px;
 }
+.semi-side-nav .navbar-menu-list .nav-link i {
+  pointer-events: none;
+}
 .semi-side-nav .navbar-menu-list .nav-link:after {
   content: "";
   width: 4px;

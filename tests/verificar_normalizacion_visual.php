@@ -206,10 +206,18 @@ verificar(
 );
 
 verificar(
-    str_contains($scriptJs, "selector: '[data-bs-toggle=\"tooltip\"]'") ||
-    str_contains($scriptJs, 'selector: "[data-bs-toggle=\\"tooltip\\"]"') ||
+    str_contains($navegacionLateral, 'aria-label="Inicio"') &&
+    str_contains($navegacionLateral, 'aria-label="Identidad y Accesos"'),
+    'navegacion-lateral.php define aria-label para accesibilidad en los elementos del menú',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    (str_contains($scriptJs, "selector: '[data-bs-toggle=\"tooltip\"]'") ||
+     str_contains($scriptJs, 'selector: "[data-bs-toggle=\\"tooltip\\"]"')) &&
+    str_contains($scriptJs, "container: 'body'") &&
     str_contains($scriptJs, "bootstrap.Tooltip"),
-    'script.js inicializa globalmente los tooltips de Bootstrap 5 con delegación',
+    'script.js inicializa globalmente los tooltips de Bootstrap 5 con delegación y container: body',
     $errorBuffer, $totalPruebas, $pruebasPasadas
 );
 
@@ -263,15 +271,34 @@ verificar(
 );
 
 verificar(
-    !str_contains($themeCustomizerJs, 'Sidebar Variant') &&
-    !str_contains($themeCustomizerJs, 'Font Sizing'),
-    'theme_customizer.js omite las opciones Sidebar Variant y Font Sizing',
+    !str_contains($themeCustomizerJs, 'Sidebar Variant'),
+    'theme_customizer.js omite la opción Sidebar Variant',
     $errorBuffer, $totalPruebas, $pruebasPasadas
 );
 
 verificar(
-    str_contains($themeCustomizerJs, 'function resetCustomizer()'),
-    'theme_customizer.js define la función resetCustomizer()',
+    str_contains($themeCustomizerJs, 'Escala de texto:') &&
+    str_contains($themeCustomizerJs, 'data-size="small-text"') &&
+    str_contains($themeCustomizerJs, 'data-size="medium-text"') &&
+    str_contains($themeCustomizerJs, 'data-size="large-text"') &&
+    str_contains($themeCustomizerJs, 'Pequeño') &&
+    str_contains($themeCustomizerJs, 'Mediano') &&
+    str_contains($themeCustomizerJs, 'Grande'),
+    'theme_customizer.js incorpora la sección Escala de texto con opciones Pequeño, Mediano y Grande',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($themeCustomizerJs, 'font-size') &&
+    str_contains($themeCustomizerJs, 'medium-text'),
+    'theme_customizer.js implementa persistencia de font-size en localStorage con valor default medium-text',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($themeCustomizerJs, 'function resetCustomizer()') &&
+    str_contains($themeCustomizerJs, "setAttribute('text', defaultFont)"),
+    'theme_customizer.js define resetCustomizer() restaurando la escala a medium-text',
     $errorBuffer, $totalPruebas, $pruebasPasadas
 );
 
@@ -330,6 +357,40 @@ verificar(
     str_contains($styleCss, '.theme-color-list li:after') &&
     str_contains($styleCss, 'content: "\f00c";'),
     'Checkmarks del Theme Customizer implementan Font Awesome 6 Free con check (\f00c)',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+// --------------------------------------------------------------------------
+// 8. Consolidación Documental de 1G-3 (Menú Dinámico de 3 Niveles)
+// --------------------------------------------------------------------------
+echo "\n[8] Consolidación Documental del Roadmap y Menú Dinámico:\n";
+
+$roadmapMd = file_get_contents($directorioBase . '/docs/13-ROADMAP.md') ?: '';
+
+verificar(
+    str_contains($roadmapMd, 'Microfase 1G-1') &&
+    str_contains($roadmapMd, 'Microfase 1G-2') &&
+    str_contains($roadmapMd, 'Microfase 1G-3'),
+    'docs/13-ROADMAP.md estructura formalmente la Fase 1G en 1G-1, 1G-2 y 1G-3',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($roadmapMd, 'jerarquía máxima estricta de **3 niveles**') &&
+    str_contains($roadmapMd, 'Nivel 4+ prohibido'),
+    'docs/13-ROADMAP.md formaliza la jerarquía máxima estricta de 3 niveles para el menú dinámico',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($roadmapMd, 'MENÚ ≠ AUTORIZACIÓN'),
+    'docs/13-ROADMAP.md establece la Regla de Oro Inviolable: MENÚ ≠ AUTORIZACIÓN',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($roadmapMd, '1G-1 → 1G-2 → 1G-3'),
+    'docs/13-ROADMAP.md establece la dependencia lineal estricta 1G-1 → 1G-2 → 1G-3',
     $errorBuffer, $totalPruebas, $pruebasPasadas
 );
 
