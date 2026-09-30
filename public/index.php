@@ -15,7 +15,12 @@ date_default_timezone_set('America/Lima');
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-// Autocargador PSR-4 nativo para el namespace App\
+// Autocargador Composer para paquetes externos (como vlucas/phpdotenv)
+if (file_exists(CASAPRO_RAIZ . '/vendor/autoload.php')) {
+    require CASAPRO_RAIZ . '/vendor/autoload.php';
+}
+
+// Autocargador PSR-4 nativo de respaldo para el namespace App\
 spl_autoload_register(function (string $clase) {
     $prefijo = 'App\\';
     $directorioBase = CASAPRO_RAIZ . '/app/';
@@ -33,9 +38,13 @@ spl_autoload_register(function (string $clase) {
     }
 });
 
+use App\Core\CargadorEntorno;
 use App\Core\Peticion;
 use App\Core\Respuesta;
 use App\Core\Enrutador;
+
+// Cargar variables de entorno del sistema
+CargadorEntorno::cargar(CASAPRO_RAIZ);
 
 // Inicializar ciclo de vida de la petición
 $peticion = new Peticion();

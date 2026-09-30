@@ -2,7 +2,7 @@
     RewriteEngine On
 
     # 1. Bloquear acceso a directorios internos sensibles
-    RewriteRule ^(app|config|database|docs|storage|\.agents|\.git)(/.*)?$ - [F,L,NC]
+    RewriteRule ^(app|config|database|SQL|docs|storage|\.agents|\.git)(/.*)?$ - [F,L,NC]
 
     # 2. Bloquear acceso a archivos sensibles por extensión
     RewriteRule \.(env|log|sql|lock)$ - [F,L,NC]

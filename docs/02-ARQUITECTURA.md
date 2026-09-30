@@ -32,7 +32,7 @@ graph TD
     Servicios --> Repositorios[Repositorios de Datos]
     Servicios --> AuditoriaSrv[Servicio de Auditoría]
     
-    Repositorios --> CoreBD[Core BaseDatos - PDO Singleton]
+    Repositorios --> CoreBD[ProveedorConexion - PDO Inyectable]
     CoreBD --> SQL[(Base de Datos MySQL)]
     
     Controladores -->|Renderizado HTML| Vistas[Motor de Vistas / Layout Alina]
@@ -55,15 +55,16 @@ D:\laragon\www\app.casa-pro\
 │   ├── Modelos\                # Entidades del dominio y estructuras de datos
 │   ├── DTOs\                   # Data Transfer Objects (validación y transporte)
 │   ├── Middlewares\            # Filtros de seguridad, RBAC, CSRF y scopes
-│   ├── Core\                   # Componentes base (Router, Request, Response, BD, Vista)
+│   ├── Core\                   # Componentes base (Router, Request, Response, BD, Vista, Migrador)
 │   └── Vistas\                 # Plantillas PHP basadas en el layout de Alina
 │       ├── layouts\            # Layout maestro (blank.html adaptado), navbars, sidebars
 │       ├── componentes\        # Componentes reutilizables (modales, cards, alerts)
 │       └── modulos\            # Vistas específicas por módulo (personas, ventas, caja)
+├── bin\                        # Herramientas de consola y CLI (migrador)
 ├── config\                     # Archivos de configuración (bd, app, auth, constantes)
-├── database\                   # Migraciones y semillas SQL
-│   ├── migraciones\
-│   └── semillas\
+├── SQL\                        # Esquema consolidado y migraciones oficiales
+│   ├── casa-pro.sql            # Esquema consolidado oficial vigente
+│   └── migraciones\            # Historial incremental secuencial
 ├── docs\                       # Paquete documental formal de gobernanza y arquitectura
 ├── public\                     # Raíz pública web (Front Controller y assets públicos)
 │   ├── index.php               # Punto único de entrada

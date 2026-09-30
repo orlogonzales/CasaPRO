@@ -19,6 +19,8 @@
 - [ADR-015: Auditoría Transversal e Inmutable](#adr-015-auditoría-transversal-e-inmutable)
 - [ADR-016: Prohibición de Eliminación Destructiva en Tablas Financieras](#adr-016-prohibición-de-eliminación-destructiva-en-tablas-financieras)
 - [ADR-017: Módulo APV Desacoplado de la Operadora Inmobiliaria](#adr-017-módulo-apv-desacoplado-de-la-operadora-inmobiliaria)
+- [ADR-018: Carga de Variables de Entorno con vlucas/phpdotenv y Respaldo Determinista](#adr-018-carga-de-variables-de-entorno-con-vlucasphpdotenv-y-respaldo-determinista)
+- [ADR-019: Proveedor Inyectable de Conexión PDO sin Singleton Rígido y Motor Determinista de Migraciones](#adr-019-proveedor-inyectable-de-conexión-pdo-sin-singleton-rígido-y-motor-determinista-de-migraciones)
 
 ---
 
@@ -125,3 +127,21 @@
 - **Contexto:** La Asociación de Propietarios de Vivienda (APV) es una entidad civil independiente de la empresa desarrolladora del proyecto inmobiliario.
 - **Decisión:** El módulo APV opera de manera desacoplada, compartiendo la referencia al lote y al propietario pero con sus propios balances comunales, directivas y cuotas vecinales.
 - **Consecuencias:** Autonomía comunal para los vecinos y deslinde de responsabilidades operativas y contables para la empresa inmobiliaria.
+
+### ADR-018: Carga de Variables de Entorno con vlucas/phpdotenv y Respaldo Determinista
+- **Estado:** Aceptado
+- **Contexto:** La configuración de base de datos, credenciales y claves no debe versionarse en el repositorio de código ni quemarse en scripts PHP. Se requiere una solución estándar en PHP para cargar archivos `.env` sin inventar analizadores sintácticos frágiles.
+- **Decisión:**
+  1. Incorporar la librería estándar de la industria `vlucas/phpdotenv` (v5.7+) mediante Composer.
+  2. Encapsular la lectura a través de `App\Core\CargadorEntorno`, manteniendo un cargador determinista nativo como mecanismo de respaldo seguro en caso de ausencia del directorio `vendor/`.
+  3. Proporcionar un archivo `.env.example` versionado sin credenciales sensibles y excluir `.env` del control de versiones mediante `.gitignore`.
+- **Consecuencias:** Configuración portable, cumplimiento de Twelve-Factor App, cero filtración de secretos a Git y resiliencia ante entornos con o sin Composer instalado en producción.
+
+### ADR-019: Proveedor Inyectable de Conexión PDO sin Singleton Rígido y Motor Determinista de Migraciones
+- **Estado:** Aceptado
+- **Contexto:** Los patrones Singleton globales rígidos dificultan la inyección de dependencias, las pruebas automatizadas con múltiples bases de datos y el aislamiento modular. Asimismo, la base de datos requiere evolución secuencial determinista e idempotente.
+- **Decisión:**
+  1. Implementar `App\Core\ProveedorConexion` como una fábrica/proveedor inyectable que administra conexiones `\PDO` configuradas estrictamente (`ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES = false`).
+  2. Implementar `App\Core\MigradorSQL` para ejecutar migraciones cronológicas desde `SQL/migraciones/`, registrar el lote de ejecución en la tabla `migraciones` y detenerse inmediatamente ante cualquier fallo DDL/DML.
+  3. Sincronizar obligatoriamente todo cambio estructural entre la migración incremental en `SQL/migraciones/` y el esquema consolidado en `SQL/casa-pro.sql` (Gate SQL).
+- **Consecuencias:** Desacoplamiento total de la capa de persistencia, alta testabilidad, idempotencia garantizada y consistencia binaria entre entornos reconstruidos desde cero o migrados incrementalmente.

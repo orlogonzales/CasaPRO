@@ -42,17 +42,39 @@
 
 ---
 
-## 4. Mecanismo de Migraciones SQL
+## 4. Estructura Oficial de Persistencia y Migraciones SQL
 
-CasaPRO utiliza un sistema de migraciones secuenciales puras, ejecutables mediante PDO sin requerir herramientas externas.
+A partir de la decisión vinculante de gobernanza de CasaPRO, la persistencia relacional se organiza bajo una única estructura oficial:
 
-### Estructura de Archivos:
-`database/migraciones/{TIMESTAMP}_{NOMBRE_DESCRIPTIVO}.sql`
-Ejemplo:
-- `2026_09_29_000001_crear_tabla_migraciones.sql`
-- `2026_09_29_000002_crear_tabla_personas.sql`
-- `2026_09_29_000003_crear_tabla_usuarios_y_rbac.sql`
-- `2026_09_29_000004_crear_tabla_auditoria.sql`
+```text
+D:\laragon\www\app.casa-pro\
+└── SQL\
+    ├── casa-pro.sql
+    └── migraciones\
+        ├── 2026_09_29_000001_crear_tabla_migraciones.sql
+        ├── 2026_09_29_000002_crear_catalogos_identidad.sql
+        └── ...
+```
+
+### Fuentes de Verdad y Responsabilidades:
+1. **`SQL/casa-pro.sql` (Esquema Consolidado Oficial Vigente):**
+   - Representa el estado consolidado completo y actual de la base de datos CasaPRO.
+   - Permite reconstruir una base de datos limpia desde cero correspondiente al micro-baseline vigente.
+   - Contiene tablas, columnas, tipos, claves primarias, claves foráneas, restricciones, índices y catálogos estructurales indispensables.
+   - No es un registro de parches ni contiene datos demo u operativos.
+2. **`SQL/migraciones/` (Historial Incremental Secuencial):**
+   - Registra cronológicamente la evolución de la estructura mediante scripts SQL secuenciales (`{TIMESTAMP}_{DESCRIPCION}.sql`).
+   - Cada migración es ejecutada de forma determinista mediante PDO en orden ascendente y registrada en la tabla `migraciones`.
+
+### Regla de Sincronización Obligatoria (Gate SQL):
+Cada modificación estructural de base de datos debe reflejarse simultáneamente en:
+$$\text{Migración Incremental en } \texttt{SQL/migraciones/} \quad + \quad \text{Esquema Consolidado en } \texttt{SQL/casa-pro.sql}$$
+Si una modificación no está reflejada idénticamente en ambos archivos, el **Gate SQL = FAIL** y queda prohibido cerrar el micro-baseline.
+
+### Prohibiciones Expresas:
+- Prohibido crear ubicaciones paralelas (`database/`, `db/`, `schema/`, `sql/`, `backup/`, `dump/`).
+- Prohibido crear esquemas duplicados (`casa-pro-final.sql`, `casa-pro-v2.sql`, `casapro.sql`, etc.).
+- Prohibido versionar contraseñas, credenciales, tokens o datos personales reales en los archivos SQL.
 
 ### Tabla de Control de Migraciones:
 ```sql

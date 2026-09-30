@@ -3,6 +3,34 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Fase 1A: Persistencia PDO y Motor de Migraciones] — 2026-09-29
+
+### Añadido
+- **Configuración de Entorno:**
+  - `.env.example`: Plantilla oficial versionada con variables de configuración de aplicación y base de datos sin secretos.
+  - `.env`: Archivo local privado excluido de Git mediante `.gitignore`.
+  - `composer.json` y `composer.lock`: Adopción formal de `vlucas/phpdotenv` (v5.7+) y configuración de proyecto PHP 8.3 con PSR-4.
+  - `App\Core\CargadorEntorno`: Módulo de carga determinista de variables de entorno con integración prioritaria de `vlucas/phpdotenv` y respaldo nativo seguro sin dependencias externas.
+  - `config/database.php`: Archivo de configuración que lee dinámicamente las credenciales de entorno mediante `CargadorEntorno`.
+- **Capa de Persistencia PDO Inyectable:**
+  - `App\Core\ProveedorConexion`: Proveedor/Fábrica inyectable de conexiones PDO desacoplado de Singletons rígidos globales, con opciones estrictas de conexión (`ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES = false`) y registro seguro de errores sin fuga de contraseñas.
+- **Motor Determinista de Migraciones SQL:**
+  - `App\Core\MigradorSQL`: Motor en PHP 8.3 que lee ordenadamente scripts incrementales en `SQL/migraciones/`, registra lotes de ejecución en la tabla de control `migraciones`, garantiza idempotencia y asegura detención inmediata ante errores.
+  - `bin/migrador.php`: Herramienta CLI de consola para ejecutar migraciones, consultar su estado (`estado`) e importar el esquema consolidado (`consolidado`).
+- **Esquema Relacional Inicial y Migraciones Oficiales:**
+  - `SQL/migraciones/2026_09_29_000001_crear_tabla_migraciones.sql`: Primera migración incremental de infraestructura creando la tabla de control `migraciones`.
+  - `SQL/casa-pro.sql`: Esquema consolidado oficial vigente que permite la reconstrucción limpia desde cero de la base de datos CasaPRO correspondiente al micro-baseline 1A.
+- **Pruebas y Verificación:**
+  - `tests/verificar_persistencia.php`: Suite automatizada de verificación del Gate SQL comparando metadatos estructurales de `information_schema` entre reconstrucción por migraciones (Camino A) y por consolidado (Camino B), validando 100% de identidad en tablas, columnas e índices, así como idempotencia en ejecuciones sucesivas.
+- **Decisiones Arquitectónicas (ADRs):**
+  - Incorporación de `ADR-018: Carga de Variables de Entorno con vlucas/phpdotenv y Respaldo Determinista`.
+  - Incorporación de `ADR-019: Proveedor Inyectable de Conexión PDO sin Singleton Rígido y Motor Determinista de Migraciones`.
+- **Blindaje de Servidor Web:**
+  - `.htaccess` y `public/.htaccess`: Protección activa y explícita del nuevo directorio `SQL/` y archivos `.sql` frente a accesos web directos.
+
+### Estado
+- Micro-baseline 1A cerrado satisfactoriamente (`mb-fase1a-persistencia`).
+
 ---
 
 ## [Fase 0A: Gobernanza y Arquitectura] — 2026-09-29

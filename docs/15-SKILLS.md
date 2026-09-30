@@ -54,9 +54,9 @@ Un **Skill** en CasaPRO es un procedimiento operativo estándar reutilizable y d
 - **Salida:** Clase de repositorio en `app/Repositorios/`.
 
 ### 10. `crear-migracion`
-- **Objetivo:** Generar un archivo SQL secuencial con timestamp que defina o altere tablas respetando tipos `DECIMAL`, claves foráneas con `RESTRICT` e índices.
+- **Objetivo:** Generar un archivo SQL secuencial con timestamp que defina o altere tablas respetando tipos `DECIMAL`, claves foráneas con `RESTRICT`, índices y sincronización obligatoria con `SQL/casa-pro.sql`.
 - **Entrada:** Definición del esquema de base de datos.
-- **Salida:** Archivo SQL en `database/migraciones/`.
+- **Salida:** Archivo SQL incremental en `SQL/migraciones/` y actualización del consolidado `SQL/casa-pro.sql`.
 
 ### 11. `crear-privilegio`
 - **Objetivo:** Registrar un nuevo privilegio granular (`modulo.accion`) en la base de datos y asignarlo a los roles autorizados.
