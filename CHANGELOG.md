@@ -3,6 +3,44 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Fase 1E: Listado y Consulta Visual de Personas con Alina + DataTables Server-Side] — 2026-09-29
+
+### Añadido
+- **Pantalla y Vista de Directorio de Personas:**
+  - `app/Vistas/modulos/personas/index.php`: Vista integrada sobre la anatomía de `blank.html`, `data_table.html` y `profile.html` de Alina Bootstrap 5.
+  - Implementación de la tabla interactiva `#tablaPersonas` con contenedor scrolleable `.app-datatable-default .overflow-auto .app-scroll` y clases oficiales `.app-data-table .default-data-table`.
+  - Barra de filtros de servidor por Tipo de Persona (`filtroTipoPersona`) y Estado (`filtroEstado`), con botón de limpieza rápida.
+  - Diálogo modal scrollable centrado `#modalFichaPersona` (`modal-lg modal-dialog-centered modal-dialog-scrollable`) para la Ficha de Identidad de Persona.
+  - Estructuración por pestañas (`nav-tabs nav-bottom-line`): Datos Generales, Documentos y Contactos, Domicilios y Representación Legal.
+  - Exclusión estricta de controles muertos de 1F (sin botones deshabilitados "+ Nueva Persona" ni "Editar").
+- **Módulo JavaScript Modular (Vanilla ES6+ sin jQuery Propio):**
+  - `public/assets/js/modulos/personas/listado-personas.js`: Módulo encapsulado bajo `window.CasaProPersonasListado` con inicialización idempotente.
+  - Adaptador asíncrono sobre DataTables 1.13.3 utilizando exclusivamente `window.fetch()` nativo (cero llamadas a `$.ajax()`, `$.get()`, `$.post()`, `$.getJSON()`).
+  - Resolución dinámica de la URL base desde `data-api-personas-url` generada por `Vista::url('api/personas')`, garantizando portabilidad absoluta en `https://app.casa-pro.test/` y `https://localhost/app.casa-pro/`.
+  - Mapeo de columnas de ordenamiento DataTables a la whitelist segura de `ConsultaDataTablesDTO` (`MAPA_COLUMNAS`).
+  - Mecanismo de debouncing de 400 ms en el campo de búsqueda global para evitar sobrecarga en MySQL.
+  - Manejo elegante de respuestas HTTP de la API (401 sesión inválida, 403 autorización, 500 genérico seguro).
+  - Población de la Ficha de Identidad con asignación segura mediante `.textContent` y sanitización contextual estricta contra XSS.
+  - Despliegue de estados mediante *Variants of badge* de Alina (`text-light-success`, `text-light-secondary`, nunca dotted) y tipos mediante *Variants of chip* (`bg-light-primary`, `bg-light-info`).
+- **Assets Vendor Trasladados y Reutilizados:**
+  - `public/assets/vendor/datatable/jquery.dataTables.min.js`, `jquery.dataTables.min.css` y `dataTables.responsive.min.js` trasladados exclusivamente sin duplicar dependencias redundantes (`jquery-3.5.1.js` omitido; se reutiliza `jquery-3.6.3.min.js`).
+  - Verificación de que `admin-dashboard/` permanece 100% de solo lectura e intacto.
+- **Rutas y Enrutamiento Visual Protegido:**
+  - Registro de `GET /personas` en `config/rutas.php` protegido por `GuardiaActorMiddleware` bajo política estricta de *Deny by Default*.
+  - Método `index()` en `App\Controladores\PersonaControlador` inyectando migas de pan y assets modales.
+  - Enlace oficial actualizado en la navegación lateral de Alina (`app/Vistas/layouts/parciales/navegacion-lateral.php`).
+- **Suite Integral de Pruebas Automatizadas 1E:**
+  - `tests/verificar_listado_personas_1e.php`: 51/51 pruebas superadas al 100% cubriendo protección de la vista (401), renderizado Alina, assets vendor, inspección de script modular sin `$.ajax()`, DataTables server-side con ordenamiento y filtros, Ficha de Identidad sin exposición de auditoría, pruebas reales de inmunidad XSS y manejo de errores 400/404/500.
+
+### Corregido
+- `app/Repositorios/PersonaRepositorio.php`: Desambiguación de marcadores de posición (`:busqueda1` a `:busqueda7`) en la cláusula de búsqueda textual `LIKE` para compatibilidad estricta con sentencias preparadas nativas (`PDO::ATTR_EMULATE_PREPARES => false`).
+- `docs/16-DECISIONES-ARQUITECTONICAS.md`: Corrección de la denominación oficial a "catálogo UBIGEO vigente de CasaPRO; fuente primaria INEI pendiente de certificación documental directa" en ADR-020.
+
+### Estado
+- Micro-baseline 1E cerrado satisfactoriamente (`mb-fase1e-listado-personas`).
+
+---
+
 ## [Fase 1D: Repositorio, Servicio y API JSON de Personas] — 2026-09-29
 
 ### Añadido

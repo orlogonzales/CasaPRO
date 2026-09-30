@@ -30,6 +30,12 @@ return function (Enrutador $enrutador): void {
     });
 
     // -------------------------------------------------------------------------
+    // Vistas y Pantallas del Módulo de Personas (Fase 1E)
+    // Política: Deny by Default (GuardiaActorMiddleware)
+    // -------------------------------------------------------------------------
+    $enrutador->get('/personas', [PersonaControlador::class, 'index'], [GuardiaActorMiddleware::class]);
+
+    // -------------------------------------------------------------------------
     // API REST de Identidad — Módulo de Personas (Fase 1D)
     // Política: Deny by Default (GuardiaActorMiddleware en lectura y mutación)
     // Mutaciones protegidas globalmente por CsrfMiddleware en public/index.php

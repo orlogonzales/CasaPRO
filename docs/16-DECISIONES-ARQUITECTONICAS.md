@@ -21,7 +21,7 @@
 - [ADR-017: Módulo APV Desacoplado de la Operadora Inmobiliaria](#adr-017-módulo-apv-desacoplado-de-la-operadora-inmobiliaria)
 - [ADR-018: Carga de Variables de Entorno con vlucas/phpdotenv y Respaldo Determinista](#adr-018-carga-de-variables-de-entorno-con-vlucasphpdotenv-y-respaldo-determinista)
 - [ADR-019: Proveedor Inyectable de Conexión PDO sin Singleton Rígido y Motor Determinista de Migraciones](#adr-019-proveedor-inyectable-de-conexión-pdo-sin-singleton-rígido-y-motor-determinista-de-migraciones)
-- [ADR-020: Modelo Normalizado de Identidad Persona, Estados Restringidos y Catálogo Oficial INEI de UBIGEO](#adr-020-modelo-normalizado-de-identidad-persona-estados-restringidos-y-catálogo-oficial-inei-de-ubigeo)
+- [ADR-020: Modelo Normalizado de Identidad Persona, Estados Restringidos y Catálogo UBIGEO Vigente de CasaPRO](#adr-020-modelo-normalizado-de-identidad-persona-estados-restringidos-y-catálogo-ubigeo-vigente-de-casapro)
 
 ---
 
@@ -147,7 +147,7 @@
   3. Sincronizar obligatoriamente todo cambio estructural entre la migración incremental en `SQL/migraciones/` y el esquema consolidado en `SQL/casa-pro.sql` (Gate SQL).
 - **Consecuencias:** Desacoplamiento total de la capa de persistencia, alta testabilidad, idempotencia garantizada y consistencia binaria entre entornos reconstruidos desde cero o migrados incrementalmente.
 
-### ADR-020: Modelo Normalizado de Identidad Persona, Estados Restringidos y Catálogo Oficial INEI de UBIGEO
+### ADR-020: Modelo Normalizado de Identidad Persona, Estados Restringidos y Catálogo UBIGEO Vigente de CasaPRO
 - **Estado:** Aceptado
 - **Contexto:** En sistemas inmobiliarios y corporativos multiempresa, los datos civiles y tributarios tienden a duplicarse erróneamente entre clientes, empleados y usuarios. Asimismo, el catálogo geográfico del Perú con frecuencia se siembra de manera parcial o incompleta, provocando inconsistencias en direcciones contractuales.
 - **Decisión:**
@@ -155,7 +155,7 @@
   2. Restringir el estado de la Persona estrictamente a `ACTIVO | INACTIVO`. Queda terminantemente prohibido el estado `BLOQUEADO` en la identidad civil, reservándolo para el acceso de usuarios y credenciales en fases posteriores.
   3. Desacoplar documentos de identidad en `persona_documentos` con restricción de unicidad estricta `UNIQUE (tipo_documento_id, numero_documento)`, prohibiendo almacenar el RUC directamente en `persona_juridica`.
   4. Modelar la representación legal mediante el historial explícito `persona_representantes` (vinculando Persona Jurídica con Persona Natural).
-  5. Incorporar el catálogo oficial completo del INEI para UBIGEO (11 países, 25 departamentos/regiones, 196 provincias y 1,874 distritos) con códigos oficiales y claves foráneas en cascada controlada (`ON DELETE RESTRICT ON UPDATE CASCADE`).
+  5. Incorporar el catálogo UBIGEO vigente de CasaPRO (11 países, 25 departamentos/regiones, 196 provincias y 1,874 distritos; fuente primaria INEI pendiente de certificación documental directa) con códigos oficiales y claves foráneas en cascada controlada (`ON DELETE RESTRICT ON UPDATE CASCADE`).
 - **Consecuencias:** Modelo de dominio normalizado de alta fidelidad legal y tributaria, imposibilidad de documentos duplicados, trazabilidad histórica de representantes y soporte de georreferenciación oficial en todo el territorio peruano.
 
 ### ADR-021: Arquitectura Transversal de Actores, Bitácora Inmutable de Auditoría Forense y Protección Estricta Anti-CSRF

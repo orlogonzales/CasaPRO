@@ -483,15 +483,22 @@ class PersonaRepositorio
 
         if ($dto->searchValue !== null) {
             $condiciones[] = "(
-                pn.nombres LIKE :busqueda OR
-                pn.apellido_paterno LIKE :busqueda OR
-                pn.apellido_materno LIKE :busqueda OR
-                pj.razon_social LIKE :busqueda OR
-                pj.nombre_comercial LIKE :busqueda OR
-                doc.numero_documento LIKE :busqueda OR
-                con.valor LIKE :busqueda
+                pn.nombres LIKE :busqueda1 OR
+                pn.apellido_paterno LIKE :busqueda2 OR
+                pn.apellido_materno LIKE :busqueda3 OR
+                pj.razon_social LIKE :busqueda4 OR
+                pj.nombre_comercial LIKE :busqueda5 OR
+                doc.numero_documento LIKE :busqueda6 OR
+                con.valor LIKE :busqueda7
             )";
-            $parametros[':busqueda'] = '%' . $dto->searchValue . '%';
+            $patronLike = '%' . $dto->searchValue . '%';
+            $parametros[':busqueda1'] = $patronLike;
+            $parametros[':busqueda2'] = $patronLike;
+            $parametros[':busqueda3'] = $patronLike;
+            $parametros[':busqueda4'] = $patronLike;
+            $parametros[':busqueda5'] = $patronLike;
+            $parametros[':busqueda6'] = $patronLike;
+            $parametros[':busqueda7'] = $patronLike;
         }
 
         $whereSql = !empty($condiciones) ? 'WHERE ' . implode(' AND ', $condiciones) : '';

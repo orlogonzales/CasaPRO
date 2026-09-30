@@ -104,7 +104,7 @@ use App\Core\Vista;
                             Gestión de Personas
                         </a>
                         <ul class="collapse" id="submenuPersonas">
-                            <li><a href="#">Padrón de Personas</a></li>
+                            <li><a href="<?= Vista::url('personas') ?>">Padrón de Personas</a></li>
                             <li><a href="#">Registro de Persona</a></li>
                         </ul>
                     </li>

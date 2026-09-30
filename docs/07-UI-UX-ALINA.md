@@ -194,3 +194,28 @@ Tras la inspección física de `admin-dashboard\alina\template\profile.html` (2,
 - **Inmutabilidad de Permisos por Frontend:** Un usuario no podrá alterar su rol, privilegios, empresa asignada ni ámbito territorial desde la pantalla de perfil. Dichas modificaciones son potestad exclusiva del módulo de Administración bajo autorización RBAC backend.
 - **Gestión Segura de Fotografía:** La asignación definitiva de foto de perfil no se realizará en esta fase ni mediante Base64 en base de datos. Se integrará posteriormente con el subsistema de almacenamiento privado y descarga controlada fuera del webroot de CasaPRO.
 - **Confirmación de Alcance:** En esta Fase 0B **NO** se implementa el "Perfil 360" funcional ni su persistencia en base de datos. Se deja establecido y documentado exclusivamente su patrón visual y arquitectónico para su desarrollo en la Fase 1.
+
+---
+
+## 9. Directorio de Personas y Ficha de Identidad (Microfase 1E)
+
+Implementado en la ruta visual `/personas` (`app/Vistas/modulos/personas/index.php`) bajo política estricta de *Deny by Default* (`GuardiaActorMiddleware`):
+
+### 1. Tabla DataTables Server-Side con Fetch Nativo:
+- **Librería Base:** DataTables 1.13.3 y extensión Responsive 2.4.0 verificadas en Alina (`assets/vendor/datatable/`).
+- **Arquitectura Frontend:** Cero llamadas a `$.ajax()`, `$.get()`, `$.post()` o `$.getJSON()`. La función `ajax` de DataTables actúa como adaptador invocando a `window.fetch()` nativo en JavaScript ES6+.
+- **Resolución Dinámica de URL:** La URL hacia la API se resuelve desde el atributo `data-api-personas-url="<?= Vista::url('api/personas') ?>"`, garantizando portabilidad idéntica tanto en `https://app.casa-pro.test/` como en `https://localhost/app.casa-pro/`.
+- **Contrato Server-Side:** Envía `draw`, `start`, `length`, `search` (con debouncing de 400 ms), `order_column`, `order_dir`, `tipo_persona` y `estado` hacia `ConsultaDataTablesDTO`.
+
+### 2. Estándares Visuales Alina (Anti-Invención):
+- **Estados de Persona:** Implementados con *Variants of badge* de Alina (`.badge .text-light-success` para `ACTIVO`, `.badge .text-light-secondary` para `INACTIVO`). Se prohíbe el uso de bordes punteados (*dotted*) o estilos ajenos a la plantilla.
+- **Tipos de Persona:** Implementados con *Variants of chip* de Alina (`.chip .bg-light-primary .text-primary` para `NATURAL`, `.chip .bg-light-info .text-info` para `JURÍDICA`).
+- **Acciones Funcionales:** Un único botón iconográfico probado (`.btn .btn-outline-primary .btn-sm .icon-btn .b-r-4` con icono `ti ti-eye`) para consultar la Ficha de Identidad. Sin controles muertos ni botones deshabilitados anunciando fases futuras.
+
+### 3. Ficha de Identidad de Persona:
+- **Estructura Modal:** Modal grande scrollable centrado (`.modal-dialog .modal-lg .modal-dialog-centered .modal-dialog-scrollable`) según `modals.html` y `profile.html`.
+- **Organización por Pestañas:** Pestañas `nav-tabs nav-bottom-line` para *Datos Generales*, *Documentos y Contactos*, *Domicilios* y *Representación Legal*.
+- **Gobernanza y Privacidad:** La ficha consulta exclusivamente datos de identidad entregados legítimamente por `GET /api/personas/{id}` (1D). Queda estrictamente excluida la exposición de auditoría forense, snapshots o histórico de estados.
+- **Inmunidad XSS:** Manipulación del DOM mediante `document.createElement()` y asignación exclusiva a través de `.textContent` y sanitización contextual de strings en celdas de tabla.
+- **Información Territorial:** Despliegue limpio de Departamento, Provincia, Distrito, Dirección y Referencia sin incorporar al usuario leyendas técnicas de certificación.
+

@@ -37,11 +37,13 @@ flowchart TD
 - Endpoint de salud y primera pantalla base operativa.
 
 ### Fase 1 — Núcleo de Identidad, Personas y RBAC
-- Migración y CRUD de `personas` (validación estricta de DNI/RUC).
-- Autenticación: Login, Logout, control de sesión y rate limiting.
-- Estructura RBAC: roles, privilegios atómicos y scopes territoriales.
-- DataTables server-side con búsqueda y paginación para Personas.
-- Servicio de Auditoría Transversal activo.
+- **Microfase 1A (Cerrada):** Persistencia, proveedor inyectable PDO, `.env` con phpdotenv, motor de migraciones y esquema oficial `SQL/casa-pro.sql` (`mb-fase1a-persistencia`).
+- **Microfase 1B (Cerrada):** Modelo normalizado de identidad Persona (Natural/Jurídica), documentos, contactos, direcciones y catálogo UBIGEO vigente de CasaPRO (`mb-fase1b-identidad`).
+- **Microfase 1C (Cerrada):** Actores de sistema, bitácora inmutable de auditoría forense append-only, sesiones estrictas y anti-CSRF con prohibición de bypass Bearer (`mb-fase1c-seguridad-auditoria`).
+- **Microfase 1D (Cerrada):** Repositorio PDO, servicio transaccional, DTOs con allowlist estricta y API REST JSON protegida por Deny by Default (`mb-fase1d-api-personas`).
+- **Microfase 1E (Cerrada):** Listado interactivo en Alina con DataTables 1.13.3 server-side con fetch nativo, búsqueda debounced, filtros rápidos y modal de Ficha de Identidad (`mb-fase1e-listado-personas`).
+- **Microfase 1F (Pendiente):** Alta, edición y transición de estados con formularios Alina, CleaveJS y PristineJS.
+- **Microfase 1G (Pendiente):** Autenticación, usuarios del sistema, catálogo RBAC (`modulo.accion`) y scopes territoriales.
 
 ### Fase 2 — Estructura Multiempresa y Menú Dinámico
 - Gestión de `empresas` y asignación de usuarios a ámbitos territoriales.

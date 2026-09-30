@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controladores;
 
+use App\Core\Vista;
 use App\Core\Peticion;
 use App\Core\Respuesta;
 use App\Core\ContextoPeticion;
@@ -22,10 +23,10 @@ use App\Excepciones\RecursoNoEncontradoExcepcion;
 use Throwable;
 
 /**
- * PersonaControlador — Controlador de API REST para la gestión integral de identidad (Personas).
+ * PersonaControlador — Controlador para la gestión integral de identidad (Personas).
  *
- * Orquesta la recepción de solicitudes HTTP, instanciación de DTOs con allowlist estricto,
- * delegación en PersonaServicio y emisión de respuestas JSON normalizadas según docs/08-API-Y-CONTRATOS.md.
+ * Orquesta la recepción de solicitudes HTTP para la vista interactiva Alina y la API REST,
+ * delegación en PersonaServicio y emisión de respuestas normalizadas según docs/08-API-Y-CONTRATOS.md.
  */
 class PersonaControlador extends BaseControlador
 {
@@ -38,6 +39,30 @@ class PersonaControlador extends BaseControlador
             new PersonaRepositorio(new ProveedorConexion()),
             new AuditoriaServicio()
         );
+    }
+
+    /**
+     * GET /personas
+     * Renderiza la vista principal del directorio de personas con DataTables server-side.
+     */
+    public function index(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): string
+    {
+        return $this->renderizar('modulos/personas/index', [
+            'tituloPagina' => 'Directorio de Personas | CasaPRO Inmobiliario',
+            'migaPan' => [
+                ['texto' => 'Inicio', 'url' => Vista::url()],
+                ['texto' => 'Identidad y Personas', 'url' => null],
+                ['texto' => 'Directorio de Personas', 'url' => null]
+            ],
+            'cssAdicionales' => [
+                'vendor/datatable/jquery.dataTables.min.css'
+            ],
+            'jsAdicionales' => [
+                'vendor/datatable/jquery.dataTables.min.js',
+                'vendor/datatable/dataTables.responsive.min.js',
+                'js/modulos/personas/listado-personas.js'
+            ]
+        ]);
     }
 
     /**
