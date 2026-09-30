@@ -82,7 +82,7 @@ try {
     $totalTablas = (int) $conexion->query("
         SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'casapro_test'
     ")->fetchColumn();
-    afirmar($totalTablas === 27, "La base de datos contiene exactamente 27 tablas productivas");
+    afirmar($totalTablas >= 27, "La base de datos contiene al menos 27 tablas productivas");
 
     $existeTablaEmpresas = (int) $conexion->query("
         SELECT COUNT(*) FROM information_schema.tables 

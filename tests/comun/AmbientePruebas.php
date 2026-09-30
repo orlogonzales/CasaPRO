@@ -29,6 +29,7 @@ class AmbientePruebas
     private const TABLAS_MUTABLES = [
         'eventos_seguridad',
         'auditorias',
+        'usuario_empresa_roles',
         'usuario_roles',
         'usuarios',
         'menu_opciones',
@@ -143,7 +144,7 @@ class AmbientePruebas
     }
 
     /**
-     * Asegura que casapro_test cuente con las 27 tablas del esquema oficial de CasaPRO (SQL/casa-pro.sql).
+     * Asegura que casapro_test cuente con las 28 tablas del esquema oficial de CasaPRO (SQL/casa-pro.sql).
      */
     public static function asegurarEsquemaOficial(PDO $pdoTest): void
     {
@@ -151,7 +152,7 @@ class AmbientePruebas
             SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'casapro_test'
         ")->fetchColumn();
 
-        if ($totalTablas < 27) {
+        if ($totalTablas < 28) {
             $rutaSql = defined('CASAPRO_RAIZ') ? CASAPRO_RAIZ . '/SQL/casa-pro.sql' : dirname(__DIR__, 2) . '/SQL/casa-pro.sql';
             if (!file_exists($rutaSql)) {
                 throw new RuntimeException("No se encontró el esquema oficial en {$rutaSql}");

@@ -21,28 +21,39 @@ use App\Controladores\ErrorControlador;
 class AutorizacionMiddleware
 {
     private string $privilegioRequerido;
+    private string $scopeRequerido;
     private AutenticacionMiddleware $autenticacionMiddleware;
     private AutorizacionServicio $autorizacionServicio;
     private SeguridadRepositorio $seguridadRepositorio;
 
     public function __construct(
         string $privilegioRequerido,
+        string $scopeRequerido = 'GLOBAL',
         ?AutenticacionMiddleware $autenticacionMiddleware = null,
         ?AutorizacionServicio $autorizacionServicio = null,
         ?SeguridadRepositorio $seguridadRepositorio = null
     ) {
         $this->privilegioRequerido = strtolower(trim($privilegioRequerido));
+        $this->scopeRequerido = strtoupper(trim($scopeRequerido)) ?: 'GLOBAL';
         $this->autenticacionMiddleware = $autenticacionMiddleware ?? new AutenticacionMiddleware();
         $this->autorizacionServicio = $autorizacionServicio ?? new AutorizacionServicio();
         $this->seguridadRepositorio = $seguridadRepositorio ?? new SeguridadRepositorio();
     }
 
     /**
-     * Factoría para instanciación concisa en definiciones de rutas.
+     * Factoría para instanciación concisa en definiciones de rutas globales.
      */
-    public static function exigir(string $privilegio): self
+    public static function exigir(string $privilegio, string $scope = 'GLOBAL'): self
     {
-        return new self($privilegio);
+        return new self($privilegio, $scope);
+    }
+
+    /**
+     * Factoría para rutas con ámbito territorial de empresa.
+     */
+    public static function exigirEmpresa(string $privilegio): self
+    {
+        return new self($privilegio, 'EMPRESA');
     }
 
     public function procesar(Peticion $peticion, Respuesta $respuesta, ?ContextoPeticion $contexto = null): bool
@@ -62,8 +73,23 @@ class AutorizacionMiddleware
 
         $usuarioId = (int) ($auth['usuario_id'] ?? 0);
 
-        // 2. Evaluar privilegio RBAC (SUPERADMIN tiene bypass universal)
-        $autorizado = $this->autorizacionServicio->tienePrivilegio($usuarioId, $this->privilegioRequerido, 'GLOBAL');
+        // 2. Resolver alcance según el scope requerido
+        $alcanceId = null;
+        if ($this->scopeRequerido === 'EMPRESA') {
+            $alcanceId = $contexto ? $contexto->obtenerEmpresaId() : null;
+            if ($alcanceId === null) {
+                $sesionEmpresaId = GestorSesion::obtener('contexto_empresa_id');
+                $alcanceId = ($sesionEmpresaId !== null && (int) $sesionEmpresaId > 0) ? (int) $sesionEmpresaId : null;
+            }
+        }
+
+        // 3. Evaluar privilegio RBAC multidimensional (SUPERADMIN tiene bypass universal)
+        $autorizado = $this->autorizacionServicio->tienePrivilegio(
+            $usuarioId,
+            $this->privilegioRequerido,
+            $this->scopeRequerido,
+            $alcanceId
+        );
 
         if (!$autorizado) {
             return $this->rechazarAccesoDenegado($peticion, $respuesta, $contexto, $usuarioId);

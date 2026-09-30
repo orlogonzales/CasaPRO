@@ -84,11 +84,11 @@ try {
 }
 afirmar($bloqueoDbDesarrollo, 'Guardia Fail-Closed aborta con RuntimeException si la conexión apunta a BD de desarrollo (casapro)');
 
-// 5. Esquema en casapro_test contiene las 27 tablas consolidadas
+// 5. Esquema en casapro_test contiene las 28 tablas consolidadas
 $totalTablasTest = (int) $pdoTest->query("
     SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'casapro_test'
 ")->fetchColumn();
-afirmar($totalTablasTest === 27, "casapro_test contiene exactamente las 27 tablas del esquema oficial (actual: {$totalTablasTest})");
+afirmar($totalTablasTest === 28, "casapro_test contiene exactamente las 28 tablas del esquema oficial (actual: {$totalTablasTest})");
 
 // 6. Reset determinista: limpiarTablasMutables restaura el actor SISTEMA_CASAPRO (ID 1)
 AmbientePruebas::limpiarTablasMutables($pdoTest);

@@ -14,19 +14,25 @@ class ContextoPeticion
     private string $userAgent;
     private string $origen;
     private int $actorId;
+    private ?int $empresaId;
+    private string $scopeTipo;
 
     public function __construct(
         ?string $idCorrelacion = null,
         ?string $ipCliente = null,
         ?string $userAgent = null,
         ?string $origen = null,
-        int $actorId = 1
+        int $actorId = 1,
+        ?int $empresaId = null,
+        string $scopeTipo = 'GLOBAL'
     ) {
         $this->idCorrelacion = $this->resolverIdCorrelacion($idCorrelacion);
         $this->ipCliente = $this->resolverIp($ipCliente);
         $this->userAgent = $this->resolverUserAgent($userAgent);
         $this->origen = $this->resolverOrigen($origen);
         $this->actorId = $actorId;
+        $this->empresaId = ($empresaId !== null && $empresaId > 0) ? $empresaId : null;
+        $this->scopeTipo = strtoupper(trim($scopeTipo)) ?: 'GLOBAL';
     }
 
     /**
@@ -120,5 +126,32 @@ class ContextoPeticion
             throw new \InvalidArgumentException('El ID del actor debe ser un entero positivo.');
         }
         $this->actorId = $actorId;
+    }
+
+    public function obtenerEmpresaId(): ?int
+    {
+        return $this->empresaId;
+    }
+
+    public function establecerEmpresaId(?int $empresaId): void
+    {
+        if ($empresaId !== null && $empresaId <= 0) {
+            throw new \InvalidArgumentException('El ID de empresa debe ser un entero positivo o null.');
+        }
+        $this->empresaId = $empresaId;
+    }
+
+    public function obtenerScopeTipo(): string
+    {
+        return $this->scopeTipo;
+    }
+
+    public function establecerScopeTipo(string $scopeTipo): void
+    {
+        $tipoLimpio = strtoupper(trim($scopeTipo));
+        if (!in_array($tipoLimpio, ['GLOBAL', 'EMPRESA', 'PROYECTO', 'SECTOR'], true)) {
+            throw new \InvalidArgumentException("Tipo de scope territorial no válido: '{$scopeTipo}'.");
+        }
+        $this->scopeTipo = $tipoLimpio;
     }
 }

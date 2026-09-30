@@ -66,7 +66,16 @@ flowchart TD
   - Semántica de estados y errores: 422 (Persona Natural o Jurídica Inactiva), 409 (Duplicidad Persona-Empresa o Código corporativo existente).
   - Inmutabilidad de `persona_id` y `codigo`; empresa inactiva consultable históricamente; inexistencia deliberada de método `eliminar()`.
   - 4 Privilegios de catálogo (`empresas.ver`, `empresas.crear`, `empresas.editar`, `empresas.cambiar_estado`) y asignación a SUPERADMIN (`mb-fase2a-dominio-empresas`).
-- **Microfase 2B (Pendiente):** Asignaciones y Scopes: Asignación de usuarios a ámbitos corporativos con roles diferenciados, resolución territorial (`GLOBAL` > `EMPRESA` > `PROYECTO` > `SECTOR`), `ContextoOperacion` y middleware de scope.
+- **Microfase 2B (Cerrada):** Asignaciones Usuario ↔ Empresa y Scopes Territoriales:
+  - Persistencia soberana en tabla 28 `usuario_empresa_roles` (Migración `2026_09_30_000011_crear_asignaciones_usuario_empresa_roles.sql`).
+  - Separación de tuplas: `usuario_roles` para roles verdaderamente globales (`SUPERADMIN`) y `usuario_empresa_roles` (`usuario_id`, `empresa_id`, `rol_id`) para roles territoriales por empresa.
+  - Origen exclusivo del contexto web: sesión del servidor (`$_SESSION['contexto_empresa_id']`). `X-Empresa-ID` y parámetros del cliente tratados como no confiables.
+  - Gate Anti-IDOR / Anti-Tampering innegociable: Si el cliente envía `empresa_id` por GET, POST o JSON y difiere de la sesión activa, se deniega inmediatamente con HTTP 403 Forbidden y telemetría de seguridad.
+  - Matriz semántica de respuestas HTTP: 401 (sin sesión), 403 (discordancia territorial o falta de privilegio RBAC), 404 (empresa inexistente), 409 (ausencia de contexto o empresa inactiva), 422 (validación/DTO o asignación de SUPERADMIN en empresa).
+  - SUPERADMIN con bypass universal funcional condicionado a empresa activa (`fail-closed` si la empresa está inactiva).
+  - Inmutabilidad y cero DELETE físico en BD: bajas lógicas mediante conmutación de estado (`ACTIVO`/`INACTIVO`), `revocado_por`, `revocado_en`, trazabilidad de actores vinculada a `actores(id)` con `ON DELETE RESTRICT`.
+  - Incremento selectivo de `version_autorizacion` a nivel de usuario individual ante asignación, revocación o reactivación; invalidación en memoria de caché de autorización.
+  - 4 Privilegios de catálogo (`asignaciones.ver`, `asignaciones.crear`, `asignaciones.editar`, `asignaciones.revocar`) vinculados a `SUPERADMIN` (`mb-fase2b-asignaciones-scopes`).
 - **Microfase 2C (Pendiente):** Administración de Empresas: Módulo web `/empresas`, DataTables server-side, modales Alina, carga documental de logo y auditoría forense.
 - **Microfase 2D (Pendiente):** Selector Corporativo: Selector interactivo en topbar Alina, empresa activa en sesión, cambio en caliente sin relogin y recálculo dinámico de contexto.
 

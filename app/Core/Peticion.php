@@ -18,17 +18,24 @@ class Peticion
     private array $archivos;
     private string $ipCliente;
 
-    public function __construct()
-    {
-        $this->metodo = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->parametrosConsulta = $_GET;
-        $this->parametrosCuerpo = $_POST;
-        $this->archivos = $_FILES;
-        $this->ipCliente = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    public function __construct(
+        ?string $metodo = null,
+        ?string $ruta = null,
+        ?array $cuerpo = null,
+        ?array $consulta = null,
+        ?array $archivos = null,
+        ?array $servidor = null
+    ) {
+        $servidorEntorno = $servidor ?? $_SERVER;
+        $this->metodo = strtoupper($metodo ?? ($servidorEntorno['REQUEST_METHOD'] ?? 'GET'));
+        $this->parametrosConsulta = $consulta ?? $_GET;
+        $this->parametrosCuerpo = $cuerpo ?? $_POST;
+        $this->archivos = $archivos ?? $_FILES;
+        $this->ipCliente = $servidorEntorno['REMOTE_ADDR'] ?? '127.0.0.1';
 
-        // Extraer cabeceras HTTP combinando getallheaders() con $_SERVER para máxima compatibilidad
+        // Extraer cabeceras HTTP combinando getallheaders() con $servidorEntorno para máxima compatibilidad
         $cabeceras = function_exists('getallheaders') ? (getallheaders() ?: []) : [];
-        foreach ($_SERVER as $clave => $valor) {
+        foreach ($servidorEntorno as $clave => $valor) {
             if (str_starts_with($clave, 'HTTP_')) {
                 $nombre = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($clave, 5)))));
                 if (!isset($cabeceras[$nombre])) {
@@ -43,7 +50,14 @@ class Peticion
         }
         $this->cabeceras = $cabeceras;
 
-        $this->ruta = $this->extraerRutaNormalizada();
+        if ($ruta !== null) {
+            $this->ruta = '/' . trim($ruta, '/');
+            if ($this->ruta === '//') {
+                $this->ruta = '/';
+            }
+        } else {
+            $this->ruta = $this->extraerRutaNormalizada();
+        }
     }
 
     /**
@@ -166,6 +180,23 @@ class Peticion
     public function establecerCuerpo(array $parametros): self
     {
         $this->parametrosCuerpo = $parametros;
+        return $this;
+    }
+
+    public function obtener(string $clave, mixed $defecto = null): mixed
+    {
+        $parametros = $this->obtenerTodosLosParametros();
+        return $parametros[$clave] ?? $defecto;
+    }
+
+    public function obtenerQuery(string $clave, mixed $defecto = null): mixed
+    {
+        return $this->obtenerConsulta($clave, $defecto);
+    }
+
+    public function establecerConsulta(array $parametros): self
+    {
+        $this->parametrosConsulta = $parametros;
         return $this;
     }
 

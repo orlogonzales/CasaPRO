@@ -2,6 +2,49 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 2B: Asignaciones Usuario ↔ Empresa y Scopes Territoriales] — 2026-09-30
+
+### Añadido
+- **Esquema Relacional y Catálogo de Privilegios 2B (Migración `2026_09_30_000011_crear_asignaciones_usuario_empresa_roles.sql`):**
+  - Creación de la tabla soberana 28 `usuario_empresa_roles` en motor InnoDB, charset UTF8mb4 y collation `utf8mb4_unicode_ci`.
+  - Columnas canónicas: `id`, `usuario_id` (FK RESTRICT contra `usuarios.id`), `empresa_id` (FK RESTRICT contra `empresas.id`), `rol_id` (FK RESTRICT contra `roles.id`), `estado` (`ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO'`), `asignado_por` (FK RESTRICT contra `actores.id`), `asignado_en` (`DATETIME NOT NULL`), `revocado_por` (FK RESTRICT contra `actores.id` NULL), `revocado_en` (`DATETIME NULL`), `actualizado_en` (`DATETIME NOT NULL`).
+  - Restricción de unicidad estricta `uq_usuario_empresa_rol (usuario_id, empresa_id, rol_id)`.
+  - Índices optimizados para resolución en tiempo constante: `idx_uer_usuario_empresa_estado`, `idx_uer_empresa_rol_estado`, `idx_uer_estado`.
+  - 4 Privilegios granulares del catálogo RBAC: `asignaciones.ver`, `asignaciones.crear`, `asignaciones.editar` y `asignaciones.revocar`.
+  - Asignación dinámica de los 4 privilegios al rol `SUPERADMIN` (`WHERE codigo = 'SUPERADMIN'`).
+  - Sincronización idéntica y estricta en `SQL/casa-pro.sql` (Gate SQL Camino A == Camino B: 28 tablas, 239 columnas, 122 índices, 34 FKs, 11 migraciones).
+  - Cero seeds ficticios.
+- **Separación de Tuplas y Autorización Multidimensional:**
+  - `usuario_roles` permanece reservado para roles verdaderamente globales (`SUPERADMIN`).
+  - `usuario_empresa_roles` gestiona la asignación territorial `(usuario_id, empresa_id, rol_id)`.
+  - Un usuario puede tener roles diferenciados según la empresa (ej. Administrador en Empresa 1 y Vendedor en Empresa 2).
+  - SUPERADMIN mantiene bypass universal funcional, condicionado a que la empresa requerida se encuentre en estado `ACTIVO` (fail-closed estricto si está inactiva).
+- **Gate Anti-IDOR / Anti-Tampering y Origen Soberano de Sesión:**
+  - `ScopeMiddleware`: el contexto empresarial de peticiones web se resuelve exclusivamente de la sesión del servidor (`$_SESSION['contexto_empresa_id']`).
+  - Cualquier identificador provisto por el cliente (`empresa_id` en query string, body o payload JSON) es tratado como dato no confiable.
+  - Si el cliente envía un `empresa_id` y difiere de la empresa activa en sesión, la petición es interceptada y denegada inmediatamente con HTTP 403 Forbidden y telemetría en `eventos_seguridad`.
+  - Matriz rigurosa de errores HTTP:
+    - `401 Unauthorized`: ausencia de sesión autenticada.
+    - `403 Forbidden`: discordancia territorial cliente vs sesión (Anti-IDOR) o falta de privilegio funcional RBAC.
+    - `404 Not Found`: empresa o usuario inexistente.
+    - `409 Conflict`: ausencia de empresa seleccionada en sesión o empresa inactiva.
+    - `422 Unprocessable Entity`: errores de validación de formato/DTO o intento de asignar SUPERADMIN por empresa.
+- **Inmutabilidad Financiera y Bajas Lógicas:**
+  - Prohibición total de DELETE físico en asignaciones: las bajas operan mediante conmutación de estado a `INACTIVO`, con registro forense de `revocado_por` y `revocado_en`.
+  - Reactivación transparente de asignaciones preexistentes inactivadas actualizando `asignado_por` y limpiando campos de revocación.
+  - Integridad referencial reforzada con `ON DELETE RESTRICT` hacia `actores.id` impidiendo la eliminación accidental de actores con historial de asignaciones.
+- **Control de Versión de Sesión e Invalidación de Caché:**
+  - Las asignaciones, revocaciones y reactivaciones incrementan atómicamente la columna `version_autorizacion` del usuario objetivo, revocando de inmediato sesiones remotas desactualizadas.
+  - La inactivación de una empresa NO incrementa masivamente las versiones de todos los usuarios; se evalúa en tiempo real en capa de middleware.
+  - `AutorizacionServicio` invalida en memoria la caché local del usuario objetivo ante mutaciones territoriales (`invalidarCacheUsuario`).
+- **Preparación de Consultas para Selector Corporativo (2D):**
+  - Métodos soberanos en `AutorizacionServicio`: `obtenerEmpresasDisponiblesParaUsuario`, `puedeAccederEmpresa`, `obtenerRolesUsuarioEnEmpresa` y `obtenerPrivilegiosUsuarioEnEmpresa`.
+  - Integración en `ContextoPeticion` de `$empresaId` y `$scopeTipo`.
+- **Suite de Pruebas Automatizadas 2B (`tests/verificar_asignaciones_scopes_2b.php`):**
+  - 67 pruebas exhaustivas en 9 bloques validando dominio `UsuarioEmpresaRol`, fixtures aislados, servicio de asignaciones, resolución multidimensional, consultas de ámbito, bajas lógicas con cero DELETE, middlewares de Scope y Autorización con Gate Anti-IDOR, auditoría forense con FKs RESTRICT y DELTA en desarrollo `casapro = 0`.
+
+---
+
 ## [Microfase 2A: Dominio de Empresas y Vinculación Corporativa] — 2026-09-30
 
 ### Añadido

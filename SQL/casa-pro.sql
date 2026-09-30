@@ -2696,6 +2696,53 @@ CREATE TABLE IF NOT EXISTS `empresas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Entidades corporativas bajo administración del sistema';
 
 -- -----------------------------------------------------------------------------
+-- Tabla: usuario_empresa_roles (Asignación granular de roles por empresa a usuarios)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `usuario_empresa_roles` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `usuario_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK a usuarios (cuenta autenticable)',
+    `empresa_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK a empresas (ámbito territorial corporativo)',
+    `rol_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK a roles (rol funcional otorgado dentro de la empresa)',
+    `estado` ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO' COMMENT 'Estado de la asignación en el ciclo actual',
+    `asignado_por` BIGINT UNSIGNED NOT NULL COMMENT 'FK a actores (actor que formalizó la asignación vigente)',
+    `asignado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de alta del ciclo de vigencia actual',
+    `revocado_por` BIGINT UNSIGNED NULL COMMENT 'FK a actores (actor que formalizó la baja lógica del ciclo)',
+    `revocado_en` TIMESTAMP NULL COMMENT 'Fecha de baja lógica del ciclo actual',
+    `actualizado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Fecha de última mutación',
+    UNIQUE KEY `uk_usuario_empresa_rol` (`usuario_id`, `empresa_id`, `rol_id`),
+    KEY `idx_uer_usuario_estado` (`usuario_id`, `estado`),
+    KEY `idx_uer_empresa_estado` (`empresa_id`, `estado`),
+    KEY `idx_uer_rol` (`rol_id`),
+    KEY `idx_uer_asignado_por` (`asignado_por`),
+    KEY `idx_uer_revocado_por` (`revocado_por`),
+    CONSTRAINT `fk_uer_usuario`
+        FOREIGN KEY (`usuario_id`)
+        REFERENCES `usuarios` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_uer_empresa`
+        FOREIGN KEY (`empresa_id`)
+        REFERENCES `empresas` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_uer_rol`
+        FOREIGN KEY (`rol_id`)
+        REFERENCES `roles` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_uer_actor_asigna`
+        FOREIGN KEY (`asignado_por`)
+        REFERENCES `actores` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_uer_actor_revoca`
+        FOREIGN KEY (`revocado_por`)
+        REFERENCES `actores` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Asignación granular de roles por empresa a usuarios bajo autorización multidimensional';
+
+-- -----------------------------------------------------------------------------
 -- Semillas Iniciales Mínimas
 -- -----------------------------------------------------------------------------
 
@@ -2726,7 +2773,11 @@ INSERT INTO `privilegios` (`id`, `codigo`, `modulo`, `accion`, `nombre`, `descri
 (19, 'empresas.ver', 'empresas', 'ver', 'Ver Empresas', 'Permite consultar el catálogo y detalle operativo de empresas'),
 (20, 'empresas.crear', 'empresas', 'crear', 'Crear Empresa', 'Permite dar de alta nuevas empresas y vincular personas jurídicas'),
 (21, 'empresas.editar', 'empresas', 'editar', 'Editar Empresa', 'Permite modificar la configuración operativa de la empresa'),
-(22, 'empresas.cambiar_estado', 'empresas', 'cambiar_estado', 'Cambiar Estado de Empresa', 'Permite activar o desactivar empresas del sistema');
+(22, 'empresas.cambiar_estado', 'empresas', 'cambiar_estado', 'Cambiar Estado de Empresa', 'Permite activar o desactivar empresas del sistema'),
+(23, 'asignaciones.ver', 'asignaciones', 'ver', 'Ver Asignaciones Territoriales', 'Permite consultar las asignaciones de empresas y roles de los usuarios'),
+(24, 'asignaciones.crear', 'asignaciones', 'crear', 'Asignar Roles en Empresas', 'Permite vincular usuarios a empresas con roles específicos'),
+(25, 'asignaciones.editar', 'asignaciones', 'editar', 'Modificar Asignaciones', 'Permite cambiar roles o estados de asignación de usuarios en empresas'),
+(26, 'asignaciones.revocar', 'asignaciones', 'revocar', 'Revocar Asignaciones en Empresas', 'Permite dar de baja lógica roles o desvincular usuarios de empresas');
 
 -- 3. Asignación inicial de privilegios al rol SUPERADMIN
 INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
@@ -2751,7 +2802,11 @@ INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
 (1, 19),
 (1, 20),
 (1, 21),
-(1, 22);
+(1, 22),
+(1, 23),
+(1, 24),
+(1, 25),
+(1, 26);
 
 -- 4. Opciones de menú iniciales de CasaPRO
 INSERT INTO `menu_opciones` (`id`, `padre_id`, `tipo`, `codigo`, `etiqueta`, `ruta`, `icono`, `orden`, `privilegio_id`, `estado`, `visible`) VALUES
