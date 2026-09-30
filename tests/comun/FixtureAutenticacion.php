@@ -13,6 +13,7 @@ use App\Modelos\PersonaNatural;
 use App\Repositorios\UsuarioRepositorio;
 use App\Repositorios\RolRepositorio;
 use App\Repositorios\PersonaRepositorio;
+use Tests\Comun\AmbientePruebas;
 use PDO;
 
 /**
@@ -24,7 +25,7 @@ class FixtureAutenticacion
     public static function autenticarComoSuperadmin(?PDO $conexion = null): array
     {
         GestorSesion::iniciar();
-        $proveedor = new ProveedorConexion();
+        $proveedor = AmbientePruebas::obtenerProveedorTest();
         $conn = $conexion ?? $proveedor->obtenerConexion();
 
         $usuarioRepo = new UsuarioRepositorio($proveedor);

@@ -21,8 +21,8 @@ declare(strict_types=1);
 
 define('CASAPRO_TESTING', true);
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
 
-use App\Core\CargadorEntorno;
 use App\Core\ProveedorConexion;
 use App\Core\ContextoPeticion;
 use App\Core\GestorSesion;
@@ -34,8 +34,10 @@ use App\DTOs\CrearPersonaDTO;
 use App\Servicios\PersonaServicio;
 use App\Servicios\AuditoriaServicio;
 use App\Repositorios\PersonaRepositorio;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
+$pdo = AmbientePruebas::iniciar(true);
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 GestorSesion::iniciar();
 
 echo "===================================================================\n";
@@ -302,10 +304,10 @@ afirmativo(
 // -------------------------------------------------------------------------
 // PREPARACIÓN DE DATOS DE PRUEBA CONTROLADOS PARA 1E
 // -------------------------------------------------------------------------
-$proveedor = new ProveedorConexion();
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 $pdo = $proveedor->obtenerConexion();
 $repositorio = new PersonaRepositorio($proveedor);
-$auditoria = new AuditoriaServicio();
+$auditoria = new AuditoriaServicio($proveedor);
 $servicio = new PersonaServicio($proveedor, $repositorio, $auditoria);
 $contextoPrueba = ContextoPeticion::crearDesdeEntorno();
 

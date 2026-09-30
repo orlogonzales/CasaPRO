@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 define('CASAPRO_TESTING', true);
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
 
-use App\Core\CargadorEntorno;
 use App\Core\ProveedorConexion;
 use App\Core\ContextoPeticion;
 use App\Core\GestorSesion;
@@ -20,8 +20,10 @@ use App\Middlewares\CsrfMiddleware;
 use App\Servicios\AuditoriaServicio;
 use App\Modelos\Actor;
 use App\Modelos\AuditoriaRegistro;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
+$pdo = AmbientePruebas::iniciar(true);
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 GestorSesion::iniciar();
 
 echo "===============================================================\n";
@@ -144,7 +146,7 @@ unset($_SERVER['HTTP_AUTHORIZATION'], $_SERVER['HTTP_ACCEPT'], $_POST['_csrf_tok
 // -----------------------------------------------------------------------------
 echo "\n--- BLOQUE 5: Modelo y Catálogo de Actores ---\n";
 
-$proveedor = new ProveedorConexion();
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 $pdo = $proveedor->obtenerConexion();
 
 $stmtActor = $pdo->prepare("SELECT * FROM `actores` WHERE `codigo` = 'SISTEMA_CASAPRO'");

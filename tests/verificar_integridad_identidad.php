@@ -7,9 +7,8 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
 
-use App\Core\CargadorEntorno;
-use App\Core\ProveedorConexion;
 use App\Modelos\Persona;
 use App\Modelos\PersonaNatural;
 use App\Modelos\PersonaJuridica;
@@ -17,15 +16,14 @@ use App\Modelos\PersonaDocumento;
 use App\Modelos\PersonaContacto;
 use App\Modelos\PersonaDireccion;
 use App\Modelos\PersonaRepresentante;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
+$pdo = AmbientePruebas::iniciar(true);
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 
 echo "===================================================================\n";
 echo " PRUEBAS DE INTEGRIDAD REFERENCIAL Y MODELO IDENTIDAD (FASE 1B)\n";
 echo "===================================================================\n";
-
-$proveedor = new ProveedorConexion();
-$pdo = $proveedor->obtenerConexion();
 
 $errores = 0;
 $pruebas = 0;

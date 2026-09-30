@@ -9,12 +9,12 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
 
 if (!defined('CASAPRO_TESTING')) {
     define('CASAPRO_TESTING', true);
 }
 
-use App\Core\CargadorEntorno;
 use App\Core\ProveedorConexion;
 use App\Core\ContextoPeticion;
 use App\Core\GestorSesion;
@@ -41,8 +41,10 @@ use App\Servicios\AuditoriaServicio;
 use App\Excepciones\ReglaNegocioExcepcion;
 use App\Excepciones\ValidacionExcepcion;
 use Tests\Comun\FixtureAutenticacion;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
+$conexion = AmbientePruebas::iniciar(true);
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 GestorSesion::iniciar();
 
 echo "===================================================================\n";
@@ -68,8 +70,6 @@ function afirmativo(bool $condicion, string $descripcion, string $detalle = ''):
     }
 }
 
-$proveedor = new ProveedorConexion();
-$conexion = $proveedor->obtenerConexion();
 $usuarioRepo = new UsuarioRepositorio($proveedor);
 $rolRepo = new RolRepositorio($proveedor);
 $seguridadRepo = new SeguridadRepositorio($proveedor);

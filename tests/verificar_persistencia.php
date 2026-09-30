@@ -7,12 +7,13 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
 
-use App\Core\CargadorEntorno;
 use App\Core\ProveedorConexion;
 use App\Core\MigradorSQL;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
+AmbientePruebas::iniciar();
 
 echo "===============================================================\n";
 echo " PRUEBA DE GATE SQL Y RECONSTRUCCIÓN LIMPIA (MICROFASE 1C)\n";

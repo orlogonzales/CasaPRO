@@ -23,8 +23,8 @@ declare(strict_types=1);
 
 define('CASAPRO_TESTING', true);
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
 
-use App\Core\CargadorEntorno;
 use App\Core\ProveedorConexion;
 use App\Core\ContextoPeticion;
 use App\Core\GestorSesion;
@@ -41,8 +41,10 @@ use App\Servicios\AuditoriaServicio;
 use App\Servicios\ConsultaDocumentoServicio;
 use App\Servicios\ProveedorDocumentoInterface;
 use App\Repositorios\PersonaRepositorio;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
+$pdo = AmbientePruebas::iniciar(true);
+$proveedor = AmbientePruebas::obtenerProveedorTest();
 GestorSesion::iniciar();
 
 echo "===================================================================\n";
@@ -200,10 +202,10 @@ function despacharEndpoint(string $metodo, string $ruta, array $cuerpo = [], boo
     ];
 }
 
-$conexion = (new ProveedorConexion())->obtenerConexion();
-$repositorio = new PersonaRepositorio();
-$auditoriaServicio = new AuditoriaServicio();
-$personaServicio = new PersonaServicio(new ProveedorConexion(), $repositorio, $auditoriaServicio);
+$conexion = $proveedor->obtenerConexion();
+$repositorio = new PersonaRepositorio($proveedor);
+$auditoriaServicio = new AuditoriaServicio($proveedor);
+$personaServicio = new PersonaServicio($proveedor, $repositorio, $auditoriaServicio);
 
 // =========================================================================
 // BLOQUE 1: Seguridad, Deny by Default y CSRF en Consulta Documental

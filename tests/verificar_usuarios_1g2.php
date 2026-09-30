@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/comun/AmbientePruebas.php';
+require_once __DIR__ . '/comun/FixtureAutenticacion.php';
 
 if (!defined('CASAPRO_TESTING')) {
     define('CASAPRO_TESTING', true);
 }
 
-use App\Core\CargadorEntorno;
 use App\Core\ProveedorConexion;
 use App\Core\ContextoPeticion;
 use App\Core\GestorSesion;
@@ -32,9 +33,11 @@ use App\DTOs\ResetearPasswordDTO;
 use App\DTOs\CambiarPasswordPersonalDTO;
 use App\Excepciones\ReglaNegocioExcepcion;
 use App\Excepciones\ValidacionExcepcion;
+use Tests\Comun\AmbientePruebas;
 
-CargadorEntorno::cargar(dirname(__DIR__));
-
+$conexion = AmbientePruebas::iniciar(true);
+$proveedor = AmbientePruebas::obtenerProveedorTest();
+GestorSesion::iniciar();
 
 echo "===================================================================\n";
 echo " SUITE DE PRUEBAS DE ADMINISTRACIÓN DE USUARIOS Y ACCESOS (1G-2)\n";
@@ -55,9 +58,6 @@ function afirmar(bool $condicion, string $mensaje): void
         throw new RuntimeException("Fallo en la aserción: {$mensaje}");
     }
 }
-
-$proveedor = new ProveedorConexion();
-$conexion = $proveedor->obtenerConexion();
 $usuarioRepo = new UsuarioRepositorio($proveedor);
 $rolRepo = new RolRepositorio($proveedor);
 $personaRepo = new PersonaRepositorio($proveedor);
@@ -172,6 +172,10 @@ $stmtOp = $conexion->query("
     WHERE r.codigo = 'SUPERADMIN' AND u.estado = 'ACTIVO' LIMIT 1
 ");
 $operadorSuperadminId = (int) $stmtOp->fetchColumn();
+if ($operadorSuperadminId === 0) {
+    $authOp = \Tests\Comun\FixtureAutenticacion::autenticarComoSuperadmin($conexion);
+    $operadorSuperadminId = (int) $authOp['usuario_id'];
+}
 
 // Crear usuario con UsuarioServicio
 $dtoCrear = new CrearUsuarioDTO([
