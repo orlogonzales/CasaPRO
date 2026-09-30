@@ -2,6 +2,38 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 2A: Dominio de Empresas y Vinculación Corporativa] — 2026-09-30
+
+### Añadido
+- **Esquema Relacional y Catálogo de Privilegios 2A (Migración `2026_09_30_000010_crear_tabla_empresas.sql`):**
+  - Creación de la tabla soberana 27 `empresas` en motor InnoDB, charset UTF8mb4 y collation `utf8mb4_unicode_ci`.
+  - Columnas esenciales: `id`, `persona_id` (FK 1:1 RESTRICT hacia `personas.id`), `codigo` (`VARCHAR(32) UNIQUE`), `nombre_corto` (`VARCHAR(64)`), `estado` (`ENUM('ACTIVO', 'INACTIVO')`), `creado_en`, `actualizado_en`.
+  - Descarte preventivo de `ruta_logo` y `color_hex` por principio YAGNI y desacoplamiento con el sistema de archivos.
+  - Eliminación de directivas `SET FOREIGN_KEY_CHECKS = 0/1` garantizando consistencia relacional fail-fast.
+  - 4 Privilegios granulares del catálogo RBAC: `empresas.ver`, `empresas.crear`, `empresas.editar` y `empresas.cambiar_estado`.
+  - Asignación dinámica de los 4 privilegios al rol `SUPERADMIN` (`WHERE codigo = 'SUPERADMIN'`).
+  - Sincronización idéntica en `SQL/casa-pro.sql` (Gate SQL Camino A == Camino B: 27 tablas, 229 columnas, 111 índices, 29 FKs, 10 migraciones).
+  - Cero seeds de empresas ficticias.
+- **Principio de Identidad Raíz (`Persona Jurídica 1 : 0..1 Empresa`):**
+  - Toda Empresa es una Persona Jurídica, pero no toda Persona Jurídica es una Empresa.
+  - Cero duplicación de RUC, razón social, nombre comercial legal ni domicilio fiscal en `empresas`.
+- **Capa de Dominio y Transaccionalidad Atómica (`app/Servicios/EmpresaServicio.php`):**
+  - Unicidad del propietario de transacción: `EmpresaServicio` abre y controla la transacción PDO; `PersonaServicio` participa como transacción subordinada sin commit independiente.
+  - Rollback total probado: si la inserción de Empresa o el registro de Auditoría fallan, la Persona Jurídica creada por orquestación es completamente revertida.
+  - Cero duplicación de SQL del dominio Persona dentro de `EmpresaServicio`.
+  - Semántica rigurosa de errores: HTTP 422 ante Persona Natural o Persona Jurídica inactiva; HTTP 409 Conflict ante duplicidad 1:1 o código repetido.
+  - Inmutabilidad estricta de `persona_id` y `codigo`; `nombre_corto` editable.
+  - Empresa inactiva permanece consultable históricamente y no se elimina.
+  - Prohibición total de DELETE físico (cero métodos públicos `eliminar()` en repositorio y servicio).
+- **DTOs con Allowlist y Validación:**
+  - `CrearEmpresaDTO`: validación de modalidad vinculada (`persona_id`) u orquestada (`datos_persona`), código `[A-Z0-9_]{3,32}` y nombre corto.
+  - `ActualizarEmpresaDTO`: allowlist exclusiva para `nombre_corto` y rechazo explícito de atributos inmutables.
+  - `CambiarEstadoEmpresaDTO`: conmutación validada `ACTIVO`/`INACTIVO`.
+- **Suite de Pruebas Automatizadas 2A (`tests/verificar_dominio_empresas_2a.php`):**
+  - 45 pruebas exhaustivas certificando persistencia, DTOs, altas vinculadas y orquestadas, semántica 422/409, rollbacks atómicos de dos fases, inmutabilidad, consultabilidad histórica de inactivas, inexistencia de DELETE y auditoría.
+
+---
+
 ## [Microfase 1G-3: Gestión de Menú Dinámico y Navegación Jerárquica] — 2026-09-30
 
 ### Añadido

@@ -71,7 +71,7 @@ try {
     afirmar($bdActual === 'casapro_test', "La suite se ejecuta exclusivamente en 'casapro_test'");
 
     $tablas = $conexion->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetchAll(PDO::FETCH_COLUMN);
-    afirmar(count($tablas) === 26, "La base de datos contiene exactamente 26 tablas productivas");
+    afirmar(count($tablas) >= 26, "La base de datos contiene al menos 26 tablas productivas");
     afirmar(in_array('menu_opciones', $tablas, true), "La tabla 'menu_opciones' existe en el esquema");
 
     // Verificar FK RESTRICT

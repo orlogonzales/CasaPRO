@@ -2675,6 +2675,27 @@ CREATE TABLE IF NOT EXISTS `menu_opciones` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Opciones jerárquicas y configuración de navegación dinámica';
 
 -- -----------------------------------------------------------------------------
+-- Tabla: empresas (Identidad operativa y entidades corporativas administradas)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `empresas` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `persona_id` BIGINT UNSIGNED NOT NULL COMMENT 'FK 1:1 a personas (tipo_persona = JURIDICA)',
+    `codigo` VARCHAR(32) NOT NULL COMMENT 'Identificador canónico corporativo inmutable (ej: MATRIZ_BONIFACIO, CASAPRO)',
+    `nombre_corto` VARCHAR(64) NOT NULL COMMENT 'Nombre operativo compacto para selectores, topbar y reportes',
+    `estado` ENUM('ACTIVO', 'INACTIVO') NOT NULL DEFAULT 'ACTIVO' COMMENT 'Estado operativo en la plataforma',
+    `creado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `actualizado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uk_empresas_persona` (`persona_id`),
+    UNIQUE KEY `uk_empresas_codigo` (`codigo`),
+    KEY `idx_empresas_estado` (`estado`),
+    CONSTRAINT `fk_empresas_persona`
+        FOREIGN KEY (`persona_id`)
+        REFERENCES `personas` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Entidades corporativas bajo administración del sistema';
+
+-- -----------------------------------------------------------------------------
 -- Semillas Iniciales Mínimas
 -- -----------------------------------------------------------------------------
 
@@ -2701,7 +2722,11 @@ INSERT INTO `privilegios` (`id`, `codigo`, `modulo`, `accion`, `nombre`, `descri
 (15, 'menu.editar', 'menu', 'editar', 'Editar Opciones de Menú', 'Permite modificar etiquetas, rutas, iconos y privilegios asociados'),
 (16, 'menu.cambiar_estado', 'menu', 'cambiar_estado', 'Activar y Desactivar Opciones de Menú', 'Permite alternar la disponibilidad de opciones en la navegación'),
 (17, 'menu.reordenar', 'menu', 'reordenar', 'Reordenar Estructura de Menú', 'Permite cambiar la secuencia y jerarquía de opciones entre hermanos'),
-(18, 'menu.eliminar', 'menu', 'eliminar', 'Eliminar Opciones de Menú', 'Permite la baja física de nodos hojas sin descendientes');
+(18, 'menu.eliminar', 'menu', 'eliminar', 'Eliminar Opciones de Menú', 'Permite la baja física de nodos hojas sin descendientes'),
+(19, 'empresas.ver', 'empresas', 'ver', 'Ver Empresas', 'Permite consultar el catálogo y detalle operativo de empresas'),
+(20, 'empresas.crear', 'empresas', 'crear', 'Crear Empresa', 'Permite dar de alta nuevas empresas y vincular personas jurídicas'),
+(21, 'empresas.editar', 'empresas', 'editar', 'Editar Empresa', 'Permite modificar la configuración operativa de la empresa'),
+(22, 'empresas.cambiar_estado', 'empresas', 'cambiar_estado', 'Cambiar Estado de Empresa', 'Permite activar o desactivar empresas del sistema');
 
 -- 3. Asignación inicial de privilegios al rol SUPERADMIN
 INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
@@ -2722,7 +2747,11 @@ INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
 (1, 15),
 (1, 16),
 (1, 17),
-(1, 18);
+(1, 18),
+(1, 19),
+(1, 20),
+(1, 21),
+(1, 22);
 
 -- 4. Opciones de menú iniciales de CasaPRO
 INSERT INTO `menu_opciones` (`id`, `padre_id`, `tipo`, `codigo`, `etiqueta`, `ruta`, `icono`, `orden`, `privilegio_id`, `estado`, `visible`) VALUES

@@ -59,9 +59,16 @@ flowchart TD
   - Dependencia lineal estricta: `1G-1 → 1G-2 → 1G-3` (`mb-fase1g3-menu-dinamico`).
 
 ### Fase 2 — Estructura Multiempresa y Ámbitos Territoriales
-- Gestión de `empresas` y asignación de usuarios a ámbitos corporativos (`usuario_empresas`).
-- Selector de empresa/proyecto activo en el header superior.
-- Filtrado territorial de entidades según el scope activo del actor.
+- **Microfase 2A (Cerrada):** Dominio de Empresas y Vinculación Corporativa:
+  - Extensión operativa de Persona Jurídica (`1 : 0..1`), persistencia tabla `empresas` (Migración `2026_09_30_000010_crear_tabla_empresas.sql`), código canónico inmutable, `nombre_corto` operativo y estado (`ACTIVO`/`INACTIVO`).
+  - No duplicación de RUC, razón social ni datos civiles de Persona.
+  - Orquestación transaccional con `PersonaServicio` (propietario único de transacción y rollback total).
+  - Semántica de estados y errores: 422 (Persona Natural o Jurídica Inactiva), 409 (Duplicidad Persona-Empresa o Código corporativo existente).
+  - Inmutabilidad de `persona_id` y `codigo`; empresa inactiva consultable históricamente; inexistencia deliberada de método `eliminar()`.
+  - 4 Privilegios de catálogo (`empresas.ver`, `empresas.crear`, `empresas.editar`, `empresas.cambiar_estado`) y asignación a SUPERADMIN (`mb-fase2a-dominio-empresas`).
+- **Microfase 2B (Pendiente):** Asignaciones y Scopes: Asignación de usuarios a ámbitos corporativos con roles diferenciados, resolución territorial (`GLOBAL` > `EMPRESA` > `PROYECTO` > `SECTOR`), `ContextoOperacion` y middleware de scope.
+- **Microfase 2C (Pendiente):** Administración de Empresas: Módulo web `/empresas`, DataTables server-side, modales Alina, carga documental de logo y auditoría forense.
+- **Microfase 2D (Pendiente):** Selector Corporativo: Selector interactivo en topbar Alina, empresa activa en sesión, cambio en caliente sin relogin y recálculo dinámico de contexto.
 
 ### Fase 3 — Catastro, Lotes y Módulo GIS
 - Jerarquía catastral: Proyectos $\rightarrow$ Sectores $\rightarrow$ Manzanas $\rightarrow$ Lotes.
