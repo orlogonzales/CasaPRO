@@ -1,0 +1,34 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Bloquear acceso a directorios internos sensibles
+    RewriteRule ^(app|config|database|docs|storage|\.agents|\.git)(/.*)?$ - [F,L,NC]
+
+    # 2. Bloquear acceso a archivos sensibles por extensión
+    RewriteRule \.(env|log|sql|lock)$ - [F,L,NC]
+
+    # 3. Permitir acceso de solo lectura a la referencia admin-dashboard
+    RewriteCond %{REQUEST_URI} admin-dashboard/ [NC]
+    RewriteRule ^ - [L]
+
+    # 4. Servir recursos estáticos desde public/assets si se solicita /assets/
+    RewriteCond %{REQUEST_URI} !public/
+    RewriteRule ^assets/(.*)$ public/assets/$1 [L]
+
+    # 5. Redirigir tráfico restante hacia el Front Controller
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/index.php [L,QSA]
+</IfModule>
+
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Protección adicional para archivos con punto o extensiones restringidas
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(log|sql|lock)$">
+    Require all denied
+</FilesMatch>

@@ -1,0 +1,120 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Core;
+
+/**
+ * Encapsula la solicitud HTTP entrante al sistema CasaPRO.
+ */
+class Peticion
+{
+    private string $metodo;
+    private string $ruta;
+    private array $parametrosConsulta;
+    private array $parametrosCuerpo;
+    private ?array $datosJson = null;
+    private array $cabeceras;
+    private array $archivos;
+    private string $ipCliente;
+
+    public function __construct()
+    {
+        $this->metodo = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $this->parametrosConsulta = $_GET;
+        $this->parametrosCuerpo = $_POST;
+        $this->archivos = $_FILES;
+        $this->ipCliente = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $this->cabeceras = function_exists('getallheaders') ? (getallheaders() ?: []) : [];
+
+        $this->ruta = $this->extraerRutaNormalizada();
+    }
+
+    /**
+     * Extrae y normaliza la ruta solicitada, soportando tanto VirtualHosts como subcarpetas.
+     */
+    private function extraerRutaNormalizada(): string
+    {
+        $uriCompleta = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+
+        // Detectar si se está ejecutando en subcarpeta (e.g. /app.casa-pro/ o /app.casa-pro/public/)
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $baseDir = dirname($scriptName);
+        $baseDir = str_replace('\\', '/', $baseDir);
+
+        if ($baseDir !== '/' && $baseDir !== '' && str_starts_with($uriCompleta, $baseDir)) {
+            $rutaRelativa = substr($uriCompleta, strlen($baseDir));
+        } else {
+            $rutaRelativa = $uriCompleta;
+        }
+
+        $rutaNormalizada = '/' . trim($rutaRelativa, '/');
+        return $rutaNormalizada === '//' ? '/' : $rutaNormalizada;
+    }
+
+    public function obtenerMetodo(): string
+    {
+        return $this->metodo;
+    }
+
+    public function obtenerRuta(): string
+    {
+        return $this->ruta;
+    }
+
+    public function obtenerConsulta(string $clave, mixed $defecto = null): mixed
+    {
+        return $this->parametrosConsulta[$clave] ?? $defecto;
+    }
+
+    public function obtenerCuerpo(string $clave, mixed $defecto = null): mixed
+    {
+        return $this->parametrosCuerpo[$clave] ?? $defecto;
+    }
+
+    public function obtenerTodosLosParametros(): array
+    {
+        return array_merge($this->parametrosConsulta, $this->parametrosCuerpo, $this->obtenerJson());
+    }
+
+    public function obtenerJson(): array
+    {
+        if ($this->datosJson === null) {
+            $cuerpoCrudo = file_get_contents('php://input');
+            if (!empty($cuerpoCrudo)) {
+                $decodificado = json_decode($cuerpoCrudo, true);
+                $this->datosJson = is_array($decodificado) ? $decodificado : [];
+            } else {
+                $this->datosJson = [];
+            }
+        }
+        return $this->datosJson;
+    }
+
+    public function obtenerCabecera(string $nombre, ?string $defecto = null): ?string
+    {
+        $nombreNormalizado = strtolower($nombre);
+        foreach ($this->cabeceras as $clave => $valor) {
+            if (strtolower($clave) === $nombreNormalizado) {
+                return (string) $valor;
+            }
+        }
+        return $defecto;
+    }
+
+    public function obtenerIp(): string
+    {
+        return $this->ipCliente;
+    }
+
+    public function obtenerUserAgent(): string
+    {
+        return $_SERVER['HTTP_USER_AGENT'] ?? 'Desconocido';
+    }
+
+    public function esAjax(): bool
+    {
+        return strtolower($this->obtenerCabecera('X-Requested-With', '')) === 'xmlhttprequest'
+            || str_contains($this->obtenerCabecera('Accept', ''), 'application/json');
+    }
+}

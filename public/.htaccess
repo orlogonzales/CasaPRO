@@ -1,0 +1,26 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Bloquear acceso a archivos sensibles por extensión
+    RewriteRule \.(env|log|sql|lock)$ - [F,L,NC]
+
+    # 2. Servir directamente archivos existentes
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 3. Redirigir el resto al Front Controller
+    RewriteRule ^(.*)$ index.php [L,QSA]
+</IfModule>
+
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Protección para archivos con punto o extensiones restringidas
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(log|sql|lock)$">
+    Require all denied
+</FilesMatch>

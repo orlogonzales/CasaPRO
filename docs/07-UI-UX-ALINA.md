@@ -119,7 +119,9 @@ Fallback o Extensión declarada: [Ninguno | PristineJS para validación declarat
 
 ## 5. Implementación Estandarizada de DataTables
 
-Para listados medianos o grandes (Personas, Clientes, Lotes, Pagos, Auditoría), se utiliza DataTables con carga asíncrona server-side:
+Tras la inspección física rigurosa de `admin-dashboard/alina/template/data_table.html` y `admin-dashboard/alina/assets/js/data_table.js`:
+- **DataTables — VERIFICADO EN ALINA:** Alina incluye DataTables tradicional en modo client-side (`jquery.dataTables.min.js`, extensiones `buttons.html5.min.js`, `jszip.min.js`, `pdfmake.min.js`) inicializado sobre tablas HTML completas o arrays JS estáticos en memoria.
+- **Procesamiento Server-Side — ARQUITECTURA PROPIA CASAPRO:** Alina **no** incluye implementación server-side. El protocolo server-side (`serverSide: true`, `processing: true`, conector Fetch/Ajax contra endpoints JSON con `LIMIT` y `COUNT(*)` en Repositorios PDO) constituye una **arquitectura propia de CasaPRO** diseñada para garantizar alto rendimiento en listados masivos (Personas, Lotes, Pagos, Auditoría).
 
 - **Estructura HTML en vista:**
   ```html
@@ -139,4 +141,9 @@ Para listados medianos o grandes (Personas, Clientes, Lotes, Pagos, Auditoría),
       </table>
   </div>
   ```
-- **Conector JS:** Inicialización mediante Fetch/Ajax contra el endpoint JSON correspondiente, pasando parámetros de búsqueda, ordenamiento y paginación.
+
+---
+
+## 6. Política sobre jQuery Heredado de Alina
+
+CasaPRO no utilizará jQuery ni `$.ajax()` para desarrollar lógica propia. Sin embargo, se permite conservar jQuery (`jquery-3.6.3.min.js`) exclusivamente cuando constituya una dependencia técnica heredada y verificada de Alina (como en `script.js` para el desvanecimiento del preloader `.loader-wrapper` o inicializadores internos de plugins de la plantilla). Su presencia no autoriza bajo ningún concepto utilizarlo en nuevos módulos de CasaPRO. Toda lógica nueva propia continuará utilizando JavaScript moderno (ES6+), Fetch API nativo y JSON estructurado.

@@ -60,9 +60,9 @@
 
 ### ADR-007: JavaScript Modular Moderno sin Dependencia de jQuery en Código Propio
 - **Estado:** Aceptado
-- **Contexto:** Aunque la plantilla Alina incluye jQuery para plugins de legado, el desarrollo de nueva lógica en CasaPRO debe ser moderno, modular y mantenible.
-- **Decisión:** Escribir el código JS propio en módulos nativos ES6+ con Fetch API, sin usar sintaxis `$` o acoplamiento a jQuery en la lógica de negocio.
-- **Consecuencias:** Código frontend ligero, estándar, fácil de testear y desacoplado de dependencias obsoletas.
+- **Contexto:** La plantilla Alina incluye `jquery-3.6.3.min.js` y comportamientos de `script.js` (como el desvanecimiento del preloader `.loader-wrapper`) dependen de él. Sin embargo, el desarrollo propio de CasaPRO debe ser moderno, modular y libre de dependencias obsoletas.
+- **Decisión:** CasaPRO no utilizará jQuery ni `$.ajax()` para desarrollar lógica propia. Sin embargo, se permite conservar jQuery exclusivamente cuando constituya una dependencia técnica heredada y verificada de Alina o de alguno de sus plugins originales. Su presencia no autoriza utilizarlo en nuevos módulos de CasaPRO. Toda lógica propia se escribe en módulos ES6+ nativos con Fetch API y respuestas JSON estructuradas.
+- **Consecuencias:** Código frontend ligero, estándar y desacoplado, sin alterar innecesariamente scripts centrales de Alina ni introducir regresiones visuales.
 
 ### ADR-008: Fetch API y Respuestas JSON Estandarizadas
 - **Estado:** Aceptado
@@ -76,11 +76,13 @@
 - **Decisión:** Utilizar primordialmente la validación nativa de Alina/Bootstrap 5, formalizando la incorporación de PristineJS (vanilla JS, sin jQuery, <4KB) como extensión autorizada para validación declarativa avanzada.
 - **Consecuencias:** Cumplimiento de la regla anti-invención: se declara formalmente la búsqueda en Alina y se justifica la extensión técnica.
 
-### ADR-010: DataTables Dinámicos con Paginación Server-Side
+### ADR-010: DataTables (Alina) con Procesamiento Server-Side (Arquitectura Propia CasaPRO)
 - **Estado:** Aceptado
-- **Contexto:** Tablas con miles de registros (personas, lotes, cuotas, auditorías) no pueden cargarse completas en el navegador sin degradar la memoria y el tiempo de respuesta.
-- **Decisión:** Emplear DataTables conectado a endpoints JSON que implementan el protocolo server-side (`draw`, `start`, `length`, `search`, `order`).
-- **Consecuencias:** Respuestas sub-segundo independientemente del volumen total de registros en la base de datos.
+- **Contexto:** La inspección física de `admin-dashboard/alina/template/data_table.html` y `admin-dashboard/alina/assets/js/data_table.js` demostró que Alina únicamente incluye DataTables en modalidad tradicional / client-side (con renderizado sobre HTML preexistente o arrays JS estáticos). Tablas de negocio masivas (personas, lotes, cuotas, auditorías) no pueden cargarse completas en el navegador.
+- **Decisión:**
+  1. *DataTables — Verificado en Alina:* Reutilizar los assets visuales y librerías base de Alina (`jquery.dataTables.min.js`, extensiones de botones).
+  2. *Procesamiento Server-Side — Arquitectura Propia CasaPRO:* Implementar un protocolo server-side propio desacoplado (`serverSide: true`, `processing: true`), alimentado por endpoints JSON que ejecutan paginación con `LIMIT` y `COUNT(*)` en Repositorios PDO.
+- **Consecuencias:** Se aprovecha el sistema de diseño visual de Alina sin atribuirle erróneamente la lógica server-side, garantizando respuestas sub-segundo con millones de registros.
 
 ### ADR-011: Persona como Identidad Raíz y Única
 - **Estado:** Aceptado

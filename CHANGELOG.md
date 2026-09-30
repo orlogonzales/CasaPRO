@@ -33,3 +33,32 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ### Estado
 - Micro-baseline de Gobernanza cerrado satisfactoriamente (`mb-fase0a-gobernanza`).
+
+---
+
+## [Fase 0B: Plantilla Maestra Alina y Núcleo MVC] — 2026-09-29
+
+### Añadido
+- **Núcleo MVC Desacoplado en PHP 8.3:**
+  - `public/index.php`: Front Controller con autocargador PSR-4 nativo para `App\`.
+  - `app/Core/Peticion.php`: Abstracción HTTP de método, URI, parámetros, JSON, headers e IP cliente.
+  - `app/Core/Respuesta.php`: Emisión estandarizada de respuestas HTML, JSON y manejo de solicitudes HEAD.
+  - `app/Core/Enrutador.php`: Router con soporte GET, POST, PUT, DELETE, regex dinámico y 404 integrado.
+  - `app/Core/Vista.php`: Motor de renderizado con inyección en layout maestro y función de escape XSS (`Vista::e()`).
+  - `app/Controladores/BaseControlador.php` e `InicioControlador.php`: Controlador base y acción de verificación inicial.
+  - `config/rutas.php`: Enrutamiento centralizado y endpoint seguro `/api/salud`.
+- **Plantilla Maestra Alina (`app/Vistas/layouts/maestro.php`):**
+  - Ensamblada a partir de la anatomía física de `admin-dashboard/alina/template/blank.html`.
+  - Componentes parciales desacoplados: `cabecera-head.php`, `preloader.php`, `navegacion-lateral.php` (menú 3 niveles), `barra-superior.php` (modo oscuro, toggle, perfil), `migas-pan.php`, `pie-pagina.php` y `pie-scripts.php`.
+  - Vistas iniciales: `app/Vistas/modulos/inicio/index.php` (verificación de layout) y `app/Vistas/modulos/errores/404.php`.
+- **Seguridad Web:**
+  - `.htaccess` y `public/.htaccess`: Blindaje contra acceso directo a directorios internos (`app/`, `config/`, `database/`, `docs/`, `storage/`, `.git/`, `.agents/`) y archivos sensibles (`.env`, `.log`, `.sql`, `.lock`).
+  - Compatibilidad simultánea probada en `https://app.casa-pro.test/` y `https://localhost/app.casa-pro/`.
+- **Assets de Producción:**
+  - Copia selectiva de dependencias mínimas en `public/assets/` (Bootstrap 5, Tabler Icons con fuentes woff2, SimpleBar, jQuery de Alina para preloader, script.js compilado y logos).
+- **Gobernanza:**
+  - Formalizada la excepción de jQuery en `AGENTS.md`, `07-UI-UX-ALINA.md` y `ADR-007`.
+  - Clarificada la separación entre DataTables (Alina client-side) y procesamiento server-side (arquitectura propia CasaPRO) en `07-UI-UX-ALINA.md` y `ADR-010`.
+
+### Estado
+- Micro-baseline de Plantilla Maestra cerrado satisfactoriamente (`mb-fase0b-plantilla-maestra`).
