@@ -1,0 +1,46 @@
+# CasaPRO - .gitignore
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment and sensitive configuration
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs & Temp files
+*.log
+/storage/logs/*.log
+/storage/temp/*
+!/storage/temp/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# Testing & Scratch
+/scratch/
+/coverage/
+
+# Figma heavy design source (stored locally in backup)
+# admin-dashboard/alina-figma-version.fig
