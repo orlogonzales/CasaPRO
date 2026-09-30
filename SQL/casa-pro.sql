@@ -2649,6 +2649,32 @@ CREATE TABLE IF NOT EXISTS `eventos_seguridad` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bitácora de eventos y telemetría de seguridad técnica';
 
 -- -----------------------------------------------------------------------------
+-- Tabla: menu_opciones (Catálogo y jerarquía del menú dinámico)
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `menu_opciones` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `padre_id` BIGINT UNSIGNED NULL COMMENT 'FK reflexiva a menu_opciones.id (NULL = Nivel 0 Raíz)',
+    `tipo` VARCHAR(20) NOT NULL DEFAULT 'ENLACE' COMMENT 'AGRUPADOR | ENLACE',
+    `codigo` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Identificador canónico inmutable para siembras y pruebas',
+    `etiqueta` VARCHAR(100) NOT NULL COMMENT 'Texto visible de la opción en la interfaz',
+    `ruta` VARCHAR(191) NULL COMMENT 'Ruta interna relativa canónica (ej: personas, usuarios, menu). Requerida en ENLACE',
+    `icono` VARCHAR(100) NULL COMMENT 'Clase Font Awesome local validada (ej: fa-solid fa-users). Requerida en Nivel 0',
+    `orden` INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Secuencia ordinal determinista entre hermanos del mismo padre',
+    `privilegio_id` BIGINT UNSIGNED NULL COMMENT 'Privilegio RBAC requerido (NULL = visible a cualquier usuario autenticado)',
+    `estado` VARCHAR(20) NOT NULL DEFAULT 'ACTIVO' COMMENT 'ACTIVO | INACTIVO',
+    `visible` TINYINT(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '1 = visible en navegación lateral, 0 = oculto del menú',
+    `creado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `actualizado_en` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_menu_opciones_padre` FOREIGN KEY (`padre_id`) REFERENCES `menu_opciones` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `fk_menu_opciones_privilegio` FOREIGN KEY (`privilegio_id`) REFERENCES `privilegios` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    INDEX `idx_menu_opciones_padre` (`padre_id`),
+    INDEX `idx_menu_opciones_orden` (`orden`),
+    INDEX `idx_menu_opciones_estado` (`estado`),
+    INDEX `idx_menu_opciones_visible` (`visible`),
+    INDEX `idx_menu_opciones_privilegio` (`privilegio_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Opciones jerárquicas y configuración de navegación dinámica';
+
+-- -----------------------------------------------------------------------------
 -- Semillas Iniciales Mínimas
 -- -----------------------------------------------------------------------------
 
@@ -2656,7 +2682,7 @@ CREATE TABLE IF NOT EXISTS `eventos_seguridad` (
 INSERT INTO `roles` (`id`, `codigo`, `nombre`, `descripcion`, `es_sistema`, `estado`) VALUES
 (1, 'SUPERADMIN', 'Superadministrador del Sistema', 'Acceso irrestricto de administración soberana del sistema', 1, 'ACTIVO');
 
--- 2. Privilegios de funcionalidades activas de Personas
+-- 2. Privilegios de funcionalidades activas
 INSERT INTO `privilegios` (`id`, `codigo`, `modulo`, `accion`, `nombre`, `descripcion`) VALUES
 (1, 'personas.ver', 'personas', 'ver', 'Ver personas', 'Permite consultar el listado y detalle de personas'),
 (2, 'personas.crear', 'personas', 'crear', 'Crear personas', 'Permite registrar nuevas personas naturales o jurídicas'),
@@ -2669,7 +2695,13 @@ INSERT INTO `privilegios` (`id`, `codigo`, `modulo`, `accion`, `nombre`, `descri
 (9, 'usuarios.cambiar_estado', 'usuarios', 'cambiar_estado', 'Activar y Desactivar Usuarios', 'Permite realizar la baja lógica o reactivación administrativa de cuentas'),
 (10, 'usuarios.desbloquear', 'usuarios', 'desbloquear', 'Desbloquear Cuentas por Fuerza Bruta', 'Permite levantar anticipadamente bloqueos temporales de seguridad defensiva'),
 (11, 'usuarios.asignar_roles', 'usuarios', 'asignar_roles', 'Asignar Roles a Usuarios', 'Permite asociar y desasociar roles funcionales a las cuentas de usuario'),
-(12, 'usuarios.resetear_password', 'usuarios', 'resetear_password', 'Resetear Contraseñas Administrativamente', 'Permite forzar contraseñas temporales y cambio obligatorio para terceros');
+(12, 'usuarios.resetear_password', 'usuarios', 'resetear_password', 'Resetear Contraseñas Administrativamente', 'Permite forzar contraseñas temporales y cambio obligatorio para terceros'),
+(13, 'menu.ver', 'menu', 'ver', 'Ver Estructura de Menú', 'Permite visualizar la jerarquía y catálogo de opciones de navegación'),
+(14, 'menu.crear', 'menu', 'crear', 'Crear Opciones de Menú', 'Permite registrar nuevas opciones y agrupadores de navegación'),
+(15, 'menu.editar', 'menu', 'editar', 'Editar Opciones de Menú', 'Permite modificar etiquetas, rutas, iconos y privilegios asociados'),
+(16, 'menu.cambiar_estado', 'menu', 'cambiar_estado', 'Activar y Desactivar Opciones de Menú', 'Permite alternar la disponibilidad de opciones en la navegación'),
+(17, 'menu.reordenar', 'menu', 'reordenar', 'Reordenar Estructura de Menú', 'Permite cambiar la secuencia y jerarquía de opciones entre hermanos'),
+(18, 'menu.eliminar', 'menu', 'eliminar', 'Eliminar Opciones de Menú', 'Permite la baja física de nodos hojas sin descendientes');
 
 -- 3. Asignación inicial de privilegios al rol SUPERADMIN
 INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
@@ -2684,6 +2716,22 @@ INSERT INTO `rol_privilegios` (`rol_id`, `privilegio_id`) VALUES
 (1, 9),
 (1, 10),
 (1, 11),
-(1, 12);
+(1, 12),
+(1, 13),
+(1, 14),
+(1, 15),
+(1, 16),
+(1, 17),
+(1, 18);
+
+-- 4. Opciones de menú iniciales de CasaPRO
+INSERT INTO `menu_opciones` (`id`, `padre_id`, `tipo`, `codigo`, `etiqueta`, `ruta`, `icono`, `orden`, `privilegio_id`, `estado`, `visible`) VALUES
+(1, NULL, 'ENLACE', 'MOD_INICIO', 'Inicio', '/inicio', 'fa-solid fa-house', 1, NULL, 'ACTIVO', 1),
+(2, NULL, 'AGRUPADOR', 'MOD_IDENTIDAD', 'Identidad y Seguridad', NULL, 'fa-solid fa-user-shield', 2, NULL, 'ACTIVO', 1),
+(3, 2, 'AGRUPADOR', 'GRP_PERSONAS', 'Gestión de Personas', NULL, NULL, 1, 1, 'ACTIVO', 1),
+(4, 2, 'AGRUPADOR', 'GRP_SEGURIDAD', 'Seguridad y Accesos', NULL, NULL, 2, NULL, 'ACTIVO', 1),
+(5, 3, 'ENLACE', 'OPC_PERSONAS_LISTADO', 'Directorio de Personas', 'personas', NULL, 1, 1, 'ACTIVO', 1),
+(6, 4, 'ENLACE', 'OPC_USUARIOS_LISTADO', 'Usuarios y Accesos', 'usuarios', NULL, 1, 6, 'ACTIVO', 1),
+(7, 4, 'ENLACE', 'OPC_MENU_LISTADO', 'Gestión de Menú', 'menu', NULL, 2, 13, 'ACTIVO', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

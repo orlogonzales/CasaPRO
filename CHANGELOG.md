@@ -2,6 +2,38 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 1G-3: Gestión de Menú Dinámico y Navegación Jerárquica] — 2026-09-30
+
+### Añadido
+- **Esquema Relacional y Catálogo de Privilegios 1G-3 (Migración `2026_09_30_000009_crear_tabla_menu_opciones.sql`):**
+  - Creación de la tabla soberana 26 `menu_opciones` con motor InnoDB, charset UTF8mb4 y collation `utf8mb4_unicode_ci`.
+  - Columnas: `id`, `padre_id` (FK auto-referencial RESTRICT), `tipo` (`AGRUPADOR`/`ENLACE`), `codigo` (`VARCHAR(64) UNIQUE`), `etiqueta` (`VARCHAR(100)`), `ruta` (`VARCHAR(191) NULL`), `icono` (`VARCHAR(100) NULL`), `orden` (`INT NOT NULL DEFAULT 1`), `privilegio_id` (FK RESTRICT contra `privilegios.id`), `estado` (`ACTIVO`/`INACTIVO`), `creado_en`, `actualizado_en`.
+  - 6 Privilegios granulares en el catálogo RBAC: `menu.ver`, `menu.crear`, `menu.editar`, `menu.eliminar`, `menu.reordenar`, `menu.cambiar_estado`.
+  - Asignación dinámica de los 6 privilegios al rol `SUPERADMIN` (`WHERE codigo = 'SUPERADMIN'`), con cero IDs mágicos.
+  - Seed mínimo oficial de 7 nodos de navegación (MOD_INICIO, MOD_IDENTIDAD, GRP_PERSONAS, OPC_PERSONAS_LISTADO, GRP_SEGURIDAD, OPC_USUARIOS_LISTADO, OPC_MENU_LISTADO).
+  - Sincronización idéntica en `SQL/casa-pro.sql` (Gate SQL Camino A == Camino B: 26 tablas, 222 columnas, 107 índices, 28 FKs, 9 migraciones).
+- **Regla Inviolable: Menú ≠ Autorización:**
+  - El menú es presentación y confort visual; el acceso directo por URL está protegido independientemente por `AutorizacionMiddleware::exigir('menu.ver')` con HTTP 403 innegociable.
+- **Lógica de Negocio y Dominio de Menú (`app/Servicios/MenuServicio.php`):**
+  - Profundidad variable estricta de hasta 3 niveles (Nivel 0: Raíz, Nivel 1: Submódulo, Nivel 2: Opción final). Rechazo estricto de nivel 4+.
+  - Prevención de ciclos directos (`padre_id == id`) e indirectos (mover nodo a su propia descendencia).
+  - Reordenamiento jerárquico masivo con transacción PDO atómica y rollback ante error.
+  - Normalización determinista de orden $1..N$ entre hermanos en PHP/PDO (cero variables de sesión MySQL `@seq`).
+  - Algoritmo de poda Fail-Closed ante privilegios inconsistentes/revocados y poda Bottom-Up de ramas vacías.
+  - Regla de eliminación segura: nodos hoja permitidos; nodos con sub-elementos activos rechazados con HTTP 409 Conflict.
+- **DTOs con Whitelist Estricta y Validación de Seguridad:**
+  - `CrearMenuOpcionDTO`: validación de rutas internas relativas (rechazo de `http://`, `javascript:`, etc.), iconos Font Awesome Free (rechazo de Tabler/scripts) y allowlist estricta.
+  - `ActualizarMenuOpcionDTO`: inmutabilidad de tipo y código canónico.
+  - `ReordenarMenuDTO`: lote jerárquico para sincronización drag-and-drop.
+- **Interfaz y Adaptación Alina (100% Font Awesome Free y ES6+):**
+  - Vista administrativa `/menu` (`app/Vistas/modulos/menu/index.php`) con lista interactiva `.list-group.nested-sortable`.
+  - Integración del plugin oficial de Alina `Sortable.min.js` (`public/assets/vendor/sortable/Sortable.min.js`).
+  - Script frontend modular `public/assets/js/modulos/menu/gestion-menu.js` (Vanilla JS ES6, Fetch API, SweetAlert2, cero llamadas AJAX jQuery propias).
+  - Integración dinámica en el layout `navegacion-lateral.php` con fallback estático accesible.
+- **Suite de Pruebas Automatizadas 1G-3 (`tests/verificar_menu_dinamico_1g3.php`):**
+  - 48 pruebas en 12 bloques certificando DDL, RBAC, profundidad, anti-ciclos, validación DTO, orden determinista, reordenamiento atómico, poda fail-closed, eliminación conflictiva, seguridad middleware, endpoints HTTP y auditoría.
+
+---
 
 ## [Microfase 1G-2: Administración de Usuarios, Accesos y Contraseñas] — 2026-09-30
 

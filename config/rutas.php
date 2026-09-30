@@ -7,6 +7,7 @@ use App\Controladores\InicioControlador;
 use App\Controladores\PersonaControlador;
 use App\Controladores\AutenticacionControlador;
 use App\Controladores\UsuarioControlador;
+use App\Controladores\MenuControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
 
@@ -202,6 +203,60 @@ return function (Enrutador $enrutador): void {
         '/api/usuarios/{id}/reset-password',
         [UsuarioControlador::class, 'resetearPassword'],
         [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('usuarios.resetear_password')]
+    );
+
+    // -------------------------------------------------------------------------
+    // Vistas y Pantallas del Módulo de Menú y Navegación (Microfase 1G-3)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/menu',
+        [MenuControlador::class, 'index'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.ver')]
+    );
+
+    // -------------------------------------------------------------------------
+    // API REST de Gestión y Reordenamiento de Menú (Microfase 1G-3)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/api/menu',
+        [MenuControlador::class, 'obtenerArbol'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.ver')]
+    );
+
+    $enrutador->get(
+        '/api/menu/{id}',
+        [MenuControlador::class, 'obtenerPorId'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.ver')]
+    );
+
+    $enrutador->post(
+        '/api/menu',
+        [MenuControlador::class, 'crear'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.crear')]
+    );
+
+    $enrutador->put(
+        '/api/menu/{id}',
+        [MenuControlador::class, 'actualizar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.editar')]
+    );
+
+    $enrutador->patch(
+        '/api/menu/{id}/estado',
+        [MenuControlador::class, 'cambiarEstado'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.cambiar_estado')]
+    );
+
+    $enrutador->post(
+        '/api/menu/reordenar',
+        [MenuControlador::class, 'reordenar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.reordenar')]
+    );
+
+    $enrutador->delete(
+        '/api/menu/{id}',
+        [MenuControlador::class, 'eliminar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('menu.eliminar')]
     );
 };
 

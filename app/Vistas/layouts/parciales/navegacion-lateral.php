@@ -3,10 +3,80 @@
 declare(strict_types=1);
 
 use App\Core\Vista;
+use App\Core\GestorSesion;
+use App\Servicios\MenuServicio;
+
+$auth = GestorSesion::obtener('auth');
+$usuarioId = (int) ($auth['usuario_id'] ?? 0);
+$usuarioNombre = (string) ($auth['nombre_completo'] ?? $auth['username'] ?? 'Usuario');
+
+try {
+    $menuServicio = new MenuServicio();
+    $arbolMenu = $menuServicio->obtenerArbolParaUsuario($usuarioId);
+} catch (\Throwable) {
+    $arbolMenu = [];
+}
+
+// Detección de ruta relativa actual
+$uriCompleta = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+$baseDir = dirname($scriptName);
+$baseDir = str_replace('\\', '/', $baseDir);
+if (str_ends_with($baseDir, '/public') && !str_starts_with($uriCompleta, $baseDir)) {
+    $baseDir = substr($baseDir, 0, -7);
+}
+if ($baseDir === '/' || $baseDir === '.') {
+    $baseDir = '';
+}
+$rutaActual = trim(substr($uriCompleta, strlen($baseDir)), '/');
+if ($rutaActual === '' || $rutaActual === 'index.php') {
+    $rutaActual = 'inicio';
+}
+
+$coincideRuta = function (?string $rutaOpcion, string $rutaActual): bool {
+    if (empty($rutaOpcion)) {
+        return false;
+    }
+    $rOpcion = trim($rutaOpcion, '/');
+    $rActual = trim($rutaActual, '/');
+    if ($rOpcion === 'inicio' && ($rActual === '' || $rActual === 'inicio')) {
+        return true;
+    }
+    if ($rActual === $rOpcion || str_starts_with($rActual, $rOpcion . '/')) {
+        return true;
+    }
+    return false;
+};
+
+$contieneActivo = function (array $nodo) use (&$contieneActivo, $coincideRuta, $rutaActual): bool {
+    if ($nodo['tipo'] === 'ENLACE' && !empty($nodo['ruta'])) {
+        if ($coincideRuta($nodo['ruta'], $rutaActual)) {
+            return true;
+        }
+    }
+    foreach ($nodo['hijos'] ?? [] as $hijo) {
+        if ($contieneActivo($hijo)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+// Determinar qué nodo raíz debe estar activo por defecto
+$raizActivaId = null;
+foreach ($arbolMenu as $raiz) {
+    if ($contieneActivo($raiz)) {
+        $raizActivaId = (int) $raiz['id'];
+        break;
+    }
+}
+if ($raizActivaId === null && !empty($arbolMenu)) {
+    $raizActivaId = (int) $arbolMenu[0]['id'];
+}
 ?>
 <!-- Menu Navigation starts -->
 <nav class="app-navbar">
-    <!-- Mini Navegación Lateral (semi-side-nav) Nivel 1 -->
+    <!-- Mini Navegación Lateral (semi-side-nav) Nivel 0 -->
     <div class="semi-side-nav">
         <div class="py-4">
            <a href="<?= Vista::url() ?>" class="bg-white h-40 w-40 d-flex-center b-r-12 mx-auto text-decoration-none shadow-sm" data-bs-toggle="tooltip" data-bs-placement="right" title="CasaPRO - Inicio" aria-label="CasaPRO - Inicio">
@@ -15,52 +85,59 @@ use App\Core\Vista;
         </div>
 
         <ul class="navbar-menu-list" role="tablist">
-            <li class="nav-item">
-                <a href="#" class="nav-link active" data-target="menuInicio" data-bs-toggle="tooltip" data-bs-placement="right" title="Inicio" aria-label="Inicio">
-                    <i class="fa-solid fa-house"></i>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuIdentidad" data-bs-toggle="tooltip" data-bs-placement="right" title="Identidad y Accesos" aria-label="Identidad y Accesos">
-                    <i class="fa-solid fa-users"></i>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuCatastro" data-bs-toggle="tooltip" data-bs-placement="right" title="Catastro y Lotes" aria-label="Catastro y Lotes">
-                    <i class="fa-solid fa-location-dot"></i>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuComercial" data-bs-toggle="tooltip" data-bs-placement="right" title="Comercial y Ventas" aria-label="Comercial y Ventas">
-                    <i class="fa-solid fa-briefcase"></i>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuTesoreria" data-bs-toggle="tooltip" data-bs-placement="right" title="Tesorería y Finanzas" aria-label="Tesorería y Finanzas">
-                    <i class="fa-solid fa-money-bill-wave"></i>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuOperaciones" data-bs-toggle="tooltip" data-bs-placement="right" title="Operaciones y Postventa" aria-label="Operaciones y Postventa">
-                    <i class="fa-solid fa-house-circle-check"></i>
-                </a>
-            </li>
+            <?php if (!empty($arbolMenu)): ?>
+                <?php foreach ($arbolMenu as $raiz): ?>
+                    <?php $esRaizActiva = ((int) $raiz['id'] === $raizActivaId); ?>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link <?= $esRaizActiva ? 'active' : '' ?>" data-target="menu_<?= Vista::e($raiz['codigo']) ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= Vista::e($raiz['titulo']) ?>" aria-label="<?= Vista::e($raiz['titulo']) ?>">
+                            <i class="<?= Vista::e(!empty($raiz['icono']) ? $raiz['icono'] : 'fa-solid fa-folder') ?>"></i>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <!-- Fallback accesible con tooltips cuando no hay menú activo -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-target="menuInicio" data-bs-toggle="tooltip" data-bs-placement="right" title="Inicio" aria-label="Inicio">
+                        <i class="fa-solid fa-house"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="menuIdentidad" data-bs-toggle="tooltip" data-bs-placement="right" title="Identidad y Accesos" aria-label="Identidad y Accesos">
+                        <i class="fa-solid fa-users"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="menuCatastro" data-bs-toggle="tooltip" data-bs-placement="right" title="Catastro y Lotes" aria-label="Catastro y Lotes">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="menuComercial" data-bs-toggle="tooltip" data-bs-placement="right" title="Comercial y Ventas" aria-label="Comercial y Ventas">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="menuTesoreria" data-bs-toggle="tooltip" data-bs-placement="right" title="Tesorería y Finanzas" aria-label="Tesorería y Finanzas">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="menuOperaciones" data-bs-toggle="tooltip" data-bs-placement="right" title="Operaciones y Postventa" aria-label="Operaciones y Postventa">
+                        <i class="fa-solid fa-house-circle-check"></i>
+                    </a>
+                </li>
+            <?php endif; ?>
         </ul>
 
         <div class="mt-auto pb-3">
-            <span class="bg-primary-800 h-45 w-45 d-flex-center b-r-30 position-relative mx-auto cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="right" title="Usuario activo" aria-label="Usuario activo">
+            <span class="bg-primary-800 h-45 w-45 d-flex-center b-r-30 position-relative mx-auto cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= Vista::e($usuarioNombre) ?>" aria-label="<?= Vista::e($usuarioNombre) ?>">
                <img alt="avatar" class="img-fluid b-r-30" src="<?= Vista::asset('images/avatar/01.png') ?>">
                <span class="position-absolute top-0 end-0 p-1 bg-gradient-success border border-light rounded-circle"></span>
            </span>
         </div>
     </div>
 
-    <!-- Navegación Lateral Detallada (main-side-nav) Niveles 2 y 3 -->
+    <!-- Navegación Lateral Detallada (main-side-nav) Niveles 1 y 2 -->
     <div class="main-side-nav">
         <div>
             <div class="px-3 pt-3 pb-2 d-flex align-items-center justify-content-between">
@@ -82,126 +159,80 @@ use App\Core\Vista;
 
         <div class="nav-wrapper app-scroll app-simple-bar">
             <div class="main-side-menu">
-                <!-- Menú 1: Inicio y Tableros -->
-                <ul class="main-menu" id="menuInicio">
-                    <li>
-                        <a aria-expanded="true" data-bs-toggle="collapse" href="#submenuDashboard">
-                            Tableros de Control
-                            <span class="badge bg-gradient-danger badge-dashboard badge-notification ms-2">Activo</span>
-                        </a>
-                        <ul class="collapse show" id="submenuDashboard">
-                            <li><a href="<?= Vista::url() ?>" class="active">Resumen General</a></li>
-                            <li><a href="#">Indicadores Comerciales</a></li>
-                            <li><a href="#">Resumen de Tesorería</a></li>
+                <?php if (!empty($arbolMenu)): ?>
+                    <?php foreach ($arbolMenu as $raiz): ?>
+                        <?php $esRaizActiva = ((int) $raiz['id'] === $raizActivaId); ?>
+                        <ul class="main-menu" id="menu_<?= Vista::e($raiz['codigo']) ?>" style="<?= $esRaizActiva ? 'display: block;' : 'display: none;' ?>">
+                            <?php if ($raiz['tipo'] === 'ENLACE'): ?>
+                                <li class="no-sub">
+                                    <a href="<?= Vista::url($raiz['ruta'] ?? '') ?>" class="<?= $coincideRuta($raiz['ruta'] ?? '', $rutaActual) ? 'active' : '' ?>">
+                                        <?php if (!empty($raiz['icono'])): ?><i class="<?= Vista::e($raiz['icono']) ?> me-2"></i><?php endif; ?>
+                                        <?= Vista::e($raiz['titulo']) ?>
+                                    </a>
+                                </li>
+                            <?php else: ?>
+                                <?php foreach ($raiz['hijos'] ?? [] as $hijo1): ?>
+                                    <?php if ($hijo1['tipo'] === 'ENLACE'): ?>
+                                        <li class="no-sub">
+                                            <a href="<?= Vista::url($hijo1['ruta'] ?? '') ?>" class="<?= $coincideRuta($hijo1['ruta'] ?? '', $rutaActual) ? 'active' : '' ?>">
+                                                <?php if (!empty($hijo1['icono'])): ?><i class="<?= Vista::e($hijo1['icono']) ?> me-2"></i><?php endif; ?>
+                                                <?= Vista::e($hijo1['titulo']) ?>
+                                            </a>
+                                        </li>
+                                    <?php else: ?>
+                                        <?php $hijo1Activo = $contieneActivo($hijo1); ?>
+                                        <li>
+                                            <a aria-expanded="<?= $hijo1Activo ? 'true' : 'false' ?>" data-bs-toggle="collapse" href="#submenu_<?= Vista::e($hijo1['codigo']) ?>" class="<?= $hijo1Activo ? '' : 'collapsed' ?>">
+                                                <?php if (!empty($hijo1['icono'])): ?><i class="<?= Vista::e($hijo1['icono']) ?> me-2"></i><?php endif; ?>
+                                                <?= Vista::e($hijo1['titulo']) ?>
+                                            </a>
+                                            <ul class="collapse <?= $hijo1Activo ? 'show' : '' ?>" id="submenu_<?= Vista::e($hijo1['codigo']) ?>">
+                                                <?php foreach ($hijo1['hijos'] ?? [] as $hijo2): ?>
+                                                    <li>
+                                                        <a href="<?= Vista::url($hijo2['ruta'] ?? '') ?>" class="<?= $coincideRuta($hijo2['ruta'] ?? '', $rutaActual) ? 'active' : '' ?>">
+                                                            <?php if (!empty($hijo2['icono'])): ?><i class="<?= Vista::e($hijo2['icono']) ?> me-2"></i><?php endif; ?>
+                                                            <?= Vista::e($hijo2['titulo']) ?>
+                                                        </a>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </li>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </ul>
-                    </li>
-                </ul>
-
-                <!-- Menú 2: Identidad y Accesos -->
-                <ul class="main-menu" id="menuIdentidad" style="display: none;">
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuPersonas">
-                            Gestión de Personas
-                        </a>
-                        <ul class="collapse" id="submenuPersonas">
-                            <li><a href="<?= Vista::url('personas') ?>">Padrón de Personas</a></li>
-                            <li><a href="#">Registro de Persona</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuSeguridad">
-                            Seguridad y RBAC
-                        </a>
-                        <ul class="collapse" id="submenuSeguridad">
-                            <li><a href="<?= Vista::url('usuarios') ?>">Usuarios</a></li>
-                            <li><a href="#">Roles y Privilegios</a></li>
-
-                            <li><a href="#">Ámbitos (Scopes)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <!-- Menú 3: Catastro y Lotes -->
-                <ul class="main-menu" id="menuCatastro" style="display: none;">
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuProyectos">
-                            Estructura Catastral
-                        </a>
-                        <ul class="collapse" id="submenuProyectos">
-                            <li><a href="#">Proyectos</a></li>
-                            <li><a href="#">Sectores y Etapas</a></li>
-                            <li><a href="#">Manzanas</a></li>
-                            <li><a href="#">Inventario de Lotes</a></li>
-                        </ul>
-                    </li>
-                    <li class="no-sub">
-                        <a href="#">
-                            Visor GIS (Planimetría)
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Menú 4: Comercial y Ventas -->
-                <ul class="main-menu" id="menuComercial" style="display: none;">
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuCrm">
-                            CRM Comercial
-                        </a>
-                        <ul class="collapse" id="submenuCrm">
-                            <li><a href="#">Prospectos</a></li>
-                            <li><a href="#">Bitácora de Visitas</a></li>
-                            <li><a href="#">Simulador y Cotizaciones</a></li>
-                            <li><a href="#">Reservas</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuVentas">
-                            Contratación
-                        </a>
-                        <ul class="collapse" id="submenuVentas">
-                            <li><a href="#">Ventas Formalizadas</a></li>
-                            <li><a href="#">Cronogramas de Cuotas</a></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <!-- Menú 5: Tesorería y Finanzas -->
-                <ul class="main-menu" id="menuTesoreria" style="display: none;">
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuCajas">
-                            Caja y Recaudación
-                        </a>
-                        <ul class="collapse" id="submenuCajas">
-                            <li><a href="#">Apertura y Cierre de Caja</a></li>
-                            <li><a href="#">Cobranza de Cuotas</a></li>
-                            <li><a href="#">Recibos Emitidos</a></li>
-                        </ul>
-                    </li>
-                    <li class="no-sub">
-                        <a href="#">
-                            Auditoría Financiera
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Menú 6: Operaciones y Postventa -->
-                <ul class="main-menu" id="menuOperaciones" style="display: none;">
-                    <li>
-                        <a aria-expanded="false" data-bs-toggle="collapse" href="#submenuPostventa">
-                            Entregas y Garantías
-                        </a>
-                        <ul class="collapse" id="submenuPostventa">
-                            <li><a href="#">Actas de Entrega</a></li>
-                            <li><a href="#">Tickets de Postventa</a></li>
-                            <li><a href="#">Libro de Reclamaciones</a></li>
-                        </ul>
-                    </li>
-                    <li class="no-sub">
-                        <a href="#">
-                            Módulo APV
-                        </a>
-                    </li>
-                </ul>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- Menú de fallback estático accesible cuando no hay árbol dinámico -->
+                    <ul class="main-menu" id="menuInicio" style="display: block;">
+                        <li class="no-sub">
+                            <a href="<?= Vista::url() ?>">
+                                <i class="fa-solid fa-house me-2"></i>
+                                Inicio
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="main-menu" id="menuIdentidad" style="display: none;">
+                        <li class="no-sub">
+                            <a href="<?= Vista::url('personas') ?>">
+                                <i class="fa-solid fa-id-card me-2"></i>
+                                Padrón de Personas
+                            </a>
+                        </li>
+                        <li class="no-sub">
+                            <a href="<?= Vista::url('usuarios') ?>">
+                                <i class="fa-solid fa-user-shield me-2"></i>
+                                Usuarios
+                            </a>
+                        </li>
+                        <li class="no-sub">
+                            <a href="<?= Vista::url('menu') ?>">
+                                <i class="fa-solid fa-bars me-2"></i>
+                                Menú y Navegación
+                            </a>
+                        </li>
+                    </ul>
+                <?php endif; ?>
             </div>
         </div>
     </div>

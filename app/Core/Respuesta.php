@@ -25,6 +25,11 @@ class Respuesta
         return $this;
     }
 
+    public function establecerCabecera(string $nombre, string $valor): self
+    {
+        return $this->agregarCabecera($nombre, $valor);
+    }
+
     public function establecerCuerpo(string $cuerpo): self
     {
         $this->cuerpo = $cuerpo;

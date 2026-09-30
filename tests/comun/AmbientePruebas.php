@@ -31,6 +31,7 @@ class AmbientePruebas
         'auditorias',
         'usuario_roles',
         'usuarios',
+        'menu_opciones',
         'persona_representantes',
         'persona_direcciones',
         'persona_contactos',
@@ -141,7 +142,7 @@ class AmbientePruebas
     }
 
     /**
-     * Asegura que casapro_test cuente con las 25 tablas del esquema oficial de CasaPRO (SQL/casa-pro.sql).
+     * Asegura que casapro_test cuente con las 26 tablas del esquema oficial de CasaPRO (SQL/casa-pro.sql).
      */
     public static function asegurarEsquemaOficial(PDO $pdoTest): void
     {
@@ -149,11 +150,16 @@ class AmbientePruebas
             SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'casapro_test'
         ")->fetchColumn();
 
-        if ($totalTablas < 25) {
+        if ($totalTablas < 26) {
             $rutaSql = defined('CASAPRO_RAIZ') ? CASAPRO_RAIZ . '/SQL/casa-pro.sql' : dirname(__DIR__, 2) . '/SQL/casa-pro.sql';
             if (!file_exists($rutaSql)) {
                 throw new RuntimeException("No se encontró el esquema oficial en {$rutaSql}");
             }
+
+            // Recrear limpiamente casapro_test para evitar conflictos de duplicados
+            $pdoServidor = self::$proveedorTest->crearConexion(false);
+            $pdoServidor->exec("DROP DATABASE IF EXISTS `casapro_test`");
+            $pdoServidor->exec("CREATE DATABASE `casapro_test` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 
             $migrador = new MigradorSQL(self::$proveedorTest);
             $migrador->ejecutarConsolidado($rutaSql);
@@ -162,19 +168,31 @@ class AmbientePruebas
 
     /**
      * Limpia de forma rápida y determinista las tablas mutables de prueba en casapro_test,
-     * restaurando el actor raíz del sistema necesario para operaciones de auditoría.
+     * restaurando el actor raíz del sistema y las opciones de menú oficiales.
      */
-    public static function limpiarTablasMutables(PDO $pdoTest): void
+    public static function limpiarTablasMutables(?PDO $pdoTest = null): void
     {
-        self::verificarGuardia($pdoTest);
+        $pdo = $pdoTest ?? (self::$proveedorTest !== null ? self::$proveedorTest->obtenerConexion() : self::iniciar(false));
+        self::verificarGuardia($pdo);
 
-        $pdoTest->exec("SET FOREIGN_KEY_CHECKS = 0");
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
         foreach (self::TABLAS_MUTABLES as $tabla) {
-            $pdoTest->exec("TRUNCATE TABLE `{$tabla}`");
+            $pdo->exec("TRUNCATE TABLE `{$tabla}`");
         }
         // Restaurar actor raíz 1 (SISTEMA_CASAPRO) exigido por el modelo de auditoría
-        $pdoTest->exec("INSERT INTO `actores` (`id`, `tipo_actor`, `codigo`, `nombre`, `estado`, `creado_en`) VALUES (1, 'SISTEMA', 'SISTEMA_CASAPRO', 'Sistema CasaPRO', 'ACTIVO', NOW())");
-        $pdoTest->exec("SET FOREIGN_KEY_CHECKS = 1");
+        $pdo->exec("INSERT INTO `actores` (`id`, `tipo_actor`, `codigo`, `nombre`, `estado`, `creado_en`) VALUES (1, 'SISTEMA', 'SISTEMA_CASAPRO', 'Sistema CasaPRO', 'ACTIVO', NOW())");
+
+        // Restaurar seed mínimo oficial de menu_opciones
+        $pdo->exec("INSERT INTO `menu_opciones` (`id`, `padre_id`, `tipo`, `codigo`, `etiqueta`, `ruta`, `icono`, `orden`, `privilegio_id`, `estado`, `visible`) VALUES
+            (1, NULL, 'ENLACE', 'MOD_INICIO', 'Inicio', '/inicio', 'fa-solid fa-house', 1, NULL, 'ACTIVO', 1),
+            (2, NULL, 'AGRUPADOR', 'MOD_IDENTIDAD', 'Identidad y Seguridad', NULL, 'fa-solid fa-user-shield', 2, NULL, 'ACTIVO', 1),
+            (3, 2, 'AGRUPADOR', 'GRP_PERSONAS', 'Gestión de Personas', NULL, NULL, 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'personas.ver'), 'ACTIVO', 1),
+            (4, 2, 'AGRUPADOR', 'GRP_SEGURIDAD', 'Seguridad y Accesos', NULL, NULL, 2, NULL, 'ACTIVO', 1),
+            (5, 3, 'ENLACE', 'OPC_PERSONAS_LISTADO', 'Directorio de Personas', 'personas', NULL, 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'personas.ver'), 'ACTIVO', 1),
+            (6, 4, 'ENLACE', 'OPC_USUARIOS_LISTADO', 'Usuarios y Accesos', 'usuarios', NULL, 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'usuarios.ver'), 'ACTIVO', 1),
+            (7, 4, 'ENLACE', 'OPC_MENU_LISTADO', 'Gestión de Menú', 'menu', NULL, 2, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'menu.ver'), 'ACTIVO', 1)");
+
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
     }
 
     /**
