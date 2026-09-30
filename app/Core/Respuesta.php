@@ -68,11 +68,20 @@ class Respuesta
      */
     public function redirigir(string $url, int $codigo = 302): void
     {
-        http_response_code($codigo);
-        header('Location: ' . $url);
+        $this->establecerCodigoEstado($codigo);
+        $this->agregarCabecera('Location', $url);
+        if (!headers_sent()) {
+            http_response_code($codigo);
+            header('Location: ' . $url);
+        }
         if (!defined('CASAPRO_TESTING')) {
             exit;
         }
+    }
+
+    public function redireccionar(string $url, int $codigo = 302): void
+    {
+        $this->redirigir($url, $codigo);
     }
 
     /**

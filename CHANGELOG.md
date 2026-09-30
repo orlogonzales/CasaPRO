@@ -3,6 +3,47 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Microfase 1G-1: Núcleo de Autenticación, RBAC y Autorización Multidimensional] — 2026-09-30
+
+### Añadido
+- **Esquema Relacional Soberano de Seguridad y RBAC (Migración `2026_09_30_000007_crear_seguridad_rbac_usuarios.sql`):**
+  - Creación de 6 tablas relacionales normalizadas: `usuarios`, `roles`, `privilegios`, `rol_privilegios`, `usuario_roles` y `eventos_seguridad`.
+  - Gate SQL Camino A == Camino B 100% superado: 25 tablas, 208 columnas, 100 índices y 26 FKs idénticas en ambas vías.
+  - Relación 1:1 estricta e inviolable entre `Persona` (Natural) y `usuarios` (`persona_id NOT NULL UNIQUE`), respaldada por FK `ON DELETE RESTRICT`.
+  - Vinculación obligatoria e inmutable con `actores` de tipo `USER` (`actor_id NOT NULL UNIQUE`), utilizando código canónico generado previo (`ACT_USR_...`) garantizando independencia de autoincrementales.
+  - Semilla del rol raíz `SUPERADMIN` (ID 1) y los 5 privilegios iniciales del catálogo `personas.*` (`personas.ver`, `personas.crear`, `personas.editar`, `personas.cambiar_estado`, `personas.consultar_documento`).
+- **Motor de Autenticación Criptográfica Soberana (`app/Servicios/AutenticacionServicio.php`):**
+  - Autenticación dual (correo electrónico o nombre de usuario).
+  - Algoritmo de hashing seguro `PASSWORD_DEFAULT` con verificación `password_verify` y soporte automático de rehash dinámico (`password_needs_rehash`).
+  - Mitigación de temporización (timing attack) mediante hash dummy precalculado válido en PHP 8.3 (`$2y$10$sh1uvtgEbxH52dcRl9C6rOjHQok8L3aw1DCMukGWUPdMf7RicS5Rm`).
+  - Mitigación de fuerza bruta con ventana móvil y bloqueo temporal (`AUTH_MAX_INTENTOS=5`, `AUTH_VENTANA_INTENTOS=15`, `AUTH_TIEMPO_BLOQUEO=15`), serializado con `SELECT ... FOR UPDATE`.
+  - Separación entre bloqueo temporal por seguridad y estado administrativo inactivo (`ACTIVO`/`INACTIVO`).
+  - Principio estricto de anti-enumeración de usuarios: respuesta pública uniforme e idéntica (401) ante usuario inexistente, contraseña errónea o cuenta inactiva/bloqueada.
+  - Telemetría interna profunda en `eventos_seguridad` registrando IP, User-Agent, correlación y motivo granular del fallo (`USUARIO_INEXISTENTE`, `CREDENCIALES_INVALIDAS`, `BLOQUEO_TEMPORAL`, etc.).
+- **Autorización RBAC, Revocación de Sesiones y Scopes (`app/Servicios/AutorizacionServicio.php`):**
+  - Control de sesiones en tiempo constante $O(1)$ por PK con revocación inmediata ante incremento de `version_autorizacion` o desactivación administrativa.
+  - Consulta y cacheo en memoria de privilegios efectivos `modulo.accion` por usuario.
+  - Bypass universal de RBAC exclusivo para `SUPERADMIN` (sin bypass de autenticación, sesión, CSRF ni auditoría).
+  - Semántica territorial de ámbito inicial `GLOBAL`.
+- **First Bootstrap CLI Soberano (`bin/casapro-bootstrap-admin.php`):**
+  - Detección de arranque inicial cuando `COUNT(SUPERADMIN) === 0`.
+  - Solicitud interactiva de datos civiles y credenciales con ocultamiento de contraseña en terminal.
+  - Rechazo estricto e inflexible de `--password=...` en argumentos de línea de comandos.
+  - Transaccionalidad atómica externa reutilizando `PersonaServicio` (con propagación y preservación de rollback/commit soberano).
+- **Capa HTTP, Middlewares y Enrutamiento Protegido:**
+  - `AutenticacionMiddleware`: Intercepta peticiones anónimas redirigiendo a `/login` en peticiones web estándar o emitiendo JSON 401 en peticiones AJAX/API.
+  - `AutorizacionMiddleware`: Implementación de factoría estática `exigir(string $privilegio, string $scope = 'GLOBAL')` aplicando Deny by Default.
+  - `config/rutas.php`: Matriz actualizada con `/login`, `/logout` y protección integral de `/`, `/inicio`, `/personas` y `/api/personas/*`.
+- **Interfaz Visual Institucional Alina Adaptada (`sign_in.html`):**
+  - Vista `app/Vistas/modulos/autenticacion/login.php` y script `public/assets/js/modulos/autenticacion/login.js`.
+  - 100% Font Awesome Free 6.3.0, tipografía Fira Sans, Vanilla JS con Fetch API, Bootstrap 5 y validación declarativa PristineJS.
+  - Protección obligatoria anti-CSRF con token pre-autenticación.
+  - Reutilización de asset fotográfico oficial `admin-dashboard/alina/assets/images/login/01.jpg` hacia `public/assets/images/login/01.jpg` manteniendo `admin-dashboard/` intacto.
+- **Suite de Pruebas Automatizadas 1G-1 (`tests/verificar_autenticacion_rbac_1g1.php`):**
+  - 43 pruebas exhaustivas en 10 bloques (Identidad 1:1, Actor USER, Transaccionalidad, Hashing, Anti-enumeración, Fuerza bruta, Revocación de sesión, RBAC, Deny by Default HTTP/CSRF, Auditoría forense con Actor USER real, CLI First Bootstrap).
+
+---
+
 ## [Microfix Visual y Consolidación Documental: Escala de Texto, Tooltips y Menú Dinámico 1G-3] — 2026-09-30
 
 ### Añadido / Restaurado

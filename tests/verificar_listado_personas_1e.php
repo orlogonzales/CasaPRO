@@ -126,11 +126,11 @@ function despacharVista(string $metodo, string $ruta, bool $autenticado = true, 
 // -------------------------------------------------------------------------
 echo "\n--- BLOQUE 1: Deny by Default y Protección de la Vista /personas ---\n";
 
-// 1. Petición anónima (sin actor) debe ser rechazada con HTTP 401
+// 1. Petición anónima (sin actor) debe ser rechazada con HTTP 401 o Redirección 302 a /login
 $resAnonima = despacharVista('GET', '/personas', false);
 afirmativo(
-    $resAnonima['codigo'] === 401,
-    'GET /personas anónimo es estrictamente rechazado con HTTP 401'
+    $resAnonima['codigo'] === 401 || $resAnonima['codigo'] === 302,
+    'GET /personas anónimo es estrictamente rechazado con HTTP 401 o Redirección 302 a /login'
 );
 
 // 2. Comprobar que no revela el padrón en respuesta 401

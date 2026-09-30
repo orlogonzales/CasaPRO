@@ -26,6 +26,14 @@ class CsrfServicio
     }
 
     /**
+     * Alias de compatibilidad para obtenerToken.
+     */
+    public static function generarToken(): string
+    {
+        return self::obtenerToken();
+    }
+
+    /**
      * Genera un nuevo token criptográficamente seguro de 32 bytes (64 caracteres hex).
      */
     public static function regenerarToken(): string

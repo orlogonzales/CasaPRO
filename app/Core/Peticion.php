@@ -88,8 +88,11 @@ class Peticion
         return $this->parametrosConsulta[$clave] ?? $defecto;
     }
 
-    public function obtenerCuerpo(string $clave, mixed $defecto = null): mixed
+    public function obtenerCuerpo(?string $clave = null, mixed $defecto = null): mixed
     {
+        if ($clave === null) {
+            return $this->parametrosCuerpo;
+        }
         return $this->parametrosCuerpo[$clave] ?? $defecto;
     }
 
@@ -157,6 +160,12 @@ class Peticion
     public function establecerJson(array $datos): self
     {
         $this->datosJson = $datos;
+        return $this;
+    }
+
+    public function establecerCuerpo(array $parametros): self
+    {
+        $this->parametrosCuerpo = $parametros;
         return $this;
     }
 

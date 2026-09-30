@@ -40,6 +40,11 @@ use App\Core\Vista;
                     </li>
 
                     <!-- Perfil de Usuario -->
+                    <?php
+                    $usuarioSesion = \App\Core\GestorSesion::obtener('auth');
+                    $nombreUsuarioHeader = $usuarioSesion['nombre_completo'] ?? ($usuarioSesion['nombre_usuario'] ?? 'Administrador');
+                    $nombreCortoHeader = $usuarioSesion['nombre_usuario'] ?? 'Superadmin';
+                    ?>
                     <li class="dropdown">
                         <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="bg-primary-800 h-40 w-40 d-flex-center b-r-50 position-relative">
@@ -47,8 +52,8 @@ use App\Core\Vista;
                                 <span class="position-absolute top-0 end-0 p-1 bg-gradient-success border border-light rounded-circle"></span>
                             </span>
                             <div class="d-none d-lg-block text-start">
-                                <p class="mb-0 f-s-14 f-w-600 text-dark">Administrador</p>
-                                <p class="mb-0 f-s-12 text-secondary">Superadmin</p>
+                                <p class="mb-0 f-s-14 f-w-600 text-dark txt-ellipsis-1" style="max-width: 150px;"><?= htmlspecialchars((string) $nombreUsuarioHeader, ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="mb-0 f-s-12 text-secondary"><?= htmlspecialchars((string) $nombreCortoHeader, ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm b-r-12 py-2">
@@ -56,7 +61,14 @@ use App\Core\Vista;
                             <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-user me-2"></i> Mi Perfil</a></li>
                             <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-shield-halved me-2"></i> Seguridad</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión</a></li>
+                            <li>
+                                <form id="formCerrarSesionHeader" action="/logout" method="POST" class="d-none">
+                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\App\Core\CsrfServicio::obtenerToken(), ENT_QUOTES, 'UTF-8') ?>">
+                                </form>
+                                <a class="dropdown-item py-2 text-danger cursor-pointer" href="#" onclick="event.preventDefault(); document.getElementById('formCerrarSesionHeader').submit();">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>

@@ -38,13 +38,17 @@ class PersonaServicio
 
     /**
      * Registra integralmente una nueva Persona (Natural o Jurídica) de manera atómica con auditoría.
+     * Soporta transacciones externas propagadas: Quien abre la transacción es quien controla su commit/rollback.
      */
-    public function crear(CrearPersonaDTO $dto, ContextoPeticion $contexto): array
+    public function crear(CrearPersonaDTO $dto, ContextoPeticion $contexto, ?PDO $conexionExterna = null): array
     {
-        $conexion = $this->proveedorConexion->obtenerConexion();
+        $conexion = $conexionExterna ?? $this->proveedorConexion->obtenerConexion();
         $this->validarReglasCreacion($dto, $conexion);
 
-        $conexion->beginTransaction();
+        $transaccionPropia = !$conexion->inTransaction();
+        if ($transaccionPropia) {
+            $conexion->beginTransaction();
+        }
 
         try {
             // 1. Crear entidad raíz Persona
@@ -112,7 +116,9 @@ class PersonaServicio
                 'contexto'         => $contexto
             ], $conexion);
 
-            $conexion->commit();
+            if ($transaccionPropia) {
+                $conexion->commit();
+            }
 
             return [
                 'id'                  => $personaId,
@@ -125,12 +131,12 @@ class PersonaServicio
             ];
 
         } catch (PDOException $e) {
-            if ($conexion->inTransaction()) {
+            if ($transaccionPropia && $conexion->inTransaction()) {
                 $conexion->rollBack();
             }
             $this->traducirExcepcionPDO($e);
         } catch (Throwable $t) {
-            if ($conexion->inTransaction()) {
+            if ($transaccionPropia && $conexion->inTransaction()) {
                 $conexion->rollBack();
             }
             throw $t;

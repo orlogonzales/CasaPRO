@@ -72,16 +72,23 @@ class CsrfMiddleware
             return trim($cabecera);
         }
 
-        // 2. Parámetro de formulario POST _csrf_token
+        // 2. Parámetro de formulario POST _csrf_token o csrf_token
         $campoPost = $peticion->obtenerCuerpo(CsrfServicio::obtenerNombreCampo());
         if (is_string($campoPost) && trim($campoPost) !== '') {
             return trim($campoPost);
         }
+        $campoPostAlt = $peticion->obtenerCuerpo('csrf_token');
+        if (is_string($campoPostAlt) && trim($campoPostAlt) !== '') {
+            return trim($campoPostAlt);
+        }
 
-        // 3. Parámetro en payload JSON _csrf_token
+        // 3. Parámetro en payload JSON _csrf_token o csrf_token
         $datosJson = $peticion->obtenerJson();
         if (isset($datosJson[CsrfServicio::obtenerNombreCampo()]) && is_string($datosJson[CsrfServicio::obtenerNombreCampo()])) {
             return trim($datosJson[CsrfServicio::obtenerNombreCampo()]);
+        }
+        if (isset($datosJson['csrf_token']) && is_string($datosJson['csrf_token'])) {
+            return trim($datosJson['csrf_token']);
         }
 
         return null;

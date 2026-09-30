@@ -98,7 +98,7 @@ class GestorSesion
      */
     public static function regenerar(bool $destruirAnterior = true): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
+        if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
             session_regenerate_id($destruirAnterior);
         }
     }
