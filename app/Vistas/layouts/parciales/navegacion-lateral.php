@@ -16,44 +16,44 @@ use App\Core\Vista;
 
         <ul class="navbar-menu-list" role="tablist">
             <li class="nav-item">
-                <a href="#" class="nav-link active" data-target="menuInicio" title="Inicio">
-                    <i class="ti ti-smart-home"></i>
+                <a href="#" class="nav-link active" data-target="menuInicio" data-bs-toggle="tooltip" data-bs-placement="right" title="Inicio">
+                    <i class="fa-solid fa-house"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuIdentidad" title="Identidad y Accesos">
-                    <i class="ti ti-users"></i>
+                <a href="#" class="nav-link" data-target="menuIdentidad" data-bs-toggle="tooltip" data-bs-placement="right" title="Identidad y Accesos">
+                    <i class="fa-solid fa-users"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuCatastro" title="Catastro y Lotes">
-                    <i class="ti ti-map-pin"></i>
+                <a href="#" class="nav-link" data-target="menuCatastro" data-bs-toggle="tooltip" data-bs-placement="right" title="Catastro y Lotes">
+                    <i class="fa-solid fa-location-dot"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuComercial" title="Comercial y Ventas">
-                    <i class="ti ti-briefcase"></i>
+                <a href="#" class="nav-link" data-target="menuComercial" data-bs-toggle="tooltip" data-bs-placement="right" title="Comercial y Ventas">
+                    <i class="fa-solid fa-briefcase"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuTesoreria" title="Tesorería y Finanzas">
-                    <i class="ti ti-cash"></i>
+                <a href="#" class="nav-link" data-target="menuTesoreria" data-bs-toggle="tooltip" data-bs-placement="right" title="Tesorería y Finanzas">
+                    <i class="fa-solid fa-money-bill-wave"></i>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a href="#" class="nav-link" data-target="menuOperaciones" title="Operaciones y Postventa">
-                    <i class="ti ti-home-check"></i>
+                <a href="#" class="nav-link" data-target="menuOperaciones" data-bs-toggle="tooltip" data-bs-placement="right" title="Operaciones y Postventa">
+                    <i class="fa-solid fa-house-circle-check"></i>
                 </a>
             </li>
         </ul>
 
         <div class="mt-auto pb-3">
-            <span class="bg-primary-800 h-45 w-45 d-flex-center b-r-30 position-relative mx-auto cursor-pointer" title="Usuario activo">
+            <span class="bg-primary-800 h-45 w-45 d-flex-center b-r-30 position-relative mx-auto cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="right" title="Usuario activo">
                <img alt="avatar" class="img-fluid b-r-30" src="<?= Vista::asset('images/avatar/01.png') ?>">
                <span class="position-absolute top-0 end-0 p-1 bg-gradient-success border border-light rounded-circle"></span>
            </span>
@@ -68,14 +68,14 @@ use App\Core\Vista;
                     <h4 class="mb-0 fw-bold text-primary tracking-wide">Casa<span class="text-dark">PRO</span></h4>
                 </a>
                 <span class="w-30 h-30 d-none bg-gradient-danger b-r-8 cursor-pointer side-toggle d-flex-center">
-                    <i class="ti ti-x f-s-18 text-white"></i>
+                    <i class="fa-solid fa-xmark f-s-18 text-white"></i>
                 </span>
             </div>
 
             <div class="side-search p-3 pt-1">
                 <div class="position-relative">
                     <input aria-label="Buscar en el sistema" class="form-control py-2 b-r-18" placeholder="Buscar..." type="search">
-                    <i class="ti ti-command f-s-20 text-secondary"></i>
+                    <i class="fa-solid fa-magnifying-glass f-s-18 text-secondary"></i>
                 </div>
             </div>
         </div>

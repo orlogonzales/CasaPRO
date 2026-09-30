@@ -3,6 +3,35 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Microfase: Normalización Visual Global de Alina] — 2026-09-29
+
+### Añadido
+- **Iconografía Oficial Font Awesome (Sistema Iconográfico Único):**
+  - Traslado de assets verificados de Alina desde `admin-dashboard/alina/assets/vendor/fontawesome/` a `public/assets/vendor/fontawesome/` y fuentes a `public/assets/fonts/fontawesome/`.
+  - Carga oficial de `vendor/fontawesome/css/all.css` en `app/Vistas/layouts/parciales/cabecera-head.php` y `app/Vistas/layouts/error.php`.
+  - Migración exhaustiva de todas las clases `ti ti-*` a sus equivalentes canónicos de Font Awesome en menús, barras, botones de acción DataTables, fichas modales y páginas de error.
+  - Eliminación de dependencias huérfanas de Tabler Icons en `public/assets/vendor/tabler-icons/` y `public/assets/fonts/tabler/`.
+- **Tipografía Oficial Fira Sans:**
+  - Importación oficial de Google Fonts de las familias `Fira Sans`, `Fira Sans Condensed` y `Fira Sans Extra Condensed` en `cabecera-head.php` y `error.php`.
+  - Definición de `--theme-fonts: "Fira Sans", sans-serif;` en `public/assets/css/style.css` y `public/assets/css/responsive.css`.
+  - Erradicación total de `Lexend Deca` en vistas, scripts y hojas de estilo.
+- **Tooltips de Bootstrap 5 en el Menú Principal:**
+  - Incorporación de `data-bs-toggle="tooltip"` y `data-bs-placement="right"` con atributos semánticos `title` en todos los ítems de `ul.navbar-menu-list` y el avatar de usuario en `navegacion-lateral.php`.
+  - Inicialización global delegada de `bootstrap.Tooltip` en `public/assets/js/script.js`.
+- **Theme Customizer Adaptado de Alina:**
+  - Implementación de `public/assets/js/theme_customizer.js` traducido 100% al español.
+  - Contenedor `#theme-customizer-box` inyectado en `app/Vistas/layouts/maestro.php` y script cargado en `pie-scripts.php`.
+  - Opciones acotadas respetando la directiva de diseño: Colores del tema (gradientes 1-6), Diseños del tema (LTR, RTL, Box) y botón Restablecer (`resetCustomizer()`).
+  - Omitidas de forma deliberada las dos últimas opciones originales de Alina (Sidebar Variant y Font Sizing) y erradicado el botón "Buy Now" y enlaces comerciales externos.
+  - Activador flotante con icono Font Awesome `fa-solid fa-gear`.
+- **Suite Automatizada de Verificación Visual:**
+  - `tests/verificar_normalizacion_visual.php`: 27/27 pruebas superadas validando Fira Sans, Font Awesome físico, ausencia de `ti ti-*`, ausencia de `Lexend`, tooltips delegados, theme customizer en español y la inmutabilidad de `admin-dashboard/`.
+
+### Estado
+- Micro-baseline cerrado formalmente (`mb-ui-normalizacion-global`).
+
+---
+
 ## [Fase 1E: Listado y Consulta Visual de Personas con Alina + DataTables Server-Side] — 2026-09-29
 
 ### Añadido

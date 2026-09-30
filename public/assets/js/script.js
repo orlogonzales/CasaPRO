@@ -254,7 +254,9 @@ const icon = document.getElementById("theme-icon");
 (function () {
     const theme = localStorage.getItem("theme-mode") || "light";
     document.body.className = theme;
-    icon.className = theme === "dark" ? "ti ti-moon-stars" : "ti ti-sun";
+    if (icon) {
+        icon.className = theme === "dark" ? "fa-solid fa-moon" : "fa-solid fa-sun";
+    }
 })();
 
 // Toggle theme
@@ -272,7 +274,9 @@ document.querySelector(".header-dark")?.addEventListener("click", () => {
     localStorage.setItem("theme-mode", newTheme);
 
     // Update icon
-    icon.className = newTheme === "dark" ? "ti ti-moon-stars" : "ti ti-sun";
+    if (icon) {
+        icon.className = newTheme === "dark" ? "fa-solid fa-moon" : "fa-solid fa-sun";
+    }
 });
 
 
@@ -396,3 +400,15 @@ let calcScrollValue = () => {
 };
 
 window.onscroll = calcScrollValue;
+
+//* ------------------------------------------------------
+//-----  05. Bootstrap Tooltips Globales ----------------
+//* ------------------------------------------------------
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        new bootstrap.Tooltip(document.body, {
+            selector: '[data-bs-toggle="tooltip"]',
+            trigger: 'hover focus'
+        });
+    }
+});

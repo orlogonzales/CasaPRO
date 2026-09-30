@@ -13,6 +13,9 @@ use App\Core\Vista;
 <!-- Simplebar JS oficial de Alina -->
 <script src="<?= Vista::asset('vendor/simplebar/simplebar.js') ?>"></script>
 
+<!-- Theme Customizer JS oficial adaptado de Alina -->
+<script src="<?= Vista::asset('js/theme_customizer.js') ?>"></script>
+
 <!-- App JS oficial de Alina (manejo de sidebar, navegación, modo oscuro y responsive) -->
 <script src="<?= Vista::asset('js/script.js') ?>"></script>
 

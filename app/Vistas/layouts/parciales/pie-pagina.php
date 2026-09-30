@@ -5,7 +5,7 @@ declare(strict_types=1);
 <!-- Tap to top oficial de Alina -->
 <div class="go-top">
   <span class="progress-value">
-    <i class="ti ti-chevron-up"></i>
+    <i class="fa-solid fa-chevron-up"></i>
   </span>
 </div>
 

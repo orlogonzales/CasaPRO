@@ -283,7 +283,7 @@
   --font-light-color: #a0a0b0;
   --sidebar-width: 22rem;
   --semi-side-nav: 4rem;
-  --theme-fonts: "Lexend Deca", sans-serif;
+  --theme-fonts: "Fira Sans", sans-serif;
   --tabler-icons: tabler-icons;
   --box-shadow: 0 0.15625rem 0.625rem 0 rgba(var(--dark),0.10);
   --hover-shadow: 0 0.5rem 2rem var(--light-gray);
@@ -29214,7 +29214,7 @@ body.dark .app-form select option selected {
   font-size: 1rem;
   font-weight: 500;
   color: rgba(var(--dark), 0.75) !important;
-  font-family: "Lexend Deca", sans-serif;
+  font-family: "Fira Sans", sans-serif;
   border: 1px solid transparent;
   cursor: default;
 }

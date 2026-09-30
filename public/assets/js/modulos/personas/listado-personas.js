@@ -242,7 +242,7 @@
                         orderable: false,
                         render: function (data) {
                             if (data) {
-                                return `<span class="text-secondary f-s-13"><i class="ti ti-phone me-1 text-muted"></i>${escaparHtml(data)}</span>`;
+                                return `<span class="text-secondary f-s-13"><i class="fa-solid fa-phone me-1 text-muted"></i>${escaparHtml(data)}</span>`;
                             }
                             return '<span class="text-muted f-s-13">—</span>';
                         }
@@ -272,7 +272,7 @@
                         orderable: false,
                         className: 'text-center',
                         render: function (data, type, row) {
-                            return `<button type="button" class="btn btn-outline-primary btn-sm icon-btn b-r-4 btn-ver-ficha" data-id="${escaparHtml(row.id)}" title="Ver Ficha de Identidad"><i class="ti ti-eye"></i></button>`;
+                            return `<button type="button" class="btn btn-outline-primary btn-sm icon-btn b-r-4 btn-ver-ficha" data-id="${escaparHtml(row.id)}" title="Ver Ficha de Identidad"><i class="fa-solid fa-eye"></i></button>`;
                         }
                     }
                 ]

@@ -11,7 +11,7 @@ use App\Core\Vista;
             <div class="col-6 head-left">
                 <div class="d-flex align-items-center gap-3">
                     <span class="cursor-pointer main-side-toggle" title="Alternar menú lateral">
-                       <i class="ti ti-align-justified f-s-22 text-secondary"></i>
+                       <i class="fa-solid fa-bars f-s-20 text-secondary"></i>
                     </span>
                     <h4 class="txt-ellipsis-2 mb-0"><?= Vista::e($tituloPagina ?? 'Panel de Control') ?></h4>
                 </div>
@@ -21,21 +21,21 @@ use App\Core\Vista;
                     <!-- Selector de Ámbito / Empresa Activa -->
                     <li class="d-none d-md-block">
                         <span class="badge bg-light-primary text-primary px-3 py-2 b-r-12 f-s-13 d-flex align-items-center gap-1">
-                            <i class="ti ti-building f-s-16"></i> Empresa Principal / Proyecto Matriz
+                            <i class="fa-solid fa-building f-s-16"></i> Empresa Principal / Proyecto Matriz
                         </span>
                     </li>
 
                     <!-- Modo Pantalla Completa -->
                     <li class="head-maximize-screen">
                         <span class="h-40 w-40 d-flex-center b-r-50 head-icon cursor-pointer" title="Pantalla completa">
-                            <i class="ti ti-arrows-maximize"></i>
+                            <i class="fa-solid fa-expand"></i>
                         </span>
                     </li>
 
                     <!-- Modo Oscuro / Claro (Alina Dark Mode) -->
                     <li class="header-dark">
                         <div class="sun-logo h-40 w-40 d-flex-center b-r-50 head-icon cursor-pointer" title="Alternar tema oscuro/claro">
-                            <i id="theme-icon" class="ti ti-moon-stars"></i>
+                            <i id="theme-icon" class="fa-solid fa-moon"></i>
                         </div>
                     </li>
 
@@ -53,10 +53,10 @@ use App\Core\Vista;
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm b-r-12 py-2">
                             <li><h6 class="dropdown-header text-uppercase f-s-11 text-secondary">Usuario Activo</h6></li>
-                            <li><a class="dropdown-item py-2" href="#"><i class="ti ti-user me-2"></i> Mi Perfil</a></li>
-                            <li><a class="dropdown-item py-2" href="#"><i class="ti ti-shield-lock me-2"></i> Seguridad</a></li>
+                            <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-user me-2"></i> Mi Perfil</a></li>
+                            <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-shield-halved me-2"></i> Seguridad</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item py-2 text-danger" href="#"><i class="ti ti-logout me-2"></i> Cerrar Sesión</a></li>
+                            <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión</a></li>
                         </ul>
                     </li>
                 </ul>

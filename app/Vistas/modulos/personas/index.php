@@ -43,7 +43,7 @@ use App\Core\Vista;
 
                     <div class="col-md-4 col-sm-12 d-flex justify-content-md-end">
                         <button type="button" id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm">
-                            <i class="ti ti-filter-off me-1"></i> Limpiar Filtros
+                            <i class="fa-solid fa-filter-circle-xmark me-1"></i> Limpiar Filtros
                         </button>
                     </div>
                 </div>
@@ -105,22 +105,22 @@ use App\Core\Vista;
                     <ul class="nav nav-tabs nav-bottom-line px-3 pt-2" id="fichaPersonaTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="tab-general-btn" data-bs-toggle="tab" data-bs-target="#tab-general-pane" type="button" role="tab" aria-controls="tab-general-pane" aria-selected="true">
-                                <i class="ti ti-id me-1"></i> Datos Generales
+                                <i class="fa-solid fa-id-card me-1"></i> Datos Generales
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-documentos-contactos-btn" data-bs-toggle="tab" data-bs-target="#tab-documentos-contactos-pane" type="button" role="tab" aria-controls="tab-documentos-contactos-pane" aria-selected="false">
-                                <i class="ti ti-address-book me-1"></i> Documentos y Contactos
+                                <i class="fa-solid fa-address-book me-1"></i> Documentos y Contactos
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-domicilios-btn" data-bs-toggle="tab" data-bs-target="#tab-domicilios-pane" type="button" role="tab" aria-controls="tab-domicilios-pane" aria-selected="false">
-                                <i class="ti ti-map-pin me-1"></i> Domicilios
+                                <i class="fa-solid fa-location-dot me-1"></i> Domicilios
                             </button>
                         </li>
                         <li class="nav-item" role="presentation" id="tabItemRepresentacion" style="display: none;">
                             <button class="nav-link" id="tab-representacion-btn" data-bs-toggle="tab" data-bs-target="#tab-representacion-pane" type="button" role="tab" aria-controls="tab-representacion-pane" aria-selected="false">
-                                <i class="ti ti-users me-1"></i> Representación
+                                <i class="fa-solid fa-users me-1"></i> Representación
                             </button>
                         </li>
                     </ul>
@@ -134,22 +134,22 @@ use App\Core\Vista;
 
                         <!-- Panel 2: Documentos y Contactos -->
                         <div class="tab-pane fade" id="tab-documentos-contactos-pane" role="tabpanel" aria-labelledby="tab-documentos-contactos-btn">
-                            <h6 class="f-w-600 mb-2 text-dark"><i class="ti ti-file-text me-1 text-primary"></i> Documentos de Identidad</h6>
+                            <h6 class="f-w-600 mb-2 text-dark"><i class="fa-solid fa-file-lines me-1 text-primary"></i> Documentos de Identidad</h6>
                             <div id="fichaContenedorDocumentos" class="table-responsive mb-4"></div>
 
-                            <h6 class="f-w-600 mb-2 text-dark"><i class="ti ti-phone-call me-1 text-primary"></i> Medios de Contacto</h6>
+                            <h6 class="f-w-600 mb-2 text-dark"><i class="fa-solid fa-phone-volume me-1 text-primary"></i> Medios de Contacto</h6>
                             <div id="fichaContenedorContactos" class="table-responsive"></div>
                         </div>
 
                         <!-- Panel 3: Domicilios -->
                         <div class="tab-pane fade" id="tab-domicilios-pane" role="tabpanel" aria-labelledby="tab-domicilios-btn">
-                            <h6 class="f-w-600 mb-2 text-dark"><i class="ti ti-map-pin me-1 text-primary"></i> Direcciones Registradas</h6>
+                            <h6 class="f-w-600 mb-2 text-dark"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Direcciones Registradas</h6>
                             <div id="fichaContenedorDirecciones" class="table-responsive"></div>
                         </div>
 
                         <!-- Panel 4: Representación Legal -->
                         <div class="tab-pane fade" id="tab-representacion-pane" role="tabpanel" aria-labelledby="tab-representacion-btn">
-                            <h6 class="f-w-600 mb-2 text-dark"><i class="ti ti-tie me-1 text-primary"></i> Representantes Legales Registrados</h6>
+                            <h6 class="f-w-600 mb-2 text-dark"><i class="fa-solid fa-user-tie me-1 text-primary"></i> Representantes Legales Registrados</h6>
                             <div id="fichaContenedorRepresentantes" class="table-responsive"></div>
                         </div>
                     </div>

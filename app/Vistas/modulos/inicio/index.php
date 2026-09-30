@@ -18,7 +18,7 @@ use App\Core\Vista;
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="badge bg-success px-3 py-2 b-r-8 f-s-12">
-                                <i class="ti ti-check me-1"></i> <?= Vista::e($datosSistema['estado'] ?? 'Operativo') ?>
+                                <i class="fa-solid fa-check me-1"></i> <?= Vista::e($datosSistema['estado'] ?? 'Operativo') ?>
                             </span>
                             <span class="badge bg-light-primary text-primary px-3 py-2 b-r-8 f-s-12">
                                 <?= Vista::e($datosSistema['entorno'] ?? 'Local') ?>
@@ -31,7 +31,7 @@ use App\Core\Vista;
                     </div>
                     <div class="d-flex gap-2">
                         <a href="https://localhost/app.casa-pro/admin-dashboard/documentation/index.html" target="_blank" class="btn btn-outline-secondary b-r-10 d-flex align-items-center gap-2">
-                            <i class="ti ti-book f-s-18"></i> Documentación Alina
+                            <i class="fa-solid fa-book f-s-18"></i> Documentación Alina
                         </a>
                     </div>
                 </div>
@@ -46,7 +46,7 @@ use App\Core\Vista;
         <div class="card equal-card border-0 shadow-sm b-r-16 h-100">
             <div class="card-body p-4">
                 <div class="h-45 w-45 d-flex-center b-r-12 bg-light-primary text-primary mb-3">
-                    <i class="ti ti-brand-php f-s-24"></i>
+                    <i class="fa-brands fa-php f-s-24"></i>
                 </div>
                 <h5 class="card-title fw-bold text-dark mb-2">PHP 8.3 Nativo</h5>
                 <p class="card-text text-secondary f-s-14">
@@ -64,11 +64,11 @@ use App\Core\Vista;
         <div class="card equal-card border-0 shadow-sm b-r-16 h-100">
             <div class="card-body p-4">
                 <div class="h-45 w-45 d-flex-center b-r-12 bg-light-success text-success mb-3">
-                    <i class="ti ti-layout-dashboard f-s-24"></i>
+                    <i class="fa-solid fa-table-cells-large f-s-24"></i>
                 </div>
                 <h5 class="card-title fw-bold text-dark mb-2">Alina Bootstrap 5</h5>
                 <p class="card-text text-secondary f-s-14">
-                    Derivada fielmente de <code>blank.html</code>. Utiliza Lexend Deca, Tabler Icons, SimpleBar y CSS compilado oficial.
+                    Derivada fielmente de <code>blank.html</code>. Utiliza Fira Sans, Font Awesome, SimpleBar y CSS compilado oficial.
                 </p>
                 <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
                     <span class="text-secondary f-s-13">Referencia:</span>
@@ -82,7 +82,7 @@ use App\Core\Vista;
         <div class="card equal-card border-0 shadow-sm b-r-16 h-100">
             <div class="card-body p-4">
                 <div class="h-45 w-45 d-flex-center b-r-12 bg-light-warning text-warning mb-3">
-                    <i class="ti ti-shield-check f-s-24"></i>
+                    <i class="fa-solid fa-shield-halved f-s-24"></i>
                 </div>
                 <h5 class="card-title fw-bold text-dark mb-2">Gobernanza y RBAC</h5>
                 <p class="card-text text-secondary f-s-14">
@@ -100,7 +100,7 @@ use App\Core\Vista;
         <div class="card equal-card border-0 shadow-sm b-r-16 h-100">
             <div class="card-body p-4">
                 <div class="h-45 w-45 d-flex-center b-r-12 bg-light-info text-info mb-3">
-                    <i class="ti ti-device-laptop f-s-24"></i>
+                    <i class="fa-solid fa-laptop f-s-24"></i>
                 </div>
                 <h5 class="card-title fw-bold text-dark mb-2">Responsive & Temas</h5>
                 <p class="card-text text-secondary f-s-14">

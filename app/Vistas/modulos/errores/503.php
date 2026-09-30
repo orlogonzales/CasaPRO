@@ -25,5 +25,5 @@ use App\Core\Vista;
 </div>
 
 <a class="btn btn-lg app-btn bg-gradient-primary text-white" href="<?= Vista::url() ?>" role="button">
-    <i class="ti ti-arrow-bar-to-left f-s-20 align-text-top me-1"></i> Volver al Inicio
+    <i class="fa-solid fa-arrow-left f-s-18 align-text-top me-1"></i> Volver al Inicio
 </a>

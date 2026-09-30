@@ -44,6 +44,9 @@ declare(strict_types=1);
 
         <!-- Pie de página y botón tap-to-top -->
         <?php require __DIR__ . '/parciales/pie-pagina.php'; ?>
+
+        <!-- Contenedor del Personalizador de Tema Alina -->
+        <div id="theme-customizer-box"></div>
     </div>
 </div>
 
