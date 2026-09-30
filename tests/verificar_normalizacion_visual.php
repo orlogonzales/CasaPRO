@@ -288,6 +288,52 @@ verificar(
 );
 
 // --------------------------------------------------------------------------
+// 7. Pseudo-elementos Font Awesome y Erradicación de Tabler en CSS
+// --------------------------------------------------------------------------
+echo "\n[7] Pseudo-elementos Font Awesome y Erradicación en CSS:\n";
+
+verificar(
+    !str_contains($styleCss, 'tabler-icons') && !str_contains($responsiveCss, 'tabler-icons'),
+    'Cero referencias a tabler-icons en hojas de estilo adaptadas (style.css y responsive.css)',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    !str_contains($styleCss, '\eb0b') && !str_contains($styleCss, '\eaf2'),
+    'Cero glifos residuales de tabler (\eb0b y \eaf2) en CSS adaptado',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($styleCss, '.main-side-nav .main-side-menu > ul:not(.collapse) > li:not(.no-sub) > a::after') &&
+    str_contains($styleCss, 'content: "\f054" !important;') &&
+    str_contains($styleCss, 'font-family: "Font Awesome 6 Free" !important;'),
+    'Indicador de submenú cerrado implementa Font Awesome 6 Free con glifo chevron-right (\f054)',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($styleCss, '.main-side-nav .main-side-menu > ul:not(.collapse) > li [aria-expanded=true]::after') &&
+    str_contains($styleCss, 'content: "\f078" !important;'),
+    'Indicador de submenú abierto implementa Font Awesome 6 Free con glifo chevron-down (\f078)',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($styleCss, '.breadcrumb li + li::before') &&
+    str_contains($styleCss, 'content: "\f054" !important;'),
+    'Separador de breadcrumb implementa Font Awesome 6 Free con chevron-right (\f054)',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+verificar(
+    str_contains($styleCss, '.theme-color-list li:after') &&
+    str_contains($styleCss, 'content: "\f00c";'),
+    'Checkmarks del Theme Customizer implementan Font Awesome 6 Free con check (\f00c)',
+    $errorBuffer, $totalPruebas, $pruebasPasadas
+);
+
+// --------------------------------------------------------------------------
 // Resumen
 // --------------------------------------------------------------------------
 echo "\n====================================================\n";

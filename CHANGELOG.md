@@ -3,6 +3,31 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Corrección Visual: Migración de Indicadores de Submenú y Pseudo-Elementos a Font Awesome] — 2026-09-30
+
+### Corregido
+- **Indicadores de Submenú en Navegación Lateral (`public/assets/css/style.css`):**
+  - Erradicación del cuadro vacío en opciones con submenús (e.g. "Tableros de Control", "Gestión de Personas", "Estructura Catastral").
+  - Sustitución de `font-family: "tabler-icons"` y glifos `\eb0b` (plus) / `\eaf2` (minus) por `Font Awesome 6 Free` con peso `900`.
+  - Glifo para submenú cerrado: `\f054` (`fa-chevron-right`).
+  - Glifo para submenú abierto (`[aria-expanded=true]::after`): `\f078` (`fa-chevron-down`).
+  - Adaptación simétrica para diseño RTL (`.layout-rtl`): `\f053` (`fa-chevron-left`) cerrado y `\f078` abierto.
+  - Adición de `padding-right: 2.2rem` en enlaces con submenús para garantizar separación clara con badges y texto.
+- **Erradicación Integral de `tabler-icons` en Pseudo-Elementos CSS (`style.css` y `responsive.css`):**
+  - Separadores de migas de pan (`.breadcrumb li + li::before` y `.breadcrumbs li + li::before`): migrados de `\ea61` a `\f054` (`fa-chevron-right`) con `Font Awesome 6 Free` 900.
+  - Acordeones interactivos (`.app-accordion .accordion-button::after` y variantes): migrados a `\f078` (down) y `\f077` (up).
+  - Flechas de Slick Slider (`.app-arrow .slick-prev:before`, `.slick-next:before`): migradas a `\f053` (left) y `\f054` (right).
+  - Iconos de copia en galería (`.icon-list .icon-box:hover::after`): migrado a `\f0c5` (`fa-copy`).
+  - Controles de formulario personalizados (`dash-form-check`, `light-form-check`, `form-image-box`, `filled-checkbox-list`, `event-list`): migrados a `\f00c` (`fa-check`) y `\f111` (`fa-circle`).
+  - Flecha de selección Select2 (`.select2-selection__arrow b:after`): migrada a `\f078` (`fa-chevron-down`).
+  - Listas de características en tarjetas de precios (`.plans-section .features li::before`): migrada a `\f00c` (`fa-check`).
+  - Checkmarks del Theme Customizer (`.theme-color-list li:after`, `.theme-layout-list li .layout:before`): migrados a `\f00c` (`fa-check`).
+  - Eliminación de la variable CSS residual `--tabler-icons` en `style.css` y `responsive.css`.
+- **Suite de Pruebas de Normalización Visual (`tests/verificar_normalizacion_visual.php`):**
+  - Incorporación del Bloque 7 para auditar exhaustivamente la ausencia total de `tabler-icons` y de los glifos `\eb0b` / `\eaf2` en hojas de estilo adaptadas, elevando la suite a 33/33 PASS.
+
+---
+
 ## [Microfase: Oficialización del Patrón CRUD Asíncrono en Gobernanza y Arquitectura] — 2026-09-30
 
 ### Añadido

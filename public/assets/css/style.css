@@ -284,7 +284,6 @@
   --sidebar-width: 22rem;
   --semi-side-nav: 4rem;
   --theme-fonts: "Fira Sans", sans-serif;
-  --tabler-icons: tabler-icons;
   --box-shadow: 0 0.15625rem 0.625rem 0 rgba(var(--dark),0.10);
   --hover-shadow: 0 0.5rem 2rem var(--light-gray);
   --app-transition: all 0.3s ease;
@@ -11682,7 +11681,7 @@ code[class*=language-], pre[class*=language-] {
   color: rgba(var(--primary), 1);
 }
 .main-side-nav .main-side-menu > ul:not(.collapse) > li [aria-expanded=true]::after {
-  content: "\eaf2" !important;
+  content: "\f078" !important;
   color: rgba(var(--primary), 1) !important;
 }
 .main-side-nav .main-side-menu > ul:not(.collapse) > li .another-level > a, .main-side-nav .main-side-menu > ul:not(.collapse) > li:not(.no-sub) > a {
@@ -11690,22 +11689,27 @@ code[class*=language-], pre[class*=language-] {
   position: relative;
   display: flex;
   align-items: center;
+  padding-right: 2.2rem;
 }
 .main-side-nav .main-side-menu > ul:not(.collapse) > li .another-level > a::after, .main-side-nav .main-side-menu > ul:not(.collapse) > li:not(.no-sub) > a::after {
-  font-family: "tabler-icons" !important;
-  content: "\eb0b";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f054" !important;
   width: 16px;
   height: 16px;
   color: rgba(var(--secondary), 1);
   border-radius: 4px;
   transition: var(--app-transition);
   position: absolute;
-  font-size: 1rem;
-  top: 12px;
-  right: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 15px;
+  right: 14px;
 }
 .main-side-nav .main-side-menu > ul:not(.collapse) > li .another-level a::after {
-  top: 4px;
+  top: 8px;
 }
 .main-side-nav .main-side-menu > ul:not(.collapse) > li .another-level ul {
   margin-top: 0;
@@ -12058,8 +12062,12 @@ main .page-title {
   position: relative;
 }
 .layout-rtl .main-side-nav .main-side-menu > ul:not(.collapse) > li .another-level > a::after, .layout-rtl .main-side-nav .main-side-menu > ul:not(.collapse) > li:not(.no-sub) > a::after {
-  left: 12px;
+  left: 14px;
   right: auto;
+  content: "\f053" !important;
+}
+.layout-rtl .main-side-nav .main-side-menu > ul:not(.collapse) > li [aria-expanded=true]::after {
+  content: "\f078" !important;
 }
 .layout-rtl .main-side-nav .main-side-menu a + ul li a:before {
   left: auto;
@@ -16468,9 +16476,12 @@ body.dark .smarter-card .text-white {
   font-weight: 500;
 }
 .breadcrumb li + li::before {
-  font-family: "tabler-icons";
-  content: "\ea61" !important;
-  padding: 0 !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f054" !important;
+  font-size: 0.65rem;
+  padding: 0 0.5rem !important;
+  color: rgba(var(--secondary), 0.7);
 }
 .breadcrumb li + li.active {
   color: rgba(var(--primary), 1);
@@ -16544,9 +16555,12 @@ body.dark .smarter-card .text-white {
   align-items: center;
 }
 .breadcrumbs li + li::before {
-  font-family: "tabler-icons";
-  content: "\ea61" !important;
-  padding: 0 !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f054" !important;
+  font-size: 0.65rem;
+  padding: 0 0.5rem !important;
+  color: rgba(var(--secondary), 0.7);
 }
 .breadcrumbs li a {
   color: rgba(var(--secondary), 1) !important;
@@ -21422,63 +21436,75 @@ code[class*=language-], pre[class*=language-] {
   box-shadow: none !important;
 }
 .app-accordion .accordion-item .accordion-button:not(.collapsed)::after {
-  content: "\ea62" !important;
+  content: "\f077" !important;
   transform: none !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-button::after {
   background-image: none;
-  content: "\ea5f";
-  font-family: var(--tabler-icons);
+  content: "\f078";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon:not(.collapsed)::after {
-  content: "\ea5f" !important;
+  content: "\f078" !important;
   transform: none !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon::after {
   background-image: none;
-  content: "\ea60";
-  font-family: var(--tabler-icons);
+  content: "\f054";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon2:not(.collapsed)::after {
-  content: "\eb30" !important;
-  font-size: 20px;
+  content: "\f068" !important;
+  font-size: 16px;
   margin-bottom: 6px;
-  font-family: var(--tabler-icons);
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon2::after {
   background-image: none;
-  content: "\eaf8";
-  font-size: 20px;
+  content: "\2b";
+  font-size: 16px;
   margin-bottom: 6px;
-  font-family: var(--tabler-icons);
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon3:not(.collapsed)::after {
-  content: "\eade" !important;
+  content: "\f068" !important;
   transform: none !important;
-  font-size: 20px;
+  font-size: 16px;
   margin-bottom: 6px;
-  font-family: var(--tabler-icons);
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon3::after {
   background-image: none;
-  content: "\eb46";
-  font-size: 20px;
+  content: "\2b";
+  font-size: 16px;
   margin-bottom: 6px;
-  font-family: var(--tabler-icons);
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon4:not(.collapsed)::after {
-  content: "\eae1" !important;
+  content: "\f077" !important;
   transform: none !important;
-  font-size: 20px;
+  font-size: 16px;
   margin-bottom: 6px;
-  font-family: var(--tabler-icons);
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 .app-accordion .accordion-item .accordion-icon4::after {
   background-image: none;
-  content: "\eae2";
-  font-size: 20px;
+  content: "\f078";
+  font-size: 16px;
   margin-bottom: 6px;
-  font-family: var(--tabler-icons);
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
 }
 
 .accordion-primary .accordion-item {
@@ -25403,22 +25429,25 @@ code[class*=language-], pre[class*=language-] {
 }
 .app-arrow .slick-prev:before,
 .app-arrow .slick-next:before {
-  font-family: "tabler-icons" !important;
-  font-size: 28px;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  font-size: 20px;
   background-color: rgb(var(--primary), 0.9) !important;
   width: 35px;
   height: 35px;
   border-radius: 50%;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px;
   opacity: 0;
   transition: all 0.6s ease-in-out;
 }
 .app-arrow .slick-prev:before {
-  content: "\ea60";
+  content: "\f053";
 }
 .app-arrow .slick-next:before {
-  content: "\ea61";
+  content: "\f054";
 }
 .app-arrow .slick-dots li {
   width: 10px;
@@ -27378,13 +27407,15 @@ input[type=range]::-webkit-slider-thumb {
   top: 0;
   padding-top: 5px;
   background-color: rgba(var(--white), 1);
-  font-family: "tabler-icons" !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   z-index: 1;
   opacity: 0.3;
 }
 .icon-list .icon-box:hover::after {
-  content: "\ea7a";
-  font-family: "tabler-icons" !important;
+  content: "\f0c5";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   position: absolute;
   top: 10px;
   right: 10px;
@@ -27684,7 +27715,8 @@ body.dark .app-form select option selected {
   border: 2px dashed rgba(var(--success), 1);
 }
 .form-check:not(.form-check.form-switch).dash-form-check .form-check-input:checked:after {
-  font-family: "tabler-icons" !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   font-size: 10px;
   position: absolute;
   top: 0;
@@ -27695,10 +27727,10 @@ body.dark .app-form select option selected {
   box-shadow: none;
 }
 .form-check:not(.form-check.form-switch).dash-form-check .form-check-input[type=radio]:checked:after {
-  content: "\f671";
+  content: "\f111";
 }
 .form-check:not(.form-check.form-switch).dash-form-check .form-check-input[type=checkbox]:checked:after {
-  content: "\ea5e";
+  content: "\f00c";
   font-size: 14px;
   top: -3px;
   font-weight: 900;
@@ -27713,7 +27745,8 @@ body.dark .app-form select option selected {
   --bs-form-check-bg-image: none;
 }
 .form-check:not(.form-check.form-switch).light-form-check .form-check-input:checked:after {
-  font-family: "tabler-icons" !important;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   font-size: 10px;
   position: absolute;
   top: 1px;
@@ -27721,10 +27754,10 @@ body.dark .app-form select option selected {
   color: rgb(var(--primary), 1);
 }
 .form-check:not(.form-check.form-switch).light-form-check .form-check-input[type=radio]:checked:after {
-  content: "\f671";
+  content: "\f111";
 }
 .form-check:not(.form-check.form-switch).light-form-check .form-check-input[type=checkbox]:checked:after {
-  content: "\ea5e";
+  content: "\f00c";
   font-size: 14px;
   top: -3px;
   font-weight: 900;
@@ -27743,21 +27776,22 @@ body.dark .app-form select option selected {
   left: 20px;
 }
 .form-image-box .check-image-input:checked ~ .check-box:before {
-  font-family: "tabler-icons" !important;
-  content: "\ea5e";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f00c";
   background-color: rgb(var(--primary), 1);
   font-size: 16px;
   padding-left: 2px;
   line-height: 18px;
-  font-weight: 600;
 }
 .form-image-box .check-image-input:checked ~ .check-box:after {
   background-color: rgba(var(--dark), 0);
   backdrop-filter: blur(0px);
 }
 .form-image-box .check-image-input:checked ~ .radio-box:before {
-  font-family: "tabler-icons" !important;
-  content: "\f671";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f111";
   background-color: rgb(var(--primary), 1);
   font-size: 10px;
   text-align: center;
@@ -27830,13 +27864,14 @@ body.dark .app-form select option selected {
   border-color: rgba(var(--white), 1);
 }
 .filled-checkbox-list .filled-item input:checked + .box::after {
-  font-family: "tabler-icons" !important;
-  content: "\ea5e";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f00c";
   color: rgba(var(--primary), 1);
-  font-size: 16px;
+  font-size: 14px;
   position: absolute;
-  left: -1px;
-  top: -5px;
+  left: 1px;
+  top: 0px;
 }
 .filled-checkbox-list .filled-item .box {
   width: 18px;
@@ -27867,13 +27902,14 @@ body.dark .app-form select option selected {
   background: transparent;
 }
 .event-list .event-item input:checked + .check::after {
-  font-family: "tabler-icons" !important;
-  content: "\ea5e";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  content: "\f00c";
   color: rgba(var(--success), 1);
-  font-weight: bold;
+  font-size: 14px;
   position: absolute;
-  top: -2px;
-  left: 2px;
+  top: 1px;
+  left: 3px;
 }
 .event-list .event-item .check {
   width: 22px;
@@ -28612,8 +28648,10 @@ body.dark .app-form select option selected {
   border-color: rgb(var(--secondary)) transparent transparent transparent;
 }
 .app-form .select2-container--default .select2-selection--single .select2-selection__arrow b:after {
-  content: "\ea5f";
-  font-family: "tabler-icons";
+  content: "\f078";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  font-size: 0.75rem;
   position: absolute;
 }
 .app-form .select2-container--default .select2-selection--single .select2-selection__clear {
@@ -30925,13 +30963,13 @@ section .container-fluid {
   font-size: 14px;
 }
 .plans-section .landing-pricing-card .features li::before {
-  content: "\ea5e";
-  font-family: "tabler-icons" !important;
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   position: absolute;
   left: 0;
   top: 0;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 14px;
 }
 
 .landing-footer {
@@ -31283,14 +31321,15 @@ section .container-fluid {
   outline-offset: 2px;
 }
 .theme-color-list li:after {
-  content: "\ebe6";
-  font-family: tabler-icons;
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   position: absolute;
   left: 50%;
   top: 50%;
   right: 0;
   transform: translate(-50%, -50%);
-  font-size: 20px;
+  font-size: 16px;
   opacity: 0;
   visibility: hidden;
   transition: var(--app-transition);
@@ -31344,19 +31383,21 @@ section .container-fluid {
 }
 .theme-layout-list li .layout:before,
 .theme-sidebar-variant-list li .layout:before {
-  content: "\ea5e";
-  font-family: "tabler-icons" !important;
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   position: absolute;
   height: 20px;
   width: 20px;
-  line-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: rgba(var(--success), 1);
   border-radius: 100%;
   color: rgba(var(--white), 1);
   right: -5px;
   top: -5px;
-  padding-left: 2px;
-  font-size: 14px;
+  font-size: 11px;
   opacity: 0;
   visibility: hidden;
 }
