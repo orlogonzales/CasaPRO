@@ -210,7 +210,7 @@ class EmpresaRepositorio
             $sql .= " WHERE e.estado = :estado";
         }
 
-        $sql .= " ORDER BY e.nombre_corto ASC, e.id ASC";
+        $sql .= " ORDER BY e.codigo ASC, e.nombre_corto ASC, e.id ASC";
 
         $stmt = $conn->prepare($sql);
         if ($filtroEstado !== null) {

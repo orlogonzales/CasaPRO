@@ -165,7 +165,7 @@ class AsignacionTerritorialRepositorio
                 WHERE uer.`usuario_id` = :usuario_id
                   AND uer.`estado` = 'ACTIVO'
                   AND e.`estado` = 'ACTIVO'
-                ORDER BY e.`nombre_corto` ASC, e.`id` ASC";
+                ORDER BY e.`codigo` ASC, e.`nombre_corto` ASC, e.`id` ASC";
 
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);

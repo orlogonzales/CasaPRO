@@ -9,6 +9,7 @@ use App\Controladores\AutenticacionControlador;
 use App\Controladores\UsuarioControlador;
 use App\Controladores\MenuControlador;
 use App\Controladores\EmpresaControlador;
+use App\Controladores\ContextoControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
 
@@ -306,6 +307,22 @@ return function (Enrutador $enrutador): void {
         '/api/empresas/{id}/estado',
         [EmpresaControlador::class, 'cambiarEstado'],
         [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('empresas.cambiar_estado')]
+    );
+
+    // -------------------------------------------------------------------------
+    // Contexto Territorial y Selector Corporativo (Microfase 2D)
+    // Política: Autenticación requerida y validación en tiempo real en servicio
+    // -------------------------------------------------------------------------
+    $enrutador->post(
+        '/api/contexto/cambiar-empresa',
+        [ContextoControlador::class, 'cambiarEmpresa'],
+        [AutenticacionMiddleware::class]
+    );
+
+    $enrutador->get(
+        '/api/contexto/empresas',
+        [ContextoControlador::class, 'listarEmpresasDisponibles'],
+        [AutenticacionMiddleware::class]
     );
 };
 

@@ -19,6 +19,9 @@ use App\Core\Vista;
 <!-- App JS oficial de Alina (manejo de sidebar, navegación, modo oscuro y responsive) -->
 <script src="<?= Vista::asset('js/script.js') ?>"></script>
 
+<!-- Selector Corporativo de Empresa Activa (Microfase 2D) -->
+<script src="<?= Vista::asset('js/nucleo/selector-empresa.js') ?>"></script>
+
 <!-- Scripts específicos inyectados por cada módulo/pantalla -->
 <?php if (!empty($jsAdicionales)): ?>
     <?php foreach ($jsAdicionales as $archivoJs): ?>

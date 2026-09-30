@@ -165,20 +165,33 @@ class ScopeMiddleware
     }
 
     /**
-     * Inspecciona si el cliente intentó enviar un empresa_id en GET, POST o JSON.
+     * Inspecciona exhaustivamente todas las fuentes soportadas por Peticion para detectar
+     * si el cliente intentó suministrar o alterar un empresa_id (Gate Anti-IDOR Multifuente).
      */
     private function extraerEmpresaIdCliente(Peticion $peticion): ?int
     {
         // 1. Query parameters (?empresa_id=X)
-        $deQuery = $peticion->obtenerQuery('empresa_id');
+        $deQuery = $peticion->obtenerConsulta('empresa_id') ?? $peticion->obtenerQuery('empresa_id');
         if ($deQuery !== null && is_numeric($deQuery) && (int) $deQuery > 0) {
             return (int) $deQuery;
         }
 
-        // 2. Body parameters / JSON payload (empresa_id)
-        $deBody = $peticion->obtener('empresa_id');
-        if ($deBody !== null && is_numeric($deBody) && (int) $deBody > 0) {
-            return (int) $deBody;
+        // 2. Parámetros de cuerpo POST / formulario multipart
+        $deCuerpo = $peticion->obtenerCuerpo('empresa_id');
+        if ($deCuerpo !== null && is_numeric($deCuerpo) && (int) $deCuerpo > 0) {
+            return (int) $deCuerpo;
+        }
+
+        // 3. Payload JSON ({"empresa_id": X})
+        $json = $peticion->obtenerJson();
+        if (isset($json['empresa_id']) && is_numeric($json['empresa_id']) && (int) $json['empresa_id'] > 0) {
+            return (int) $json['empresa_id'];
+        }
+
+        // 4. Parámetro unificado de petición
+        $deGeneral = $peticion->obtener('empresa_id');
+        if ($deGeneral !== null && is_numeric($deGeneral) && (int) $deGeneral > 0) {
+            return (int) $deGeneral;
         }
 
         return null;

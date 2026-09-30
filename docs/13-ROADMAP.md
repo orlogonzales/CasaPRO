@@ -88,7 +88,20 @@ flowchart TD
   - Cero llamadas a `$.ajax()` en código propio de CasaPRO (jQuery exclusivo para plugins DataTables/Select2 de Alina).
   - Cero métodos ni rutas DELETE físicas (inmutabilidad empresarial y ciclo de vida por estado).
   - Trazabilidad y auditoría forense append-only con Actor USER real (`mb-fase2c-administracion-empresas`).
-- **Microfase 2D (Pendiente):** Selector Corporativo: Selector interactivo en topbar Alina, empresa activa en sesión, cambio en caliente sin relogin y recálculo dinámico de contexto.
+- **Microfase 2D (Cerrada):** Selector Corporativo / Contexto Activo en Topbar y Conmutación en Caliente:
+  - Cero DDL (0 migraciones consumidas, ranura `000013` permanece libre e intacta).
+  - Selector interactivo responsive en barra superior (`barra-superior.php`) basado en Alina (`blank.html`), con dropdown interactivo Bootstrap 5 (`data-bs-toggle="dropdown"`, cero doble toggle en activador), badges contextuales con tooltips oficiales (`data-bs-toggle="tooltip"` y `data-bs-title`), y soporte dual desktop (nombre corto truncado) y móvil (código corporativo compacto).
+  - MVC desacoplado estricto: `barra-superior.php` y `Vista.php` libres de acoplamiento al dominio Empresa (cero instanciación de repositorios o `AutorizacionServicio` en la vista ni en el motor genérico de vistas). Inyección orquestada en `BaseControlador` mediante `ContextoServicio::obtenerDatosParaLayout()`.
+  - Orden canónico determinista en repositorios y servicios: `ORDER BY e.codigo ASC, e.nombre_corto ASC, e.id ASC`.
+  - Sesión única como fuente de verdad territorial: `$_SESSION['contexto_empresa_id']` exclusiva (cero duplicación de nombres ni códigos corporativos en sesión).
+  - Auto-selección determinista canónica en login (`AutenticacionServicio::autenticar()` paso 9) para usuarios con asignaciones o SUPERADMIN, y `null` para usuarios huérfanos.
+  - Endpoints REST `/api/contexto/empresas` (GET) y `/api/contexto/cambiar-empresa` (POST) protegidos por `AutenticacionMiddleware` y CSRF.
+  - Conmutación en caliente en `ContextoServicio::cambiarEmpresa()` con 5 factores de validación: autenticación activa + token CSRF + validación DTO estricta (`CambiarContextoEmpresaDTO`) + empresa `ACTIVO` en BD + pertenencia territorial activa en BD (`puedeAccederEmpresa`).
+  - Blindaje preventivo de contextos subordinados: eliminación atómica de `contexto_proyecto_id` y `contexto_sector_id` al conmutar de empresa (preparación para Fase 3).
+  - Gate Anti-IDOR multifuente reforzado en `ScopeMiddleware`: inspección simultánea de Query String, cuerpo POST y Payload JSON con rechazo estricto HTTP 403 Forbidden y telemetría de seguridad.
+  - Detección en caliente de empresa inactivada en BD (HTTP 409 Conflict y desalojo de sesión).
+  - Detección en caliente de revocación de asignación territorial por incremento de `version_autorizacion` (HTTP 401 Unauthorized y desalojo de sesión).
+  - Frontend interactivo Vanilla JavaScript ES6+ (`public/assets/js/nucleo/selector-empresa.js`) con `window.fetch()`, buscador en tiempo real dentro del dropdown, diálogo de confirmación SweetAlert2 y recarga limpia de página documentada como excepción arquitectónica de conmutación de ámbito (`mb-fase2d-selector-corporativo`).
 
 ### Fase 3 — Catastro, Lotes y Módulo GIS
 - Jerarquía catastral: Proyectos $\rightarrow$ Sectores $\rightarrow$ Manzanas $\rightarrow$ Lotes.

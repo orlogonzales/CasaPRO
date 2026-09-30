@@ -2,6 +2,65 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 2D: Selector Corporativo / Contexto Activo en Topbar y Conmutación en Caliente] — 2026-09-30
+
+### Añadido
+- **Cero DDL y Ranura 000013 Intacta:**
+  - Cero cambios estructurales de base de datos; la ranura de migración `000013` permanece estrictamente libre y sin consumir.
+  - Esquema consolidado inalterado: 28 tablas, 239 columnas, 122 índices, 34 FKs y 12 migraciones históricas (`SQL/casa-pro.sql`).
+- **Servicio Desacoplado de Contexto Corporativo (`App\Servicios\ContextoServicio`):**
+  - Orquestador desacoplado para la resolución y mutación territorial del usuario activo.
+  - `obtenerDatosParaLayout(int $usuarioId)`: consolida de forma segura el contexto activo (`empresa_activa`), la colección de empresas disponibles (`empresas_disponibles`) y los metadatos de visualización para el layout maestro, sin acoplar las vistas al dominio ni a la persistencia.
+  - `obtenerEmpresasDisponibles(int $usuarioId)`: obtiene el catálogo territorial accesible bajo orden canónico determinista.
+  - `cambiarEmpresa(int $usuarioId, int $nuevaEmpresaId)`: conmutación en caliente blindada por 5 factores:
+    1. Verificación de autenticación de usuario.
+    2. Validación de integridad de entrada mediante DTO estricto (`CambiarContextoEmpresaDTO`).
+    3. Existencia y estado `ACTIVO` de la empresa destino en base de datos.
+    4. Pertenencia territorial activa del usuario en la empresa destino (`puedeAccederEmpresa`).
+    5. Invalidación preventiva obligatoria de contextos subordinados (`contexto_proyecto_id` y `contexto_sector_id`) en preparación para Fase 3.
+  - Auditoría forense mínima no sensible: registro de acción `CAMBIO_CONTEXTO_EMPRESA` en la tabla `auditorias` registrando `empresa_id` y `codigo`, omitiendo razones sociales o datos civiles.
+- **Inyección Desacoplada en `BaseControlador` y Preservación de `Vista.php`:**
+  - `App\Core\Vista` preservada intacta como motor de renderizado genérico agnóstico al dominio.
+  - `App\Controladores\BaseControlador::renderizar()`: inyecta automáticamente los `$datosContexto` provistos por `ContextoServicio` al invocar layouts de tipo `'maestro'`, manteniendo el desacoplamiento MVC.
+- **DTO de Validación Estricta (`App\DTOs\Contexto\CambiarContextoEmpresaDTO`):**
+  - Allowlist estricta con rechazo ante campos inesperados y validación de identificador de empresa entero positivo.
+- **Controlador REST de Contexto (`App\Controladores\ContextoControlador`) y Rutas:**
+  - `GET /api/contexto/empresas`: listado de empresas activas asignadas al usuario con bandera `es_activa`.
+  - `POST /api/contexto/cambiar-empresa`: endpoint transaccional protegido por `AutenticacionMiddleware` y CSRF para conmutar el contexto activo.
+- **Resolución Determinista en Login (`App\Servicios\AutenticacionServicio`):**
+  - Paso 9 agregado en `autenticar()`: auto-selección de la primera empresa disponible según orden canónico determinista (`ORDER BY e.codigo ASC, e.nombre_corto ASC, e.id ASC`), asignación a `$_SESSION['contexto_empresa_id']` y limpieza de contextos subordinados.
+  - Usuarios huérfanos sin empresas asignadas conservan `contexto_empresa_id = null` sin abortar el inicio de sesión.
+- **Gate Anti-IDOR Multifuente Reforzado (`App\Middlewares\ScopeMiddleware`):**
+  - Extracción e inspección exhaustiva de identificadores de empresa del cliente en Query String (`$_GET`), cuerpo de petición POST (`$_POST`), Payload JSON decodificado (`php://input`) y parámetros generales de petición.
+  - Detección inmediata de discordancias respecto a `$_SESSION['contexto_empresa_id']`, bloqueo estricto con HTTP 403 Forbidden y telemetría de seguridad en `eventos_seguridad`.
+  - Detección en caliente de empresas inactivadas en base de datos (HTTP 409 Conflict y desalojo automático de sesión).
+- **Selector Visual Responsive en Alina Topbar (`barra-superior.php`):**
+  - Ubicado en la barra superior antes de las notificaciones, ensamblado con componentes oficiales de Alina Bootstrap 5 (`blank.html`).
+  - Dropdown interactivo `#dropdownBotonEmpresa` con único `data-bs-toggle="dropdown"` (cero doble toggle).
+  - Badges contextuales de empresa activa (`#etiquetaEmpresaActivaDesktop` y `#etiquetaEmpresaActivaMovil`) con tooltips nativos oficiales (`data-bs-toggle="tooltip"` y `data-bs-title="..."`).
+  - Menú desplegable `#menuDesplegableEmpresas` con buscador en tiempo real (`#inputBuscarEmpresa`), lista scrolleable de empresas disponibles con código corporativo, nombre corto y badge 'Activa', y botón 'Administrar Empresas' visible para usuarios autorizados.
+  - Vistas adaptadas: desktop con truncado elíptico seguro (`text-truncate`, max-width 180px) y móvil compacta con código corporativo.
+  - Cero instanciación de servicios ni repositorios en el archivo de vista.
+- **Módulo JavaScript Vanilla ES6+ (`public/assets/js/nucleo/selector-empresa.js`):**
+  - Encapsulado bajo el namespace global `window.CasaProSelectorEmpresa`.
+  - Comunicación asíncrona mediante `window.fetch()` nativo (cero `$.ajax()`, cero `$.get()`, cero `$.post()`).
+  - Filtrado en tiempo real en el buscador del dropdown sin peticiones redundantes.
+  - Confirmación SweetAlert2 y recarga limpia de página documentada formalmente como excepción arquitectónica obligatoria para rehidratar el árbol de menús y scopes subordinados.
+- **Suite de Pruebas Automatizadas 2D (`tests/verificar_selector_corporativo_2d.php`):**
+  - 73 pruebas automatizadas cubriendo los 10 bloques normativos de la microfase (100% PASS):
+    1. Persistencia DDL=0 y ranura 000013 intacta.
+    2. Fixtures y selección determinista en Login.
+    3. Endpoint GET /api/contexto/empresas.
+    4. Endpoint POST /api/contexto/cambiar-empresa (casos 200, 403, 404, 409, 422, 401).
+    5. Blindaje preventivo de contextos subordinados (Fase 3).
+    6. Auditoría forense mínima no sensible.
+    7. Detección en caliente de empresa inactivada en BD.
+    8. Detección en caliente de revocación de rol territorial.
+    9. Gate Anti-IDOR multifuente fail-closed.
+    10. Integridad Frontend, MVC desacoplado, tooltips y DELTA casapro = 0.
+
+---
+
 ## [Microfase 2C: Administración Web de Empresas] — 2026-09-30
 
 ### Añadido

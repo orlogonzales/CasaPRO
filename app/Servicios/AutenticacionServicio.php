@@ -42,6 +42,7 @@ class AutenticacionServicio
     private SeguridadRepositorio $seguridadRepositorio;
     private PersonaRepositorio $personaRepositorio;
     private AuditoriaServicio $auditoriaServicio;
+    private AutorizacionServicio $autorizacionServicio;
 
     public function __construct(
         ?ProveedorConexion $proveedorConexion = null,
@@ -49,7 +50,8 @@ class AutenticacionServicio
         ?RolRepositorio $rolRepositorio = null,
         ?SeguridadRepositorio $seguridadRepositorio = null,
         ?PersonaRepositorio $personaRepositorio = null,
-        ?AuditoriaServicio $auditoriaServicio = null
+        ?AuditoriaServicio $auditoriaServicio = null,
+        ?AutorizacionServicio $autorizacionServicio = null
     ) {
         $this->proveedorConexion = $proveedorConexion ?? new ProveedorConexion();
         $this->usuarioRepositorio = $usuarioRepositorio ?? new UsuarioRepositorio($this->proveedorConexion);
@@ -57,6 +59,11 @@ class AutenticacionServicio
         $this->seguridadRepositorio = $seguridadRepositorio ?? new SeguridadRepositorio($this->proveedorConexion);
         $this->personaRepositorio = $personaRepositorio ?? new PersonaRepositorio($this->proveedorConexion);
         $this->auditoriaServicio = $auditoriaServicio ?? new AuditoriaServicio($this->proveedorConexion);
+        $this->autorizacionServicio = $autorizacionServicio ?? new AutorizacionServicio(
+            $this->proveedorConexion,
+            $this->usuarioRepositorio,
+            $this->rolRepositorio
+        );
     }
 
     /**
@@ -240,6 +247,20 @@ class AutenticacionServicio
             GestorSesion::establecer('auth', $datosAuth);
             GestorSesion::establecer('actor_id', $usuario->obtenerActorId());
             $contexto->establecerActorId($usuario->obtenerActorId());
+
+            // 9. Resolución Determinista del Contexto Empresarial Inicial (Microfase 2D)
+            $empresasDisponibles = $this->autorizacionServicio->obtenerEmpresasDisponiblesParaUsuario($usuario->obtenerId());
+            if (!empty($empresasDisponibles)) {
+                // Selección determinista: primer registro canónico (ORDER BY e.codigo ASC, e.nombre_corto ASC, e.id ASC)
+                $empresaInicialId = (int) $empresasDisponibles[0]['id'];
+                GestorSesion::establecer('contexto_empresa_id', $empresaInicialId);
+            } else {
+                GestorSesion::eliminar('contexto_empresa_id');
+            }
+
+            // Invalidación preventiva obligatoria de contextos subordinados
+            GestorSesion::eliminar('contexto_proyecto_id');
+            GestorSesion::eliminar('contexto_sector_id');
 
             return $datosAuth;
 
