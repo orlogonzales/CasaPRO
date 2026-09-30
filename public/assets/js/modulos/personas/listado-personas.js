@@ -77,6 +77,7 @@
          * Inicializa la pantalla y sus componentes.
          */
         init: function () {
+            const self = this;
             const tablaEl = document.getElementById('tablaPersonas');
             if (!tablaEl) {
                 return;
@@ -88,6 +89,22 @@
             this.inicializarDataTables(tablaEl);
             this.vincularEventosFiltros();
             this.vincularEventosAcciones();
+
+            // Inicializar módulo de formulario de persona (1F)
+            if (window.CasaProFormularioPersona) {
+                window.CasaProFormularioPersona.init({
+                    onExito: function () {
+                        self.recargarTablaConservandoContexto();
+                    }
+                });
+            }
+
+            // Escuchar evento de alerta anti-duplicidad para ver ficha directamente
+            document.addEventListener('casapro:ver-ficha', function (e) {
+                if (e.detail && e.detail.id) {
+                    self.abrirFichaPersona(e.detail.id);
+                }
+            });
         },
 
         /**
@@ -266,13 +283,31 @@
                             return `<span class="text-secondary f-s-13">${formatearFecha(data)}</span>`;
                         }
                     },
-                    // Columna 6: Acciones Funcionales 1E (Solo "Ver Ficha")
+                    // Columna 6: Acciones Funcionales 1F (Ver Ficha, Editar, Cambiar Estado)
                     {
                         data: null,
                         orderable: false,
-                        className: 'text-center',
+                        className: 'text-center text-nowrap',
                         render: function (data, type, row) {
-                            return `<button type="button" class="btn btn-outline-primary btn-sm icon-btn b-r-4 btn-ver-ficha" data-id="${escaparHtml(row.id)}" title="Ver Ficha de Identidad"><i class="fa-solid fa-eye"></i></button>`;
+                            const idEsc = escaparHtml(row.id);
+                            const estadoActual = row.estado || 'ACTIVO';
+                            const esActivo = estadoActual === 'ACTIVO';
+                            const iconoEstado = esActivo ? 'fa-solid fa-toggle-on text-success' : 'fa-solid fa-toggle-off text-secondary';
+                            const tituloEstado = esActivo ? 'Desactivar Persona' : 'Activar Persona';
+
+                            return `
+                                <div class="d-inline-flex gap-1">
+                                    <button type="button" class="btn btn-outline-primary btn-sm icon-btn b-r-4 btn-ver-ficha" data-id="${idEsc}" title="Ver Ficha de Identidad">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm icon-btn b-r-4 btn-editar-persona" data-id="${idEsc}" title="Editar Persona">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm icon-btn b-r-4 btn-cambiar-estado" data-id="${idEsc}" data-estado="${escaparHtml(estadoActual)}" title="${tituloEstado}">
+                                        <i class="${iconoEstado}"></i>
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
                 ]
@@ -327,22 +362,149 @@
         },
 
         /**
-         * Vincula eventos de clic en botones de acción dentro de la tabla.
+         * Vincula eventos de clic en botones de acción dentro de la tabla y botón de alta.
          */
         vincularEventosAcciones: function () {
             const self = this;
+
+            // Botón Nueva Persona (Cabecera)
+            const btnNuevo = document.getElementById('btnNuevaPersona');
+            if (btnNuevo) {
+                btnNuevo.addEventListener('click', function () {
+                    if (window.CasaProFormularioPersona) {
+                        window.CasaProFormularioPersona.abrirCrear();
+                    }
+                });
+            }
+
             const tablaEl = document.getElementById('tablaPersonas');
             if (!tablaEl) return;
 
-            tablaEl.addEventListener('click', function (evento) {
-                const boton = evento.target.closest('.btn-ver-ficha');
-                if (!boton) return;
+            tablaEl.addEventListener('click', async function (evento) {
+                // 1. Ver Ficha 360
+                const botonFicha = evento.target.closest('.btn-ver-ficha');
+                if (botonFicha) {
+                    const personaId = botonFicha.getAttribute('data-id');
+                    if (personaId) self.abrirFichaPersona(personaId);
+                    return;
+                }
 
-                const personaId = boton.getAttribute('data-id');
-                if (personaId) {
-                    self.abrirFichaPersona(personaId);
+                // 2. Editar Persona
+                const botonEditar = evento.target.closest('.btn-editar-persona');
+                if (botonEditar) {
+                    const personaId = botonEditar.getAttribute('data-id');
+                    if (personaId && window.CasaProFormularioPersona) {
+                        window.CasaProFormularioPersona.abrirEditar(personaId);
+                    }
+                    return;
+                }
+
+                // 3. Cambiar Estado (Activar / Desactivar con SweetAlert2 y motivo auditable)
+                const botonEstado = evento.target.closest('.btn-cambiar-estado');
+                if (botonEstado) {
+                    const personaId = botonEstado.getAttribute('data-id');
+                    const estadoActual = botonEstado.getAttribute('data-estado') || 'ACTIVO';
+                    if (personaId) {
+                        self.solicitarCambioEstado(personaId, estadoActual);
+                    }
+                    return;
                 }
             });
+        },
+
+        /**
+         * Despliega diálogo SweetAlert2 para solicitar confirmación y motivo de cambio de estado.
+         */
+        solicitarCambioEstado: function (personaId, estadoActual) {
+            const self = this;
+            const nuevoEstado = estadoActual === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+            const accionVerbo = nuevoEstado === 'ACTIVO' ? 'activar' : 'desactivar';
+
+            if (typeof window.Swal !== 'function') {
+                const motivoPrompt = prompt(`Ingrese el motivo para ${accionVerbo} la persona (requerido para auditoría):`);
+                if (motivoPrompt && motivoPrompt.trim()) {
+                    self.ejecutarCambioEstado(personaId, nuevoEstado, motivoPrompt.trim());
+                }
+                return;
+            }
+
+            window.Swal.fire({
+                title: `¿Desea ${accionVerbo} esta persona?`,
+                html: `Se procederá a cambiar el estado a <strong>${nuevoEstado}</strong>.<br><br>Ingrese el motivo obligatorio para la bitácora de auditoría:`,
+                input: 'text',
+                inputPlaceholder: 'Ej. Cese de actividades comerciales / Solicitud del titular',
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    maxlength: '255'
+                },
+                icon: nuevoEstado === 'ACTIVO' ? 'question' : 'warning',
+                showCancelButton: true,
+                confirmButtonText: `<i class="fa-solid fa-check me-1"></i> Sí, ${accionVerbo}`,
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: nuevoEstado === 'ACTIVO' ? '#0d6efd' : '#dc3545',
+                showLoaderOnConfirm: true,
+                inputValidator: (valor) => {
+                    if (!valor || !valor.trim()) {
+                        return 'El motivo del cambio de estado es obligatorio para fines de auditoría.';
+                    }
+                },
+                preConfirm: async (motivo) => {
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                                          document.querySelector('input[name="_token_csrf"]')?.value || '';
+
+                        const res = await fetch(`${self.apiUrl}/${personaId}/estado`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                            },
+                            body: JSON.stringify({
+                                estado: nuevoEstado,
+                                motivo: motivo.trim()
+                            })
+                        });
+
+                        const json = await res.json();
+                        if (!res.ok) {
+                            throw new Error(json.mensaje || 'Error al actualizar el estado.');
+                        }
+                        return json;
+                    } catch (err) {
+                        window.Swal.showValidationMessage(err.message || 'Error de comunicación.');
+                    }
+                },
+                allowOutsideClick: () => !window.Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.Swal.fire({
+                        icon: 'success',
+                        title: 'Estado Actualizado',
+                        text: `La persona ahora se encuentra en estado ${nuevoEstado}.`,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                    self.recargarTablaConservandoContexto();
+                }
+            });
+        },
+
+        /**
+         * Recarga DataTables conservando el contexto (página, búsqueda, orden)
+         * y retrocediendo de página si la actual queda vacía.
+         */
+        recargarTablaConservandoContexto: function () {
+            if (!this.tabla) return;
+            const self = this;
+
+            this.tabla.ajax.reload(function (json) {
+                const info = self.tabla.page.info();
+                // Si tras el reload la página actual no tiene registros y no es la primera, retroceder
+                if (info.pages > 0 && info.page >= info.pages) {
+                    self.tabla.page('previous').draw('page');
+                }
+            }, false); // false conserva la página actual
         },
 
         /**

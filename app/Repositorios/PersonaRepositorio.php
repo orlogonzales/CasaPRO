@@ -560,4 +560,145 @@ class PersonaRepositorio
             'datos'          => $filas
         ];
     }
+
+    /**
+     * Busca los datos mínimos de identidad de una persona a partir de un documento específico.
+     * Utilizado para verificación anti-duplicidad previa en consultas de identidad.
+     *
+     * @return array{id: int, tipo_persona: string, estado: string, nombre_completo: string}|null
+     */
+    public function buscarPersonaPorDocumento(int $tipoDocumentoId, string $numeroDocumento, ?PDO $conexion = null): ?array
+    {
+        $pdo = $this->obtenerConexion($conexion);
+        $sql = "
+            SELECT
+                p.id,
+                p.tipo_persona,
+                p.estado,
+                CASE
+                    WHEN p.tipo_persona = 'NATURAL' THEN CONCAT(pn.apellido_paterno, ' ', COALESCE(pn.apellido_materno, ''), ', ', pn.nombres)
+                    ELSE pj.razon_social
+                END AS nombre_completo
+            FROM `persona_documentos` doc
+            JOIN `personas` p ON doc.persona_id = p.id
+            LEFT JOIN `persona_natural` pn ON p.id = pn.persona_id
+            LEFT JOIN `persona_juridica` pj ON p.id = pj.persona_id
+            WHERE doc.tipo_documento_id = :tipo_id
+              AND doc.numero_documento = :numero
+              AND doc.estado = 'ACTIVO'
+            LIMIT 1
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':tipo_id', $tipoDocumentoId, PDO::PARAM_INT);
+        $stmt->bindValue(':numero', trim($numeroDocumento), PDO::PARAM_STR);
+        $stmt->execute();
+
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$fila) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $fila['id'],
+            'tipo_persona' => (string) $fila['tipo_persona'],
+            'estado' => (string) $fila['estado'],
+            'nombre_completo' => trim((string) ($fila['nombre_completo'] ?? ''))
+        ];
+    }
+
+    /**
+     * Obtiene los metadatos y reglas de validación de un tipo de documento por su ID.
+     */
+    public function obtenerTipoDocumentoPorId(int $tipoDocumentoId, ?PDO $conexion = null): ?array
+    {
+        $pdo = $this->obtenerConexion($conexion);
+        $stmt = $pdo->prepare("SELECT * FROM `tipos_documento` WHERE `id` = :id AND `estado` = 'ACTIVO' LIMIT 1");
+        $stmt->bindValue(':id', $tipoDocumentoId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $fila ?: null;
+    }
+
+    /**
+     * Obtiene todos los catálogos necesarios para alimentar el modal de formulario de Persona.
+     *
+     * @return array<string, mixed>
+     */
+    public function obtenerCatalogosFormulario(?PDO $conexion = null): array
+    {
+        $pdo = $this->obtenerConexion($conexion);
+
+        $tiposDocumento = $pdo->query("SELECT * FROM `tipos_documento` WHERE `estado` = 'ACTIVO' ORDER BY `orden` ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $sexos = $pdo->query("SELECT * FROM `sexos` WHERE `activo` = 1 ORDER BY `orden` ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $estadosCiviles = $pdo->query("SELECT * FROM `estados_civiles` WHERE `activo` = 1 ORDER BY `orden` ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $tiposContacto = $pdo->query("SELECT * FROM `tipos_contacto` WHERE `activo` = 1 ORDER BY `orden` ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $tiposDireccion = $pdo->query("SELECT * FROM `tipos_direccion` WHERE `activo` = 1 ORDER BY `orden` ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $departamentos = $pdo->query("SELECT * FROM `departamentos` WHERE `activo` = 1 ORDER BY `nombre` ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $paises = $pdo->query("SELECT id, codigo_iso2, nombre, nacionalidad FROM `paises` WHERE `activo` = 1 ORDER BY `nombre` ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'tipos_documento'  => $tiposDocumento,
+            'sexos'            => $sexos,
+            'estados_civiles'  => $estadosCiviles,
+            'tipos_contacto'   => $tiposContacto,
+            'tipos_direccion'  => $tiposDireccion,
+            'departamentos'    => $departamentos,
+            'paises'           => $paises
+        ];
+    }
+
+    /**
+     * Obtiene provincias filtradas por ID de departamento.
+     */
+    public function obtenerProvinciasPorDepartamento(int $departamentoId, ?PDO $conexion = null): array
+    {
+        $pdo = $this->obtenerConexion($conexion);
+        $stmt = $pdo->prepare("SELECT id, departamento_id, codigo_ubigeo, nombre FROM `provincias` WHERE `departamento_id` = :dep_id AND `activo` = 1 ORDER BY `nombre` ASC");
+        $stmt->bindValue(':dep_id', $departamentoId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtiene distritos filtrados por ID de provincia.
+     */
+    public function obtenerDistritosPorProvincia(int $provinciaId, ?PDO $conexion = null): array
+    {
+        $pdo = $this->obtenerConexion($conexion);
+        $stmt = $pdo->prepare("SELECT id, provincia_id, codigo_ubigeo, nombre FROM `distritos` WHERE `provincia_id` = :prov_id AND `activo` = 1 ORDER BY `nombre` ASC");
+        $stmt->bindValue(':prov_id', $provinciaId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Busca la jerarquía UBIGEO (distrito, provincia, departamento) a partir del código de ubigeo (6 dígitos).
+     * Utilizado para autocompletar la cascada geográfica devuelta por consultas tributarias (RUC).
+     */
+    public function buscarJerarquiaUbigeo(string $codigoUbigeo, ?PDO $conexion = null): ?array
+    {
+        $pdo = $this->obtenerConexion($conexion);
+        $sql = "
+            SELECT
+                dis.id AS distrito_id,
+                dis.nombre AS distrito_nombre,
+                pro.id AS provincia_id,
+                pro.nombre AS provincia_nombre,
+                dep.id AS departamento_id,
+                dep.nombre AS departamento_nombre
+            FROM `distritos` dis
+            JOIN `provincias` pro ON dis.provincia_id = pro.id
+            JOIN `departamentos` dep ON pro.departamento_id = dep.id
+            WHERE dis.codigo_ubigeo = :ubigeo AND dis.activo = 1
+            LIMIT 1
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':ubigeo', trim($codigoUbigeo), PDO::PARAM_STR);
+        $stmt->execute();
+
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $fila ?: null;
+    }
 }
+

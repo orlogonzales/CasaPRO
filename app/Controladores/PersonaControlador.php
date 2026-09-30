@@ -16,6 +16,8 @@ use App\DTOs\CrearPersonaDTO;
 use App\DTOs\ActualizarPersonaDTO;
 use App\DTOs\CambiarEstadoPersonaDTO;
 use App\DTOs\ConsultaDataTablesDTO;
+use App\DTOs\ConsultaDocumentoDTO;
+use App\Servicios\ConsultaDocumentoServicio;
 use App\Excepciones\PeticionIncorrectaExcepcion;
 use App\Excepciones\ValidacionExcepcion;
 use App\Excepciones\ReglaNegocioExcepcion;
@@ -31,13 +33,24 @@ use Throwable;
 class PersonaControlador extends BaseControlador
 {
     private PersonaServicio $personaServicio;
+    private PersonaRepositorio $personaRepositorio;
+    private ConsultaDocumentoServicio $consultaDocumentoServicio;
 
-    public function __construct(?PersonaServicio $personaServicio = null)
-    {
+    public function __construct(
+        ?PersonaServicio $personaServicio = null,
+        ?PersonaRepositorio $personaRepositorio = null,
+        ?ConsultaDocumentoServicio $consultaDocumentoServicio = null
+    ) {
+        $conexion = new ProveedorConexion();
+        $this->personaRepositorio = $personaRepositorio ?? new PersonaRepositorio($conexion);
         $this->personaServicio = $personaServicio ?? new PersonaServicio(
-            new ProveedorConexion(),
-            new PersonaRepositorio(new ProveedorConexion()),
+            $conexion,
+            $this->personaRepositorio,
             new AuditoriaServicio()
+        );
+        $this->consultaDocumentoServicio = $consultaDocumentoServicio ?? new ConsultaDocumentoServicio(
+            $conexion,
+            $this->personaRepositorio
         );
     }
 
@@ -47,6 +60,8 @@ class PersonaControlador extends BaseControlador
      */
     public function index(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): string
     {
+        $catalogos = $this->personaRepositorio->obtenerCatalogosFormulario();
+
         return $this->renderizar('modulos/personas/index', [
             'tituloPagina' => 'Directorio de Personas | CasaPRO Inmobiliario',
             'migaPan' => [
@@ -54,12 +69,22 @@ class PersonaControlador extends BaseControlador
                 ['texto' => 'Identidad y Personas', 'url' => null],
                 ['texto' => 'Directorio de Personas', 'url' => null]
             ],
+            'catalogos' => $catalogos,
             'cssAdicionales' => [
-                'vendor/datatable/jquery.dataTables.min.css'
+                'vendor/datatable/jquery.dataTables.min.css',
+                'vendor/select/select2.min.css',
+                'vendor/flatpickr/flatpickr.min.css'
             ],
             'jsAdicionales' => [
                 'vendor/datatable/jquery.dataTables.min.js',
                 'vendor/datatable/dataTables.responsive.min.js',
+                'vendor/sweetalert/sweetalert.js',
+                'vendor/cleavejs/cleave.min.js',
+                'vendor/select/select2.min.js',
+                'vendor/flatpickr/flatpickr.js',
+                'vendor/pristine/pristine.min.js',
+                'js/modulos/personas/consulta-documento.js',
+                'js/modulos/personas/formulario-persona.js',
                 'js/modulos/personas/listado-personas.js'
             ]
         ]);
@@ -208,6 +233,79 @@ class PersonaControlador extends BaseControlador
         } catch (ReglaNegocioExcepcion $e) {
             $codigo = ($e->getCode() >= 400 && $e->getCode() <= 499) ? (int) $e->getCode() : 422;
             $this->responderError($respuesta, $codigo, $e->getMessage(), $e->obtenerErrores(), $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * POST /api/personas/consultar-documento
+     * Consulta asistida de identidad (DNI/RUC) con anti-duplicidad local previa y fallback manual.
+     */
+    public function consultarDocumento(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $idCorrelacion = $this->resolverIdCorrelacion($contexto);
+
+        try {
+            $datos = $this->extraerDatosCuerpo($peticion);
+            $dto = ConsultaDocumentoDTO::desdeArray($datos);
+            $resultado = $this->consultaDocumentoServicio->consultar($dto);
+
+            $this->responderExito(
+                $respuesta,
+                200,
+                $resultado['mensaje'],
+                $resultado,
+                $idCorrelacion
+            );
+        } catch (ValidacionExcepcion $ve) {
+            $this->responderError($respuesta, 422, $ve->getMessage(), $ve->obtenerErrores(), $idCorrelacion);
+        } catch (PeticionIncorrectaExcepcion $pie) {
+            $this->responderError($respuesta, 400, $pie->getMessage(), null, $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * GET /api/ubigeo/provincias
+     * Retorna provincias pertenecientes a un departamento.
+     */
+    public function obtenerProvincias(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $idCorrelacion = $this->resolverIdCorrelacion($contexto);
+
+        try {
+            $departamentoId = isset($_GET['departamento_id']) ? (int) $_GET['departamento_id'] : 0;
+            if ($departamentoId <= 0) {
+                $this->responderError($respuesta, 422, 'El parámetro departamento_id es obligatorio.', ['departamento_id' => ['Valor requerido.']], $idCorrelacion);
+                return;
+            }
+
+            $provincias = $this->personaRepositorio->obtenerProvinciasPorDepartamento($departamentoId);
+            $this->responderExito($respuesta, 200, 'Provincias obtenidas correctamente.', $provincias, $idCorrelacion);
+        } catch (Throwable $t) {
+            $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
+        }
+    }
+
+    /**
+     * GET /api/ubigeo/distritos
+     * Retorna distritos pertenecientes a una provincia.
+     */
+    public function obtenerDistritos(Peticion $peticion, Respuesta $respuesta, array $parametros = [], ?ContextoPeticion $contexto = null): void
+    {
+        $idCorrelacion = $this->resolverIdCorrelacion($contexto);
+
+        try {
+            $provinciaId = isset($_GET['provincia_id']) ? (int) $_GET['provincia_id'] : 0;
+            if ($provinciaId <= 0) {
+                $this->responderError($respuesta, 422, 'El parámetro provincia_id es obligatorio.', ['provincia_id' => ['Valor requerido.']], $idCorrelacion);
+                return;
+            }
+
+            $distritos = $this->personaRepositorio->obtenerDistritosPorProvincia($provinciaId);
+            $this->responderExito($respuesta, 200, 'Distritos obtenidos correctamente.', $distritos, $idCorrelacion);
         } catch (Throwable $t) {
             $this->manejarErrorInterno($t, $respuesta, $idCorrelacion);
         }

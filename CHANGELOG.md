@@ -3,6 +3,30 @@
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
 
+## [Microfase 1F: Alta, Edición, Estados de Personas y Consulta Documental Asistida] — 2026-09-30
+
+### Añadido
+- **Alta y Edición Integral de Personas (`app/Vistas/modulos/personas/index.php`):**
+  - Modal interactivo oficial Alina (`#modalFormularioPersona`, `modal-xl centered scrollable`).
+  - Conmutador reactivo de identidad raíz (Persona Natural vs Persona Jurídica) con alternancia dinámica de campos y obligatoriedades.
+  - Pestañas Alina (`nav-tabs nav-bottom-line`): Datos Principales, Documentos y Contactos, Domicilio y Representación Legal (para Jurídicas).
+  - Precarga de catálogos en JSON seguro (`#datosCatalogosCasaPro`) respetando soberanía relacional de `tipos_documento`, `sexos`, `estados_civiles`, `tipos_contacto`, `tipos_direccion` y `departamentos`.
+  - Cascada geográfica dependiente UBIGEO (Departamento -> Provincias -> Distritos) con endpoints auxiliares `/api/ubigeo/provincias` y `/api/ubigeo/distritos`.
+- **Módulo de Consulta Documental Desacoplada (`app/Servicios/ConsultaDocumentoServicio.php`):**
+  - Endpoint seguro `POST /api/personas/consultar-documento` protegido por `GuardiaActorMiddleware` y CSRF.
+  - DTO de consulta `ConsultaDocumentoDTO` con allowlist estricta (`tipo_documento_id`, `numero_documento`).
+  - **Regla de Oro Anti-Duplicidad Primero:** Verificación previa en `persona_documentos`; si el documento ya existe localmente, retorna `DUPLICADO_LOCAL` con datos mínimos de identidad sin consumir la API externa.
+  - Adaptador desacoplado `ApisPeruAdaptador` implementando `ProveedorDocumentoInterface` con timeout controlado (4s), sanitización de credenciales y mapeo estricto del contrato oficial vigente de `apiperu.dev`.
+  - Fallback manual transparente ante documentos no encontrados, timeouts o fallas del proveedor.
+- **JavaScript Modular Desacoplado:**
+  - `consulta-documento.js`: Cliente reusable `window.CasaProConsultaDocumento` con caché de sesión y prevención de abusos.
+  - `formulario-persona.js`: Controlador `window.CasaProFormularioPersona` con validación declarativa PristineJS, máscaras CleaveJS, selector de fechas Flatpickr, prevención de doble submit con spinner Font Awesome y tratamiento riguroso de HTTP 422 (preservando datos y activando pestaña con error).
+  - `listado-personas.js`: Integración de botones "Ver Ficha", "Editar Persona" y "Cambiar Estado", con diálogo modal SweetAlert2, solicitud de motivo auditable obligatorio y recarga DataTables con preservación de contexto y retroceso si se vacía la página.
+- **Suite de Pruebas Automatizadas 1F (`tests/verificar_formulario_personas_1f.php`):**
+  - 54 pruebas unitarias y de integración cubriendo seguridad, DTOs, anti-duplicidad, mocks de proveedor, alta, edición, estados, cascada UBIGEO, assets Alina y cumplimiento anti-Tabler.
+
+---
+
 ## [Corrección Visual: Migración de Indicadores de Submenú y Pseudo-Elementos a Font Awesome] — 2026-09-30
 
 ### Corregido

@@ -45,4 +45,11 @@ return function (Enrutador $enrutador): void {
     $enrutador->post('/api/personas', [PersonaControlador::class, 'crear'], [GuardiaActorMiddleware::class]);
     $enrutador->put('/api/personas/{id}', [PersonaControlador::class, 'actualizar'], [GuardiaActorMiddleware::class]);
     $enrutador->patch('/api/personas/{id}/estado', [PersonaControlador::class, 'cambiarEstado'], [GuardiaActorMiddleware::class]);
+    $enrutador->post('/api/personas/consultar-documento', [PersonaControlador::class, 'consultarDocumento'], [GuardiaActorMiddleware::class]);
+
+    // -------------------------------------------------------------------------
+    // Catálogos Geográficos (UBIGEO) para Formularios
+    // -------------------------------------------------------------------------
+    $enrutador->get('/api/ubigeo/provincias', [PersonaControlador::class, 'obtenerProvincias'], [GuardiaActorMiddleware::class]);
+    $enrutador->get('/api/ubigeo/distritos', [PersonaControlador::class, 'obtenerDistritos'], [GuardiaActorMiddleware::class]);
 };
