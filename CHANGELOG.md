@@ -2,6 +2,35 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 3B: Sectores Urbanísticos, Histórico de Precios y Balance de Áreas] — 2026-10-01
+
+### Añadido
+- **Consumo de Migración 000014 y Esquema Relacional Consolidado:**
+  - Migración física `SQL/migraciones/2026_10_01_000014_crear_tablas_sectores_y_precios_historicos.sql` ejecutada en la base de datos `casapro` y replicada en `casapro_test`.
+  - Ranura `000015` queda formalmente libre y reservada para Microfase 3C (Manzanas y Lotes).
+  - Esquema relacional oficial `SQL/casa-pro.sql` actualizado a 33 tablas, 305 columnas, 154 índices y 44 FKs (100% verificado en `tests/verificar_persistencia.php`).
+- **Nuevas Tablas Catastrales y Privilegios RBAC:**
+  - `sectores`: sectores o etapas urbanísticas subordinadas a un proyecto inmobiliario, con superficies estandarizadas en `DECIMAL(14,4)` (bruta, útil, cesión institucional/pública, áreas comunes).
+  - `sector_precios_historico`: versionado temporal estricto de precios base por m² (`DECIMAL(12,4)`), con intervalo de vigencia (`fecha_inicio`, `fecha_fin`), inmutabilidad histórica y exactamente un precio vigente activo simultáneamente (`fecha_fin IS NULL`).
+  - 5 privilegios RBAC registrados en `privilegios`: `sectores.ver`, `sectores.crear`, `sectores.editar`, `sectores.cambiar_estado`, `sectores.precios`.
+- **Modelos de Dominio y DTOs Estrictos:**
+  - Modelos PHP 8.3 con tipado estricto: `App\Modelos\Sector` y `App\Modelos\SectorPrecioHistorico` con cálculo de consistencia métrica interna e inmutabilidad temporal.
+  - DTOs con validación estricta y protección anti-polución: `CrearSectorDTO`, `ActualizarSectorDTO`, `CambiarEstadoSectorDTO` y `AjustarPrecioSectorDTO`.
+- **Motor de Balance de Áreas y Reglas de Negocio (`App\Servicios\SectorServicio`):**
+  - Algoritmo determinista `evaluarBalanceAreas()`: cálculo independiente de área registral total vs área topográfica total; diagnóstico de estado topográfico (`COMPLETA`, `PARCIAL`, `PENDIENTE`); calificación obligatoria del balance como `DEFINITIVO` (topografía al 100%) o `PROVISIONAL` (topografía parcial/pendiente, sin mezclar sumas híbridas encubiertas).
+  - Invariante Macro (Anti-Desborde): rechazo preventivo HTTP 422 ante cualquier asignación o modificación de sector cuya área bruta supere el área matriz de referencia del proyecto.
+  - Invariante Local: validación matemática estricta $A_{\text{bruta}} \ge A_{\text{util}} + A_{\text{cesion}} + A_{\text{comun}}$.
+  - Blindaje Temporal de Precios: rechazo de fechas anteriores a la vigencia actual, cierre atómico del precio anterior e inserción de nueva tupla con `fecha_fin = NULL`.
+  - Verificación Anti-IDOR territorial en cascada (Fail-Closed) y trazabilidad forense append-only en `auditorias`.
+- **Controlador REST y Enrutamiento:**
+  - `App\Controladores\SectorControlador` con 8 endpoints REST JSON registrados bajo `/api/proyectos/{id}/sectores`, `/api/proyectos/{id}/balance-areas`, `/api/sectores/{id}`, etc.
+  - Actualización de `ProyectoControlador::ficha()` para inyectar listado de sectores y balance sectorial a la vista Ficha 360°.
+- **Frontend Alina Bootstrap 5 y Vanilla ES6+ Fetch:**
+  - Pestaña `#tab-sectores-btn` en `app/Vistas/modulos/proyectos/ficha.php` con 4 KPI cards de balance, badge dinámico Definitivo/Provisional, semáforo de conciliación, tabla interactiva `#tablaSectores` y 4 modales Bootstrap 5 oficiales (`#modalCrearSector`, `#modalEditarSector`, `#modalPreciosSector`, `#modalCambiarEstadoSector`).
+  - Módulo cliente `public/assets/js/modulos/proyectos/gestion-sectores.js`: Vanilla JavaScript ES6+ con Fetch nativo, reactividad en vivo para sumas de áreas, cero jQuery en lógica propia y actualización asíncrona sin recargas de página.
+- **Suite de Pruebas Automatizadas 3B (`tests/verificar_dominio_sectores_3b.php`):**
+  - 12 bloques con 93 aserciones normativas superadas al 100% PASS, certificando migraciones, esquemas, DTOs, topografía, balances, histórico de precios, Anti-IDOR, ciclo de vida, auditoría, certificación visual en navegador sin warnings/notices, despacho HTTP local y DELTA = 0 en desarrollo.
+
 ## [Microfix Post-3A: Normalización del Contrato de Menú y Corrección de Regresión Visual] — 2026-10-01
 
 ### Corregido

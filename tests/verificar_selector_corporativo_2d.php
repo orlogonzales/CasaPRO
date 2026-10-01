@@ -91,14 +91,14 @@ echo "\n--- BLOQUE 1: Persistencia DDL=0 y Ranura 000013 Intacta ---\n";
 
 $archivosMigraciones = glob(dirname(__DIR__) . '/SQL/migraciones/*.sql') ?: [];
 $migracionesNombres = array_map('basename', $archivosMigraciones);
-$migracion14Existe = false;
+$migracion15Existe = false;
 foreach ($migracionesNombres as $nombre) {
-    if (str_contains($nombre, '000014')) {
-        $migracion14Existe = true;
+    if (str_contains($nombre, '000015')) {
+        $migracion15Existe = true;
         break;
     }
 }
-probar(!$migracion14Existe, "Ranura de migración 000014 permanece libre e intacta en SQL/migraciones");
+probar(!$migracion15Existe, "Ranura de migración 000015 permanece libre para Fase 3C");
 
 $tablas = $conexion->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
 probar(count($tablas) >= 28, "Esquema relacional en casapro_test contiene al menos 28 tablas (actual: " . count($tablas) . ")");

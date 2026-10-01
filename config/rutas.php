@@ -12,6 +12,7 @@ use App\Controladores\EmpresaControlador;
 use App\Controladores\ContextoControlador;
 use App\Controladores\AsignacionTerritorialControlador;
 use App\Controladores\ProyectoControlador;
+use App\Controladores\SectorControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
 use App\Middlewares\ScopeMiddleware;
@@ -443,5 +444,57 @@ return function (Enrutador $enrutador): void {
         '/api/proyectos/{id}/conciliacion-areas',
         [ProyectoControlador::class, 'conciliarAreas'],
         [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.ver')]
+    );
+
+    // -------------------------------------------------------------------------
+    // API REST de Sectores Urbanísticos y Balance de Áreas (Microfase 3B)
+    // Política: Autenticación obligatoria, Scope Territorial y Privilegio Granular
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/api/proyectos/{id}/sectores',
+        [SectorControlador::class, 'listarPorProyecto'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.ver')]
+    );
+
+    $enrutador->get(
+        '/api/proyectos/{id}/balance-areas',
+        [SectorControlador::class, 'balanceAreas'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.ver')]
+    );
+
+    $enrutador->post(
+        '/api/proyectos/{id}/sectores',
+        [SectorControlador::class, 'crear'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.crear')]
+    );
+
+    $enrutador->get(
+        '/api/sectores/{id}',
+        [SectorControlador::class, 'obtener'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.ver')]
+    );
+
+    $enrutador->put(
+        '/api/sectores/{id}',
+        [SectorControlador::class, 'actualizar'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.editar')]
+    );
+
+    $enrutador->patch(
+        '/api/sectores/{id}/estado',
+        [SectorControlador::class, 'cambiarEstado'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.cambiar_estado')]
+    );
+
+    $enrutador->get(
+        '/api/sectores/{id}/precios',
+        [SectorControlador::class, 'listarPrecios'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.ver')]
+    );
+
+    $enrutador->post(
+        '/api/sectores/{id}/precios',
+        [SectorControlador::class, 'ajustarPrecio'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('sectores.precios')]
     );
 };

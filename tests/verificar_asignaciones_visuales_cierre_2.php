@@ -86,10 +86,10 @@ $conteoUsuariosDevInicial = (int) $pdoDev->query('SELECT COUNT(*) FROM `usuarios
 $conteoAsignacionesDevInicial = (int) $pdoDev->query('SELECT COUNT(*) FROM `usuario_empresa_roles`')->fetchColumn();
 $conteoAuditoriasDevInicial = (int) $pdoDev->query('SELECT COUNT(*) FROM `auditorias`')->fetchColumn();
 
-// --- BLOQUE 1: Persistencia DDL=0 y Ranura 000014 Intacta ---
-echo "\n--- BLOQUE 1: Persistencia DDL=0 y Ranura 000014 Intacta ---\n";
-$migracion14 = glob(dirname(__DIR__) . '/SQL/migraciones/*000014*');
-probar(empty($migracion14), 'Ranura de migración 000014 permanece libre e intacta');
+// --- BLOQUE 1: Persistencia DDL=0 y Ranura 000015 Intacta ---
+echo "\n--- BLOQUE 1: Persistencia DDL=0 y Ranura 000015 Intacta ---\n";
+$migracion15 = glob(dirname(__DIR__) . '/SQL/migraciones/*000015*');
+probar(empty($migracion15), 'Ranura de migración 000015 permanece libre para Fase 3C');
 
 $totalTablas = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'casapro_test'")->fetchColumn();
 probar($totalTablas >= 28, "Esquema relacional contiene al menos 28 tablas (actual: {$totalTablas})");

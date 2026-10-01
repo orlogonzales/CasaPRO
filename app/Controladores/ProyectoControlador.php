@@ -110,6 +110,12 @@ class ProyectoControlador extends BaseControlador
         $predios = $this->predioRepositorio->listarPorProyecto($id);
         $conciliacion = $this->proyectoServicio->evaluarConciliacionAreas($id, $empresaId);
 
+        $sectorRepo = new \App\Repositorios\SectorRepositorio();
+        $sectores = $sectorRepo->listarPorProyecto($id);
+
+        $sectorServicio = new \App\Servicios\SectorServicio();
+        $balanceSectores = $sectorServicio->evaluarBalanceAreas($id);
+
         $personaRepo = new \App\Repositorios\PersonaRepositorio();
         $catalogos = $personaRepo->obtenerCatalogosFormulario();
 
@@ -121,11 +127,13 @@ class ProyectoControlador extends BaseControlador
                 ['texto' => 'Proyectos', 'url' => Vista::url('proyectos')],
                 ['texto' => $proyecto['codigo'], 'url' => null]
             ],
-            'proyecto'       => $proyecto,
-            'predios'        => $predios,
-            'conciliacion'   => $conciliacion,
-            'catalogos'      => $catalogos,
-            'tokenCsrf'      => CsrfServicio::obtenerToken(),
+            'proyecto'        => $proyecto,
+            'predios'         => $predios,
+            'conciliacion'    => $conciliacion,
+            'sectores'        => $sectores,
+            'balanceSectores' => $balanceSectores,
+            'catalogos'       => $catalogos,
+            'tokenCsrf'       => CsrfServicio::obtenerToken(),
             'cssAdicionales' => [
                 'vendor/select/select2.min.css',
                 'vendor/leaflet-maps/leaflet.css'
@@ -136,7 +144,8 @@ class ProyectoControlador extends BaseControlador
                 'vendor/pristine/pristine.min.js',
                 'vendor/cleavejs/cleave.min.js',
                 'vendor/leaflet-maps/leaflet.js',
-                'js/modulos/proyectos/ficha-proyecto.js'
+                'js/modulos/proyectos/ficha-proyecto.js',
+                'js/modulos/proyectos/gestion-sectores.js'
             ]
         ]);
     }
