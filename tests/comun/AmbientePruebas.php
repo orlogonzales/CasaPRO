@@ -29,6 +29,9 @@ class AmbientePruebas
     private const TABLAS_MUTABLES = [
         'eventos_seguridad',
         'auditorias',
+        'proyecto_participantes',
+        'proyecto_predios_matriz',
+        'proyectos',
         'usuario_empresa_roles',
         'usuario_roles',
         'usuarios',
@@ -164,7 +167,7 @@ class AmbientePruebas
         $archivosMig = glob($rutaMigraciones . '/*.sql');
         $totalArchivosMig = is_array($archivosMig) ? count($archivosMig) : 0;
 
-        if ($totalTablas < 28 || $totalMigraciones < $totalArchivosMig) {
+        if ($totalTablas < 31 || $totalMigraciones < $totalArchivosMig) {
             $rutaSql = defined('CASAPRO_RAIZ') ? CASAPRO_RAIZ . '/SQL/casa-pro.sql' : dirname(__DIR__, 2) . '/SQL/casa-pro.sql';
             if (!file_exists($rutaSql)) {
                 throw new RuntimeException("No se encontró el esquema oficial en {$rutaSql}");
@@ -206,7 +209,10 @@ class AmbientePruebas
             (6, 4, 'ENLACE', 'OPC_USUARIOS_LISTADO', 'Usuarios y Accesos', 'usuarios', NULL, 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'usuarios.ver'), 'ACTIVO', 1),
             (7, 4, 'ENLACE', 'OPC_MENU_LISTADO', 'Gestión de Menú', 'menu', NULL, 2, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'menu.ver'), 'ACTIVO', 1),
             (8, 2, 'AGRUPADOR', 'GRP_EMPRESAS', 'Estructura Corporativa', NULL, NULL, 3, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'empresas.ver'), 'ACTIVO', 1),
-            (9, 8, 'ENLACE', 'OPC_EMPRESAS_LISTADO', 'Empresas', 'empresas', 'fa-solid fa-building', 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'empresas.ver'), 'ACTIVO', 1)");
+            (9, 8, 'ENLACE', 'OPC_EMPRESAS_LISTADO', 'Empresas', 'empresas', 'fa-solid fa-building', 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'empresas.ver'), 'ACTIVO', 1),
+            (10, NULL, 'AGRUPADOR', 'MOD_CATASTRO', 'Catastro y Territorio', NULL, 'fa-solid fa-map-location-dot', 3, NULL, 'ACTIVO', 1),
+            (11, 10, 'AGRUPADOR', 'GRP_PROYECTOS', 'Desarrollo Urbano', NULL, NULL, 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'proyectos.ver'), 'ACTIVO', 1),
+            (12, 11, 'ENLACE', 'OPC_PROYECTOS_LISTADO', 'Proyectos Inmobiliarios', 'proyectos', 'fa-solid fa-city', 1, (SELECT `id` FROM `privilegios` WHERE `codigo` = 'proyectos.ver'), 'ACTIVO', 1)");
 
         $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
     }

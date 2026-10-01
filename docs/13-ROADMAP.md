@@ -121,8 +121,34 @@ flowchart TD
   - Suite de pruebas exhaustiva de 12 bloques y 62 aserciones al 100% PASS (`mb-fase2-cierre-asignaciones-visuales`).
 
 ### Fase 3 — Catastro, Lotes y Módulo GIS
-- **Definiciones Conceptuales Homologadas y Congeladas (Baseline para Especificación Técnica):**
-  - **Proyecto vs APV Desacoplados:** Entidad `proyectos` con `tipo_proyecto` (`PROPIO`, `CONVENIO_APV`, `ASOCIATIVO`). Desacoplamiento total: la APV es una entidad civil/asociativa (`personas` jurídica) vinculada opcionalmente (`persona_asociativa_id` nullable), sin forzar campos vecinales en proyectos propios ni duplicar modelos.
+- **Microfase 3A (Cerrada):** Dominio de Proyectos y Predios Matrices:
+  - Consumo formal de la migración `000013` (`SQL/migraciones/2026_10_01_000013_crear_tablas_proyectos_y_predios_matriz.sql`).
+  - Ranura de migración `000014` estrictamente libre y reservada para Microfase 3B.
+  - Esquema consolidado oficial ampliado a 31 tablas, 283 columnas, 143 índices y 41 FKs (`SQL/casa-pro.sql`).
+  - Homologación de los 4 Gates Fundacionales:
+    - **GATE 3A-01 (Contrapartes Desacopladas):** Cero `persona_asociada_id` singular en tabla `proyectos`. Creación de la tabla extensible `proyecto_participantes` (1:N) con `tipo_vinculo` (`PROPIETARIO_TERRENO`, `APV_CONVENIO`, `COMUNIDAD_CAMPESINA`, `EMPRESA_ASOCIADA`, `INVERSIONISTA`, `OTRO`), porcentajes de participación y vigencias.
+    - **GATE 3A-02 (Partida Registral Progresiva):** Columna `partida_registral` en `proyecto_predios_matriz` es `NULLable`. Admite predios en saneamiento físico-legal sin forzar partidas ficticias. Unicidad `UNIQUE (proyecto_id, partida_registral)` que admite múltiples `NULL` en MySQL/MariaDB.
+    - **GATE 3A-03 (Levantamiento Topográfico Progresivo):** Columna `area_topografica_m2` en `proyecto_predios_matriz` es `NULLable`. Admite predios pendientes de levantamiento topográfico sin forzar `0.0000` ficticios.
+    - **GATE 3A-04 (Política de Tolerancia Determinista):** Una sola fuente soberana de tolerancia técnica configurada por proyecto (`tipo_tolerancia ENUM('ABSOLUTA_M2', 'PORCENTUAL')` y `valor_tolerancia DECIMAL(8,4)`). Evaluación técnica formal con semáforo de 4 estados (`SIN_PREDIOS`, `PENDIENTE_TOPOGRAFIA`, `CONCILIADO`, `DISCREPANCIA_FUERA_TOLERANCIA`).
+  - **Seguridad Territorial y Anti-IDOR en Cascada (Fail-Closed):**
+    - Todo proyecto y predio matriz valida ascendencia territorial estricta hacia `empresa_id = $_SESSION['contexto_empresa_id']`.
+    - Denegación inmediata con HTTP 403 / 404 ante cualquier discrepancia territorial en parámetros GET, payloads JSON o IDs subordinados.
+  - **Inmutabilidad y DTOs Estrictos:**
+    - Cero mutación de `codigo` y `moneda` una vez creados.
+    - Rechazo de polución de campos con HTTP 422 Unprocessable Content.
+    - Bajas lógicas con conmutación de estado (PATCH) y cero DELETE físico en persistencia.
+  - **UI Alina y Frontend Moderno Vanilla JS ES6+:**
+    - Vistas `app/Vistas/modulos/proyectos/index.php` y `ficha.php` basadas estrictamente en la anatomía de Alina `blank.html`.
+    - Ficha 360° con tabs Alina `nav-bottom-line`, semáforo visual de conciliación de áreas y gestión de predios 1:N.
+    - DataTables server-side con búsqueda multi-columna PDO nativa, ordenamiento por índice/nombre y métricas prediales agregadas.
+    - Cascada geográfica UBIGEO (Departamento $\rightarrow$ Provincia $\rightarrow$ Distrito).
+    - Cero jQuery propio (`window.fetch()` nativo), cero `location.reload()`, diálogos modales Bootstrap 5 y alertas SweetAlert2.
+    - Tag Git: `mb-fase3a-proyectos-predios`.
+- **Microfase 3B (Siguiente):** Dominio de Sectores, Precios Históricos y Tipos de Lote:
+  - Consumirá la ranura de migración `000014`.
+  - Estructuración de sectores subordinados al proyecto con precios base versionados históricamente.
+- **Definiciones Conceptuales Homologadas y Congeladas:**
+  - **Proyecto vs APV Desacoplados:** Entidad `proyectos` con `tipo_proyecto` (`PROPIO`, `CONVENIO_APV`, `ASOCIATIVO`) y contrapartes en `proyecto_participantes`.
   - **Matriz de Precios y Moneda Soberana:**
     - Precios base por m² versionados históricamente a nivel de Sector (`precio_m2_base` con `DECIMAL(12,4)`).
     - Ajustes de precio por lote configurables (`ajustes_precio_lote` para esquinas, frente a parque, avenidas).
@@ -134,7 +160,7 @@ flowchart TD
   - **Separación de Estado Catastral vs Estado Comercial:**
     - `estado_catastral` (`ACTIVO`, `BLOQUEADO_TECNICO`, `INACTIVO` con motivo auditable).
     - `estado_comercial` (`DISPONIBLE`, `RESERVADO`, `VENDIDO`), con acta de entrega formal gobernada en la operación comercial posterior.
-- **Alcance Operativo de Fase 3:**
+- **Alcance Operativo Restante de Fase 3:**
   - Jerarquía catastral territorial: Empresa $\rightarrow$ Proyectos $\rightarrow$ Sectores $\rightarrow$ Manzanas $\rightarrow$ Lotes.
   - Registro detallado de lotes (linderos, metrajes, precios, coordenadas GeoJSON).
   - Integración del mapa interactivo con Leaflet (nativo de Alina) para visualización en tiempo real del plano de lotes.

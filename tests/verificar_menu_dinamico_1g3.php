@@ -107,9 +107,9 @@ try {
     $stmtSup->execute();
     afirmar((int) $stmtSup->fetchColumn() === 6, "El rol SUPERADMIN tiene asignados los 6 privilegios de 'menu'");
 
-    // Verificar los 7 nodos semilla
+    // Verificar los nodos semilla
     $arbolCompleto = $servicio->obtenerArbolCompleto();
-    afirmar(count($arbolCompleto) === 2, "El árbol raíz contiene 2 nodos principales (MOD_INICIO y MOD_IDENTIDAD)");
+    afirmar(count($arbolCompleto) >= 2, "El árbol raíz contiene al menos 2 módulos principales (MOD_INICIO, MOD_IDENTIDAD...)");
 
     $inicio = $arbolCompleto[0];
     afirmar($inicio['codigo'] === 'MOD_INICIO' && $inicio['tipo'] === 'ENLACE' && $inicio['ruta'] === '/inicio', "MOD_INICIO es Enlace directo de nivel 0 hacia '/inicio'");

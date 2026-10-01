@@ -11,8 +11,10 @@ use App\Controladores\MenuControlador;
 use App\Controladores\EmpresaControlador;
 use App\Controladores\ContextoControlador;
 use App\Controladores\AsignacionTerritorialControlador;
+use App\Controladores\ProyectoControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
+use App\Middlewares\ScopeMiddleware;
 
 /**
  * Tabla de enrutamiento oficial de CasaPRO.
@@ -364,5 +366,82 @@ return function (Enrutador $enrutador): void {
         [AsignacionTerritorialControlador::class, 'rolesDisponibles'],
         [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.ver')]
     );
-};
 
+    // -------------------------------------------------------------------------
+    // Vistas y Pantallas del Módulo de Proyectos (Fase 3A)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/proyectos',
+        [ProyectoControlador::class, 'index'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.ver')]
+    );
+
+    $enrutador->get(
+        '/proyectos/{id}',
+        [ProyectoControlador::class, 'ficha'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.ver')]
+    );
+
+    // -------------------------------------------------------------------------
+    // API REST de Proyectos y Predios Matrices (Fase 3A)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/api/proyectos',
+        [ProyectoControlador::class, 'listar'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.ver')]
+    );
+
+    $enrutador->get(
+        '/api/proyectos/{id}',
+        [ProyectoControlador::class, 'obtener'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.ver')]
+    );
+
+    $enrutador->post(
+        '/api/proyectos',
+        [ProyectoControlador::class, 'crear'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.crear')]
+    );
+
+    $enrutador->put(
+        '/api/proyectos/{id}',
+        [ProyectoControlador::class, 'actualizar'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.editar')]
+    );
+
+    $enrutador->patch(
+        '/api/proyectos/{id}/estado',
+        [ProyectoControlador::class, 'cambiarEstado'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.cambiar_estado')]
+    );
+
+    $enrutador->get(
+        '/api/proyectos/{id}/predios',
+        [ProyectoControlador::class, 'listarPredios'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('predios.ver')]
+    );
+
+    $enrutador->post(
+        '/api/proyectos/{id}/predios',
+        [ProyectoControlador::class, 'crearPredio'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('predios.crear')]
+    );
+
+    $enrutador->put(
+        '/api/predios/{id}',
+        [ProyectoControlador::class, 'actualizarPredio'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('predios.editar')]
+    );
+
+    $enrutador->patch(
+        '/api/predios/{id}/estado',
+        [ProyectoControlador::class, 'cambiarEstadoPredio'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('predios.cambiar_estado')]
+    );
+
+    $enrutador->get(
+        '/api/proyectos/{id}/conciliacion-areas',
+        [ProyectoControlador::class, 'conciliarAreas'],
+        [AutenticacionMiddleware::class, ScopeMiddleware::exigir(), AutorizacionMiddleware::exigir('proyectos.ver')]
+    );
+};

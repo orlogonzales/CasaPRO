@@ -2,6 +2,37 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfase 3A: Dominio de Proyectos y Predios Matrices] — 2026-10-01
+
+### Añadido
+- **Consumo de Migración 000013 y Ampliación de Persistencia:**
+  - Migración física `SQL/migraciones/2026_10_01_000013_crear_tablas_proyectos_y_predios_matriz.sql` ejecutada en la base de datos `casapro` y replicada en `casapro_test`.
+  - Ranura `000014` queda formalmente libre y reservada para Microfase 3B.
+  - Esquema relacional oficial `SQL/casa-pro.sql` actualizado a 31 tablas, 283 columnas, 143 índices y 41 FKs (100% verificado en `tests/verificar_persistencia.php`).
+- **Nuevas Tablas del Núcleo Catastral:**
+  - `proyectos`: proyectos inmobiliarios subordinados a la empresa territorial activa con moneda soberana, modalidad técnica y política determinista de tolerancia.
+  - `proyecto_predios_matriz`: relación 1:N de predios matrices sobre los que se desarrolla el proyecto inmobiliario, con datos registrales, notariales, catastrales, áreas y linderos.
+  - `proyecto_participantes`: relación 1:N extensible para contrapartes asociadas (`PROPIETARIO_TERRENO`, `APV_CONVENIO`, `COMUNIDAD_CAMPESINA`, `EMPRESA_ASOCIADA`, `INVERSIONISTA`, `OTRO`).
+- **Privilegios RBAC y Menú Catastral:**
+  - 8 privilegios registrados en `privilegios`: `proyectos.ver`, `proyectos.crear`, `proyectos.editar`, `proyectos.cambiar_estado`, `predios.ver`, `predios.crear`, `predios.editar`, `predios.cambiar_estado`.
+  - Menú dinámico enriquecido con el módulo `MOD_CATASTRO` ("Catastro y GIS"), grupo `GRP_PROYECTOS` y opción `OPC_PROYECTOS_LISTADO` (`proyectos`).
+- **Modelos de Dominio y DTOs Estrictos:**
+  - Modelos PHP 8.3 con tipado estricto: `App\Modelos\Proyecto`, `App\Modelos\ProyectoPredioMatriz`, `App\Modelos\ProyectoParticipante`.
+  - DTOs con validación estricta y protección anti-polución: `CrearProyectoDTO`, `ActualizarProyectoDTO`, `CambiarEstadoProyectoDTO`, `CrearPredioMatrizDTO`, `ActualizarPredioMatrizDTO`, `CambiarEstadoPredioMatrizDTO`.
+- **Repositorios PDO Nativos y Sentencias Preparadas:**
+  - `App\Repositorios\ProyectoRepositorio`: DataTables server-side con búsqueda multi-columna con parámetros disjuntos nativos PDO (`:b1`..`:b4`), métricas prediales agregadas y ordenamiento configurable.
+  - `App\Repositorios\ProyectoPredioMatrizRepositorio`: gestión transaccional de predios matrices y agregación de balance de áreas.
+- **Servicio de Dominio Transaccional (`App\Servicios\ProyectoServicio`):**
+  - Orquestación con transacciones atómicas PDO y verificación Anti-IDOR en cascada (Fail-Closed).
+  - Algoritmo determinista de evaluación de tolerancia de áreas `evaluarConciliacionAreas()` con semáforo de 4 estados (`SIN_PREDIOS`, `PENDIENTE_TOPOGRAFIA`, `CONCILIADO`, `DISCREPANCIA_FUERA_TOLERANCIA`).
+  - Auditoría forense append-only integrada con `AuditoriaServicio`.
+- **Controlador REST y Vistas Alina Bootstrap 5:**
+  - `App\Controladores\ProyectoControlador`: vistas administrativas y endpoints API REST protegidos por autenticación, scope territorial y RBAC.
+  - Vistas `app/Vistas/modulos/proyectos/index.php` (listado DataTables y modales) y `ficha.php` (Ficha 360° con tabs Alina `nav-bottom-line`, semáforo visual y tabla de predios matrices).
+  - Scripts Vanilla JS ES6+ Fetch: `public/assets/js/modulos/proyectos/gestion-proyectos.js` y `ficha-proyecto.js`.
+- **Suite de Pruebas Automatizadas 3A (`tests/verificar_dominio_proyectos_3a.php`):**
+  - 11 bloques con 37 aserciones normativas superadas al 100% PASS, certificando DDL, DTOs, Anti-IDOR, DataTables, semáforo de tolerancia y DELTA = 0 en desarrollo.
+
 ## [Cierre Complementario Fase 2: Gestión Visual de Asignaciones Territoriales (Usuario ↔ Empresa ↔ Rol)] — 2026-09-30
 
 ### Añadido
