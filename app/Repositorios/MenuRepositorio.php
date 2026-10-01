@@ -28,7 +28,7 @@ class MenuRepositorio
     public function obtenerTodos(?PDO $conexion = null): array
     {
         $conn = $this->resolverConexion($conexion);
-        $sql = "SELECT m.*, p.codigo as privilegio_codigo, p.nombre as privilegio_nombre
+        $sql = "SELECT m.*, m.etiqueta AS titulo, p.codigo as privilegio_codigo, p.nombre as privilegio_nombre
                 FROM `menu_opciones` m
                 LEFT JOIN `privilegios` p ON m.privilegio_id = p.id
                 ORDER BY m.padre_id ASC, m.orden ASC, m.id ASC";
@@ -41,7 +41,7 @@ class MenuRepositorio
     public function obtenerActivosVisibles(?PDO $conexion = null): array
     {
         $conn = $this->resolverConexion($conexion);
-        $sql = "SELECT m.*, p.codigo as privilegio_codigo, p.nombre as privilegio_nombre
+        $sql = "SELECT m.*, m.etiqueta AS titulo, p.codigo as privilegio_codigo, p.nombre as privilegio_nombre
                 FROM `menu_opciones` m
                 LEFT JOIN `privilegios` p ON m.privilegio_id = p.id
                 WHERE m.estado = 'ACTIVO' AND m.visible = 1

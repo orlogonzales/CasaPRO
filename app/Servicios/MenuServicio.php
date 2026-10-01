@@ -577,13 +577,33 @@ class MenuServicio
         return ((int) $stmt->fetchColumn()) > 0;
     }
 
+    /**
+     * Normaliza un nodo asegurando que cumpla el contrato canónico requerido por las vistas:
+     * 'titulo', 'etiqueta', 'hijos', 'icono', 'ruta'.
+     *
+     * @param array<string, mixed> $nodo
+     * @return array<string, mixed>
+     */
+    private function normalizarContratoNodo(array $nodo): array
+    {
+        $etiqueta = (string) ($nodo['etiqueta'] ?? $nodo['titulo'] ?? '');
+        $nodo['etiqueta'] = $etiqueta;
+        $nodo['titulo'] = (string) ($nodo['titulo'] ?? $etiqueta);
+        $nodo['icono'] = isset($nodo['icono']) && $nodo['icono'] !== '' ? (string) $nodo['icono'] : null;
+        $nodo['ruta'] = isset($nodo['ruta']) && $nodo['ruta'] !== '' ? (string) $nodo['ruta'] : null;
+        $nodo['hijos'] = $nodo['hijos'] ?? [];
+
+        return $nodo;
+    }
+
     private function construirArbolPodado(array $visiblesPorId): array
     {
-        // Agrupar hijos por padre
+        // Normalizar y agrupar hijos por padre
         $hijosPorPadre = [];
         foreach ($visiblesPorId as $nodo) {
-            $pId = $nodo['padre_id'] !== null ? (int) $nodo['padre_id'] : 'raiz';
-            $hijosPorPadre[$pId][] = $nodo;
+            $nodoNorm = $this->normalizarContratoNodo($nodo);
+            $pId = $nodoNorm['padre_id'] !== null ? (int) $nodoNorm['padre_id'] : 'raiz';
+            $hijosPorPadre[$pId][] = $nodoNorm;
         }
 
         $arbol = [];
@@ -634,8 +654,9 @@ class MenuServicio
     {
         $hijosPorPadre = [];
         foreach ($porId as $nodo) {
-            $pId = $nodo['padre_id'] !== null ? (int) $nodo['padre_id'] : 'raiz';
-            $hijosPorPadre[$pId][] = $nodo;
+            $nodoNorm = $this->normalizarContratoNodo($nodo);
+            $pId = $nodoNorm['padre_id'] !== null ? (int) $nodoNorm['padre_id'] : 'raiz';
+            $hijosPorPadre[$pId][] = $nodoNorm;
         }
 
         $arbol = [];

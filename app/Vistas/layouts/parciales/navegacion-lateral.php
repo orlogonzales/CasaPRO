@@ -87,9 +87,12 @@ if ($raizActivaId === null && !empty($arbolMenu)) {
         <ul class="navbar-menu-list" role="tablist">
             <?php if (!empty($arbolMenu)): ?>
                 <?php foreach ($arbolMenu as $raiz): ?>
-                    <?php $esRaizActiva = ((int) $raiz['id'] === $raizActivaId); ?>
+                    <?php
+                        $esRaizActiva = ((int) $raiz['id'] === $raizActivaId);
+                        $tituloRaiz = (string) ($raiz['titulo'] ?? $raiz['etiqueta'] ?? '');
+                    ?>
                     <li class="nav-item">
-                        <a href="#" class="nav-link <?= $esRaizActiva ? 'active' : '' ?>" data-target="menu_<?= Vista::e($raiz['codigo']) ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= Vista::e($raiz['titulo']) ?>" aria-label="<?= Vista::e($raiz['titulo']) ?>">
+                        <a href="#" class="nav-link <?= $esRaizActiva ? 'active' : '' ?>" data-target="menu_<?= Vista::e($raiz['codigo']) ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="<?= Vista::e($tituloRaiz) ?>" aria-label="<?= Vista::e($tituloRaiz) ?>">
                             <i class="<?= Vista::e(!empty($raiz['icono']) ? $raiz['icono'] : 'fa-solid fa-folder') ?>"></i>
                         </a>
                     </li>
@@ -161,22 +164,26 @@ if ($raizActivaId === null && !empty($arbolMenu)) {
             <div class="main-side-menu">
                 <?php if (!empty($arbolMenu)): ?>
                     <?php foreach ($arbolMenu as $raiz): ?>
-                        <?php $esRaizActiva = ((int) $raiz['id'] === $raizActivaId); ?>
+                        <?php
+                            $esRaizActiva = ((int) $raiz['id'] === $raizActivaId);
+                            $tituloRaiz = (string) ($raiz['titulo'] ?? $raiz['etiqueta'] ?? '');
+                        ?>
                         <ul class="main-menu" id="menu_<?= Vista::e($raiz['codigo']) ?>" style="<?= $esRaizActiva ? 'display: block;' : 'display: none;' ?>">
                             <?php if ($raiz['tipo'] === 'ENLACE'): ?>
                                 <li class="no-sub">
                                     <a href="<?= Vista::url($raiz['ruta'] ?? '') ?>" class="<?= $coincideRuta($raiz['ruta'] ?? '', $rutaActual) ? 'active' : '' ?>">
                                         <?php if (!empty($raiz['icono'])): ?><i class="<?= Vista::e($raiz['icono']) ?> me-2"></i><?php endif; ?>
-                                        <?= Vista::e($raiz['titulo']) ?>
+                                        <?= Vista::e($tituloRaiz) ?>
                                     </a>
                                 </li>
                             <?php else: ?>
                                 <?php foreach ($raiz['hijos'] ?? [] as $hijo1): ?>
+                                    <?php $tituloHijo1 = (string) ($hijo1['titulo'] ?? $hijo1['etiqueta'] ?? ''); ?>
                                     <?php if ($hijo1['tipo'] === 'ENLACE'): ?>
                                         <li class="no-sub">
                                             <a href="<?= Vista::url($hijo1['ruta'] ?? '') ?>" class="<?= $coincideRuta($hijo1['ruta'] ?? '', $rutaActual) ? 'active' : '' ?>">
                                                 <?php if (!empty($hijo1['icono'])): ?><i class="<?= Vista::e($hijo1['icono']) ?> me-2"></i><?php endif; ?>
-                                                <?= Vista::e($hijo1['titulo']) ?>
+                                                <?= Vista::e($tituloHijo1) ?>
                                             </a>
                                         </li>
                                     <?php else: ?>
@@ -184,14 +191,15 @@ if ($raizActivaId === null && !empty($arbolMenu)) {
                                         <li>
                                             <a aria-expanded="<?= $hijo1Activo ? 'true' : 'false' ?>" data-bs-toggle="collapse" href="#submenu_<?= Vista::e($hijo1['codigo']) ?>" class="<?= $hijo1Activo ? '' : 'collapsed' ?>">
                                                 <?php if (!empty($hijo1['icono'])): ?><i class="<?= Vista::e($hijo1['icono']) ?> me-2"></i><?php endif; ?>
-                                                <?= Vista::e($hijo1['titulo']) ?>
+                                                <?= Vista::e($tituloHijo1) ?>
                                             </a>
                                             <ul class="collapse <?= $hijo1Activo ? 'show' : '' ?>" id="submenu_<?= Vista::e($hijo1['codigo']) ?>">
                                                 <?php foreach ($hijo1['hijos'] ?? [] as $hijo2): ?>
+                                                    <?php $tituloHijo2 = (string) ($hijo2['titulo'] ?? $hijo2['etiqueta'] ?? ''); ?>
                                                     <li>
                                                         <a href="<?= Vista::url($hijo2['ruta'] ?? '') ?>" class="<?= $coincideRuta($hijo2['ruta'] ?? '', $rutaActual) ? 'active' : '' ?>">
                                                             <?php if (!empty($hijo2['icono'])): ?><i class="<?= Vista::e($hijo2['icono']) ?> me-2"></i><?php endif; ?>
-                                                            <?= Vista::e($hijo2['titulo']) ?>
+                                                            <?= Vista::e($tituloHijo2) ?>
                                                         </a>
                                                     </li>
                                                 <?php endforeach; ?>

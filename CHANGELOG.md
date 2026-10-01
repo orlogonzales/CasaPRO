@@ -2,6 +2,26 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Microfix Post-3A: Normalización del Contrato de Menú y Corrección de Regresión Visual] — 2026-10-01
+
+### Corregido
+- **Causa Raíz de Advertencias PHP en Barra Lateral:**
+  - Subsanada discrepancia de contrato entre productor de datos (`MenuRepositorio`/`MenuServicio`) y consumidor visual (`navegacion-lateral.php`, `modulos/menu/index.php`), introducida históricamente en Microfase 1G-3 (commit `1430718`).
+  - `MenuRepositorio::obtenerTodos()` y `obtenerActivosVisibles()` proyectaban únicamente columnas físicas `m.*`, donde la columna de etiqueta civil es `etiqueta`, mientras que las vistas y DTOs esperaban la clave canónica `titulo`.
+- **Blindaje del Productor y Normalización Canónica:**
+  - En `MenuRepositorio`, proyectado explícitamente `m.etiqueta AS titulo` en todas las consultas de opciones de menú.
+  - En `MenuServicio`, implementado método `normalizarContratoNodo(array $nodo): array` que garantiza que todo nodo de la estructura jerárquica posea `titulo`, `etiqueta`, `hijos`, `icono` y `ruta` normalizados.
+  - En `app/Vistas/layouts/parciales/navegacion-lateral.php` y `app/Vistas/modulos/menu/index.php`, aplicada resolución segura `$nodo['titulo'] ?? $nodo['etiqueta'] ?? ''` como segunda barrera defensiva limpia.
+- **Auditoría de Enrutamiento:**
+  - `config/rutas.php` auditado contra baseline `f1ccf4c`: se verifica que únicamente contiene las rutas aprobadas de proyectos sin alterar configuraciones de módulos anteriores.
+- **Nueva Suite de Regresión Automatizada (`tests/verificar_render_menu_lateral_post3a.php`):**
+  - Incorporado manejador de errores estricto (`set_error_handler`) que convierte cualquier Notice, Warning o Error PHP en excepción fatal inmediata.
+  - Cobertura de 265 aserciones normativas que validan contrato en repositorio, árbol recursivo en servicio, renderizado directo de `navegacion-lateral.php` en múltiples rutas, renderizado de controladores con layout maestro, y despacho HTTP/HTTPS real contra el servidor web local (Apache/Laragon) con 100% PASS.
+- **Gobernanza y Persistencia:**
+  - Cero DDL / Cero cambios en base de datos.
+  - Ranura de migración `000014` permanece estrictamente libre e intacta para la Microfase 3B.
+  - `DELTA casapro = 0` garantizado en BD de desarrollo.
+
 ## [Microfase 3A: Dominio de Proyectos y Predios Matrices] — 2026-10-01
 
 ### Añadido

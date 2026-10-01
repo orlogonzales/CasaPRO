@@ -16,7 +16,7 @@ $obtenerPadresValidos = function (array $nodos) use (&$obtenerPadresValidos): ar
         if (($nodo['tipo'] ?? '') === 'AGRUPADOR') {
             $padres[] = [
                 'id'     => (int) $nodo['id'],
-                'titulo' => (string) $nodo['titulo'],
+                'titulo' => (string) ($nodo['titulo'] ?? $nodo['etiqueta'] ?? ''),
                 'codigo' => (string) $nodo['codigo'],
                 'nivel'  => 0
             ];
@@ -24,7 +24,7 @@ $obtenerPadresValidos = function (array $nodos) use (&$obtenerPadresValidos): ar
                 if (($hijo['tipo'] ?? '') === 'AGRUPADOR') {
                     $padres[] = [
                         'id'     => (int) $hijo['id'],
-                        'titulo' => '— ' . (string) $hijo['titulo'],
+                        'titulo' => '— ' . (string) ($hijo['titulo'] ?? $hijo['etiqueta'] ?? ''),
                         'codigo' => (string) $hijo['codigo'],
                         'nivel'  => 1
                     ];
@@ -48,6 +48,7 @@ $renderizarOpciones = function (array $nodos, int $nivel = 0) use (&$renderizarO
         $esAgrupador = ($opcion['tipo'] === 'AGRUPADOR');
         $tieneHijos = !empty($opcion['hijos']);
         $esActivo = ($opcion['estado'] === 'ACTIVO');
+        $tituloOpcion = (string) ($opcion['titulo'] ?? $opcion['etiqueta'] ?? '');
         $claseBorde = match ($nivel) {
             0 => 'border-top border-3 border-primary shadow-sm mb-3',
             1 => 'border-start border-3 border-info mb-2',
@@ -76,7 +77,7 @@ $renderizarOpciones = function (array $nodos, int $nivel = 0) use (&$renderizarO
                     </span>
 
                     <span class="fw-bold text-dark fs-6">
-                        <?= Vista::e($opcion['titulo']) ?>
+                        <?= Vista::e($tituloOpcion) ?>
                     </span>
 
                     <span class="badge bg-light text-secondary border">
@@ -114,7 +115,7 @@ $renderizarOpciones = function (array $nodos, int $nivel = 0) use (&$renderizarO
                     <?php if ($esAgrupador && $nivel < 2): ?>
                         <button type="button" class="btn btn-outline-primary btn-sm btn-agregar-hijo"
                                 data-padre-id="<?= $id ?>"
-                                data-padre-titulo="<?= Vista::e($opcion['titulo']) ?>"
+                                data-padre-titulo="<?= Vista::e($tituloOpcion) ?>"
                                 data-padre-nivel="<?= $nivel ?>"
                                 title="Agregar sub-opción">
                             <i class="fa-solid fa-plus me-1"></i>Sub-opción
@@ -136,7 +137,7 @@ $renderizarOpciones = function (array $nodos, int $nivel = 0) use (&$renderizarO
 
                     <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar"
                             data-id="<?= $id ?>"
-                            data-titulo="<?= Vista::e($opcion['titulo']) ?>"
+                            data-titulo="<?= Vista::e($tituloOpcion) ?>"
                             data-hijos="<?= count($opcion['hijos'] ?? []) ?>"
                             title="Eliminar opción">
                         <i class="fa-solid fa-trash"></i>
