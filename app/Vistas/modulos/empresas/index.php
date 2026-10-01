@@ -513,6 +513,11 @@ if (!empty($catalogos['tipos_documento'])) {
                                 <i class="fa-solid fa-user-tie me-1"></i> Representantes
                             </button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-ficha-colaboradores-btn" data-bs-toggle="tab" data-bs-target="#tab-ficha-colaboradores-pane" type="button" role="tab" aria-controls="tab-ficha-colaboradores-pane" aria-selected="false">
+                                <i class="fa-solid fa-users-gear me-1"></i> Colaboradores Asignados
+                            </button>
+                        </li>
                     </ul>
 
                     <div class="tab-content p-4" id="fichaEmpresaTabContent">
@@ -544,6 +549,37 @@ if (!empty($catalogos['tipos_documento'])) {
                         <div class="tab-pane fade" id="tab-ficha-representantes-pane" role="tabpanel" aria-labelledby="tab-ficha-representantes-btn">
                             <h6 class="f-w-600 mb-2 text-dark"><i class="fa-solid fa-user-tie me-1 text-primary"></i> Representantes Legales Inscritos</h6>
                             <div id="fichaContenedorRepresentantes" class="table-responsive"></div>
+                        </div>
+
+                        <!-- Panel 6: Colaboradores Asignados (Vista espejo de solo consulta) -->
+                        <div class="tab-pane fade" id="tab-ficha-colaboradores-pane" role="tabpanel" aria-labelledby="tab-ficha-colaboradores-btn">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h6 class="f-w-600 mb-0 text-dark">
+                                        <i class="fa-solid fa-users-gear me-1 text-primary"></i> Colaboradores con Asignación Territorial
+                                    </h6>
+                                    <span class="text-secondary f-s-12">Usuarios autorizados para operar en el ámbito de esta empresa (vista de consulta/auditoría)</span>
+                                </div>
+                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1" id="badgeTotalColaboradoresEmpresa">0 Asignaciones</span>
+                            </div>
+                            <div id="fichaContenedorColaboradores" class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light-subtle">
+                                        <tr>
+                                            <th scope="col" class="f-s-12">Usuario</th>
+                                            <th scope="col" class="f-s-12">Correo</th>
+                                            <th scope="col" class="f-s-12">Rol Territorial</th>
+                                            <th scope="col" class="f-s-12">Estado Asignación</th>
+                                            <th scope="col" class="f-s-12">Asignado En</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyFichaColaboradores">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-3 text-muted f-s-12">Sin colaboradores asignados.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

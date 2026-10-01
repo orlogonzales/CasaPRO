@@ -1103,20 +1103,28 @@
             }
 
             try {
-                const url = `${self.apiUrl}/${encodeURIComponent(empresaId)}`;
-                const res = await window.fetch(url, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
+                const urlFicha = `${self.apiUrl}/${encodeURIComponent(empresaId)}`;
+                const urlColabs = `/api/empresas/${encodeURIComponent(empresaId)}/colaboradores`;
 
-                if (!res.ok) {
-                    throw new Error(`No se pudo obtener la ficha (HTTP ${res.status}).`);
+                const [resFicha, resColabs] = await Promise.all([
+                    window.fetch(urlFicha, { method: 'GET', headers: { 'Accept': 'application/json' } }),
+                    window.fetch(urlColabs, { method: 'GET', headers: { 'Accept': 'application/json' } })
+                ]);
+
+                if (!resFicha.ok) {
+                    throw new Error(`No se pudo obtener la ficha (HTTP ${resFicha.status}).`);
                 }
 
-                const json = await res.json();
-                const datos = json.datos || {};
-
+                const jsonFicha = await resFicha.json();
+                const datos = jsonFicha.datos || {};
                 self.poblarFichaEmpresa(datos);
+
+                if (resColabs.ok) {
+                    const jsonColabs = await resColabs.json();
+                    self.poblarColaboradoresEmpresa(jsonColabs.datos?.colaboradores || []);
+                } else {
+                    self.poblarColaboradoresEmpresa([]);
+                }
 
                 if (spinner) spinner.classList.add('d-none');
                 if (contenido) contenido.classList.remove('d-none');
@@ -1291,6 +1299,48 @@
             col.appendChild(lbl);
             col.appendChild(val);
             padre.appendChild(col);
+        },
+
+        /**
+         * Despliega la lista de colaboradores asignados a la empresa (vista de consulta).
+         */
+        poblarColaboradoresEmpresa: function (colaboradores) {
+            const tbody = document.getElementById('tbodyFichaColaboradores');
+            const badgeTotal = document.getElementById('badgeTotalColaboradoresEmpresa');
+            if (!tbody) return;
+
+            const lista = Array.isArray(colaboradores) ? colaboradores : [];
+            if (badgeTotal) {
+                badgeTotal.textContent = `${lista.length} Asignaciones`;
+            }
+
+            if (lista.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted f-s-12">Sin colaboradores asignados a esta empresa.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            lista.forEach(c => {
+                const tr = document.createElement('tr');
+                const esActivo = c.estado === 'ACTIVO';
+                const badgeEstado = esActivo
+                    ? '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">ACTIVO</span>'
+                    : '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">INACTIVO</span>';
+
+                tr.innerHTML = `
+                    <td>
+                        <strong class="text-dark f-s-12">${escaparHtml(c.nombre_usuario || '—')}</strong>
+                    </td>
+                    <td class="text-muted f-s-12">${escaparHtml(c.email || '—')}</td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">${escaparHtml(c.rol_codigo || '')}</span>
+                        <span class="text-dark f-s-12 ms-1">${escaparHtml(c.rol_nombre || '')}</span>
+                    </td>
+                    <td>${badgeEstado}</td>
+                    <td class="text-muted f-s-12">${escaparHtml(c.asignado_en || '—')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         },
 
         /**

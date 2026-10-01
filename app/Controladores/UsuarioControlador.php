@@ -12,6 +12,7 @@ use App\Core\GestorSesion;
 use App\Core\CsrfServicio;
 use App\Servicios\UsuarioServicio;
 use App\Repositorios\RolRepositorio;
+use App\Repositorios\AsignacionTerritorialRepositorio;
 use App\DTOs\CrearUsuarioDTO;
 use App\DTOs\ActualizarUsuarioDTO;
 use App\DTOs\CambiarEstadoUsuarioDTO;
@@ -31,13 +32,16 @@ class UsuarioControlador extends BaseControlador
 {
     private UsuarioServicio $usuarioServicio;
     private RolRepositorio $rolRepositorio;
+    private AsignacionTerritorialRepositorio $asignacionRepo;
 
     public function __construct(
         ?UsuarioServicio $usuarioServicio = null,
-        ?RolRepositorio $rolRepositorio = null
+        ?RolRepositorio $rolRepositorio = null,
+        ?AsignacionTerritorialRepositorio $asignacionRepo = null
     ) {
         $this->usuarioServicio = $usuarioServicio ?? new UsuarioServicio();
         $this->rolRepositorio = $rolRepositorio ?? new RolRepositorio();
+        $this->asignacionRepo = $asignacionRepo ?? new AsignacionTerritorialRepositorio();
     }
 
     /**
@@ -87,26 +91,29 @@ class UsuarioControlador extends BaseControlador
         }
 
         $rolesCatalogo = $this->rolRepositorio->listarTodosActivos();
+        $asignacionesTerritoriales = $this->asignacionRepo->listarPorUsuario($id);
 
         return $this->renderizar('modulos/usuarios/ficha', [
-            'tituloPagina'   => 'Ficha de Seguridad — ' . htmlspecialchars($usuario['nombre_usuario'], ENT_QUOTES, 'UTF-8') . ' | CasaPRO',
-            'migaPan'        => [
+            'tituloPagina'              => 'Ficha de Seguridad — ' . htmlspecialchars($usuario['nombre_usuario'], ENT_QUOTES, 'UTF-8') . ' | CasaPRO',
+            'migaPan'                   => [
                 ['texto' => 'Inicio', 'url' => Vista::url()],
                 ['texto' => 'Seguridad', 'url' => null],
                 ['texto' => 'Usuarios', 'url' => Vista::url('usuarios')],
                 ['texto' => 'Ficha de Seguridad', 'url' => null]
             ],
-            'usuario'        => $usuario,
-            'rolesCatalogo'  => $rolesCatalogo,
-            'tokenCsrf'      => CsrfServicio::obtenerToken(),
-            'cssAdicionales' => [
+            'usuario'                   => $usuario,
+            'rolesCatalogo'             => $rolesCatalogo,
+            'asignacionesTerritoriales' => $asignacionesTerritoriales,
+            'tokenCsrf'                 => CsrfServicio::obtenerToken(),
+            'cssAdicionales'            => [
                 'vendor/select/select2.min.css'
             ],
-            'jsAdicionales'  => [
+            'jsAdicionales'             => [
                 'vendor/sweetalert/sweetalert.js',
                 'vendor/select/select2.min.js',
                 'vendor/pristine/pristine.min.js',
-                'js/modulos/usuarios/ficha-usuario.js'
+                'js/modulos/usuarios/ficha-usuario.js',
+                'js/modulos/usuarios/asignaciones-territoriales.js'
             ]
         ]);
     }

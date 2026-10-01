@@ -2,6 +2,67 @@
 
 Todas las modificaciones notables de este proyecto se registrarán cronológicamente en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a la gestión de **Micro-Baselines**.
+## [Cierre Complementario Fase 2: Gestión Visual de Asignaciones Territoriales (Usuario ↔ Empresa ↔ Rol)] — 2026-09-30
+
+### Añadido
+- **Cero DDL y Ranura 000013 Congelada:**
+  - Cero migraciones ejecutadas; la ranura de migración `000013` permanece estrictamente libre e intacta.
+  - Esquema relacional inalterado: 28 tablas, 239 columnas, 122 índices, 34 FKs y 12 migraciones históricas (`SQL/casa-pro.sql`).
+- **Reutilización Estricta de RBAC (Cero Privilegios Nuevos):**
+  - Reutilización de los 4 privilegios de catálogo sembrados en Microfase 2B: `asignaciones.ver`, `asignaciones.crear`, `asignaciones.editar` y `asignaciones.revocar`. Cero privilegios artificiales inventados.
+- **Controlador REST de Asignaciones Territoriales (`App\Controladores\AsignacionTerritorialControlador`):**
+  - Endpoints REST protegidos por `AutenticacionMiddleware` y RBAC:
+    - `GET /api/usuarios/{id}/asignaciones`: consulta de roles territoriales por usuario (`asignaciones.ver`).
+    - `POST /api/usuarios/{id}/asignaciones`: asignación territorial de empresa y rol (`asignaciones.crear`), validada con `AsignarRolEmpresaDTO`.
+    - `PATCH /api/asignaciones/{id}/estado`: revocación o conmutación lógica de estado (`asignaciones.editar`), validada con `RevocarRolEmpresaDTO`.
+    - `GET /api/empresas/{id}/colaboradores`: vista espejo de consulta de colaboradores asignados a una empresa (`asignaciones.ver`).
+    - `GET /api/asignaciones/empresas-disponibles`: catálogo ordenado de empresas activas (`asignaciones.ver`).
+    - `GET /api/asignaciones/roles-disponibles`: catálogo de roles excluyendo deterministamente `SUPERADMIN` (`asignaciones.ver`).
+- **Exclusión Universal de SUPERADMIN en Ámbitos Territoriales:**
+  - Backend: rechazo estricto con HTTP 422 Unprocessable Content ante cualquier intento de asignar `SUPERADMIN` a nivel de empresa.
+  - Frontend: exclusión automática del rol en el endpoint `/api/asignaciones/roles-disponibles` y en el selector Select2.
+- **Soporte Multi-Rol por Empresa y Reactivación Atómica de Tuplas Históricas:**
+  - Soporte de múltiples roles independientes para el mismo usuario en la misma empresa (grilla canónica de 1 fila por tupla Usuario-Empresa-Rol).
+  - Si un usuario ya tuvo previamente una asignación que fue revocada (`INACTIVO`), la nueva asignación reactiva la tupla preexistente preservando su `id` primario, reseteando `revocado_por` / `revocado_en` a `NULL` y actualizando `actualizado_en` (cero filas duplicadas en `usuario_empresa_roles`).
+- **Inmutabilidad y Cero DELETE Físico:**
+  - Las revocaciones son bajas lógicas (`estado = 'INACTIVO'`) con registro forense de `revocado_por` (Actor USER autenticado) y `revocado_en`. Cero borrados físicos en BD.
+- **Invalidación Inmediata de Sesiones Vivas (`version_autorizacion`):**
+  - Toda mutación territorial (asignar, revocar o reactivar) incrementa de forma atómica la `version_autorizacion` del usuario en la tabla `usuarios`, forzando la invalidación en caliente de cualquier sesión activa discordante.
+- **Trazabilidad y Auditoría Forense en `auditorias`:**
+  - Registro de eventos append-only con Actor USER real (`ASIGNAR_ROL_EMPRESA`, `REVOCAR_ROL_EMPRESA`, `REACTIVAR_ROL_EMPRESA`).
+- **Interfaz Visual en Ficha de Usuario (`app/Vistas/modulos/usuarios/ficha.php`):**
+  - Pestaña Alina `Ámbitos Territoriales` (`#tab-territorial`) integrada con el diseño `nav-bottom-line`.
+  - Grilla interactiva `#tablaAsignacionesTerritoriales` con una fila por cada tupla Usuario-Empresa-Rol.
+  - Botón `+ Asignar Empresa y Rol` y diálogo modal Alina Bootstrap 5 (`#modalAsignarRolEmpresa`) con Select2 para selección de Empresa y Rol.
+  - Botones de acción contextuales `Revocar` y `Reactivar` con confirmación SweetAlert2 y refresco dinámico sin recargar la página.
+- **Vista Espejo de Consulta en Ficha 360° de Empresa (`app/Vistas/modulos/empresas/index.php`):**
+  - Pestaña Alina `Colaboradores Asignados` (`#tab-ficha-colaboradores-pane`) dentro del modal `#modalFichaEmpresa`.
+  - Tabla de consulta de colaboradores (`#tbodyFichaColaboradores`) de solo lectura y auditoría (cero mutaciones territoriales desde Empresa).
+- **Módulos JavaScript Vanilla ES6+:**
+  - `public/assets/js/modulos/usuarios/asignaciones-territoriales.js`: controlador cliente con `window.fetch()` nativo, cero jQuery propio, sanitización contra XSS, integración con Select2 (`dropdownParent`) y refresco asíncrono estricto de la grilla (cero recarga de página).
+  - `public/assets/js/modulos/empresas/gestion-empresas.js`: función `poblarColaboradoresEmpresa()` consultando `/api/empresas/${id}/colaboradores` al desplegar la Ficha 360°.
+- **Suite de Pruebas Automatizadas del Cierre Complementario (`tests/verificar_asignaciones_visuales_cierre_2.php`):**
+  - 12 bloques normativos con 62 pruebas unitarias e integrales superadas (100% PASS):
+    1. Esquema relacional, persistencia y 0 DDL.
+    2. Catálogo RBAC y reutilización de 4 privilegios existentes.
+    3. Rutas y protección de endpoints REST.
+    4. Endpoints de soporte para Select2 y exclusión de SUPERADMIN.
+    5. Asignación territorial y soporte multi-rol por empresa.
+    6. Rechazos de dominio y seguridad backend (SUPERADMIN HTTP 422, duplicados HTTP 409, empresa inactiva HTTP 409).
+    7. Revocación lógica (PATCH estado INACTIVO, cero DELETE físico).
+    8. Reactivación de tupla histórica sin duplicación de filas.
+    9. Auditoría forense en `auditorias`.
+    10. Vista espejo de consulta en Empresa (solo lectura).
+    11. Integridad Frontend (Alina tabs, modales, Vanilla JS Fetch, cero jQuery propio).
+    12. Aislamiento y DELTA casapro (desarrollo) = 0.
+- **Congelación de Definiciones Conceptuales para Fase 3 (Baseline):**
+  - Desacoplamiento Proyecto vs APV (`tipo_proyecto` PROPIO / CONVENIO_APV / ASOCIATIVO con `persona_asociativa_id` nullable).
+  - Matriz de precios por m² histórica en Sector (`DECIMAL(12,4)`), ajustes por lote y moneda soberana por proyecto (`DECIMAL(14,2)`).
+  - Manzanas y Lotes con `codigo VARCHAR(20)` y `orden INT UNSIGNED` determinista.
+  - Separación de `estado_catastral` vs `estado_comercial`.
+
+---
+
 ## [Microfase 2D: Selector Corporativo / Contexto Activo en Topbar y Conmutación en Caliente] — 2026-09-30
 
 ### Añadido

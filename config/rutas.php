@@ -10,6 +10,7 @@ use App\Controladores\UsuarioControlador;
 use App\Controladores\MenuControlador;
 use App\Controladores\EmpresaControlador;
 use App\Controladores\ContextoControlador;
+use App\Controladores\AsignacionTerritorialControlador;
 use App\Middlewares\AutenticacionMiddleware;
 use App\Middlewares\AutorizacionMiddleware;
 
@@ -323,6 +324,45 @@ return function (Enrutador $enrutador): void {
         '/api/contexto/empresas',
         [ContextoControlador::class, 'listarEmpresasDisponibles'],
         [AutenticacionMiddleware::class]
+    );
+
+    // -------------------------------------------------------------------------
+    // Asignaciones Territoriales Usuario ↔ Empresa ↔ Rol (Cierre Complementario Fase 2)
+    // -------------------------------------------------------------------------
+    $enrutador->get(
+        '/api/usuarios/{id}/asignaciones',
+        [AsignacionTerritorialControlador::class, 'listarPorUsuario'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.ver')]
+    );
+
+    $enrutador->post(
+        '/api/usuarios/{id}/asignaciones',
+        [AsignacionTerritorialControlador::class, 'asignar'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.crear')]
+    );
+
+    $enrutador->patch(
+        '/api/asignaciones/{id}/estado',
+        [AsignacionTerritorialControlador::class, 'cambiarEstado'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.editar')]
+    );
+
+    $enrutador->get(
+        '/api/empresas/{id}/colaboradores',
+        [AsignacionTerritorialControlador::class, 'listarPorEmpresa'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.ver')]
+    );
+
+    $enrutador->get(
+        '/api/asignaciones/empresas-disponibles',
+        [AsignacionTerritorialControlador::class, 'empresasDisponibles'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.ver')]
+    );
+
+    $enrutador->get(
+        '/api/asignaciones/roles-disponibles',
+        [AsignacionTerritorialControlador::class, 'rolesDisponibles'],
+        [AutenticacionMiddleware::class, AutorizacionMiddleware::exigir('asignaciones.ver')]
     );
 };
 

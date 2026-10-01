@@ -102,11 +102,42 @@ flowchart TD
   - Detección en caliente de empresa inactivada en BD (HTTP 409 Conflict y desalojo de sesión).
   - Detección en caliente de revocación de asignación territorial por incremento de `version_autorizacion` (HTTP 401 Unauthorized y desalojo de sesión).
   - Frontend interactivo Vanilla JavaScript ES6+ (`public/assets/js/nucleo/selector-empresa.js`) con `window.fetch()`, buscador en tiempo real dentro del dropdown, diálogo de confirmación SweetAlert2 y recarga limpia de página documentada como excepción arquitectónica de conmutación de ámbito (`mb-fase2d-selector-corporativo`).
+- **Cierre Complementario Fase 2 (Cerrado):** Gestión Visual de Asignaciones Territoriales (Usuario ↔ Empresa ↔ Rol):
+  - Cero DDL (0 migraciones consumidas, ranura `000013` libre e intacta, `SQL/casa-pro.sql` inalterado).
+  - Persistencia de 28 tablas, 239 columnas, 122 índices y 34 FKs preservada íntegra.
+  - Reutilización estricta de los 4 privilegios RBAC existentes de 2B (`asignaciones.ver`, `asignaciones.crear`, `asignaciones.editar`, `asignaciones.revocar`) con cero privilegios inventados.
+  - Ficha de Usuario (`/usuarios/{id}`): Pestaña Alina `Ámbitos Territoriales` (`#tab-territorial`) integrada con subnavegación `nav-bottom-line`.
+  - Grilla interactiva de 1 fila por tupla canónica `(Usuario, Empresa, Rol)` con ordenamiento determinista por `codigo` corporativo, `nombre_corto` y `rol_id`.
+  - Diálogo modal Alina Bootstrap 5 (`#modalAsignarRolEmpresa`) con Select2 para selección asistida de Empresa y Rol.
+  - Filtro estricto de roles: exclusión de `SUPERADMIN` en el dropdown del frontend y rechazo obligatorio en backend con HTTP 422 Unprocessable Content.
+  - Soporte de múltiples roles por empresa para el mismo usuario sin colisiones ni duplicaciones.
+  - Conmutación asíncrona de estado (Revocar/Reactivar) con diálogo de confirmación SweetAlert2 y refresco dinámico de grilla sin recarga completa de página (`cero location.reload()`).
+  - Reactivación atómica de tuplas históricas inactivas preexistentes: reutilización del mismo registro en `usuario_empresa_roles`, sin duplicidad de tuplas y reseteando `revocado_por` / `revocado_en` a NULL.
+  - Inmutabilidad y cero DELETE físico en base de datos.
+  - Invalidación en caliente de sesiones activas: incremento automático y atómico de `version_autorizacion` ante asignación, revocación y reactivación.
+  - Trazabilidad y auditoría forense completa en tabla `auditorias` (`ASIGNAR_ROL_EMPRESA`, `REVOCAR_ROL_EMPRESA`, `REACTIVAR_ROL_EMPRESA`).
+  - Ficha 360° de Empresa (`/empresas`): Pestaña Alina `Colaboradores Asignados` (`#tab-ficha-colaboradores-pane`) de solo lectura/auditoría (cero mutaciones territoriales desde Empresa).
+  - Controlador REST `App\Controladores\AsignacionTerritorialControlador` y módulo JavaScript Vanilla ES6+ `public/assets/js/modulos/usuarios/asignaciones-territoriales.js`.
+  - Suite de pruebas exhaustiva de 12 bloques y 62 aserciones al 100% PASS (`mb-fase2-cierre-asignaciones-visuales`).
 
 ### Fase 3 — Catastro, Lotes y Módulo GIS
-- Jerarquía catastral: Proyectos $\rightarrow$ Sectores $\rightarrow$ Manzanas $\rightarrow$ Lotes.
-- Registro detallado de lotes (linderos, metrajes, precios, coordenadas GeoJSON).
-- Integración del mapa interactivo con Leaflet (nativo de Alina) para visualización en tiempo real del plano de lotes.
+- **Definiciones Conceptuales Homologadas y Congeladas (Baseline para Especificación Técnica):**
+  - **Proyecto vs APV Desacoplados:** Entidad `proyectos` con `tipo_proyecto` (`PROPIO`, `CONVENIO_APV`, `ASOCIATIVO`). Desacoplamiento total: la APV es una entidad civil/asociativa (`personas` jurídica) vinculada opcionalmente (`persona_asociativa_id` nullable), sin forzar campos vecinales en proyectos propios ni duplicar modelos.
+  - **Matriz de Precios y Moneda Soberana:**
+    - Precios base por m² versionados históricamente a nivel de Sector (`precio_m2_base` con `DECIMAL(12,4)`).
+    - Ajustes de precio por lote configurables (`ajustes_precio_lote` para esquinas, frente a parque, avenidas).
+    - Congelación inmutable del precio final en la operación comercial.
+    - Moneda soberana a nivel de Proyecto (PEN/USD), con montos finales en `DECIMAL(14,2)`.
+  - **Manzanas y Lotes con Código y Orden Determinista:**
+    - `codigo VARCHAR(20)` y `orden INT UNSIGNED`.
+    - Unicidad contextual estricta `(sector_id, codigo)` para Manzanas y `(manzana_id, codigo)` para Lotes.
+  - **Separación de Estado Catastral vs Estado Comercial:**
+    - `estado_catastral` (`ACTIVO`, `BLOQUEADO_TECNICO`, `INACTIVO` con motivo auditable).
+    - `estado_comercial` (`DISPONIBLE`, `RESERVADO`, `VENDIDO`), con acta de entrega formal gobernada en la operación comercial posterior.
+- **Alcance Operativo de Fase 3:**
+  - Jerarquía catastral territorial: Empresa $\rightarrow$ Proyectos $\rightarrow$ Sectores $\rightarrow$ Manzanas $\rightarrow$ Lotes.
+  - Registro detallado de lotes (linderos, metrajes, precios, coordenadas GeoJSON).
+  - Integración del mapa interactivo con Leaflet (nativo de Alina) para visualización en tiempo real del plano de lotes.
 
 ### Fase 4 — CRM Comercial e Inmobiliario
 - Captación de prospectos y bitácora de visitas a terreno.

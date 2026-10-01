@@ -234,7 +234,7 @@ class AsignacionTerritorialRepositorio
             $sql .= " AND uer.`estado` = :estado";
         }
 
-        $sql .= " ORDER BY e.`nombre_corto` ASC, r.`id` ASC";
+        $sql .= " ORDER BY e.`codigo` ASC, e.`nombre_corto` ASC, r.`id` ASC";
 
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
